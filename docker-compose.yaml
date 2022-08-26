@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  frontend:
+    container_name: ft_frontend
+    build:
+      context: "<TODO>"
+    restart: always
+    ports:
+      - "8080:8080"
+    links:
+      - ft_backend
+
+  backend:
+    container_name: ft_backend
+    build:
+      context: "<TODO>"
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+
+  database:
+    container_name: ft_database
+    image: "postgres:14"
+    restart: always
+    env_file:
+      - ./back-end/.env
+    ports:
+      - "4242:4242"
+    volumes:
+      - db:/var/lib/postgresql/data
+
+volumes:
+  db:
+    driver_opts:
+      device: "<TODO>"
