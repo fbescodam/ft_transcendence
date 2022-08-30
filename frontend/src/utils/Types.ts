@@ -9,4 +9,9 @@ export interface Vec3 {
     z: number
 }
 
+export type Score = {
+	p1: number;
+	p2: number;
+}
+
 export {}

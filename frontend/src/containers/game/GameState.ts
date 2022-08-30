@@ -1,15 +1,24 @@
 import Logger from "../../utils/Logger";
+import { Score } from "../../utils/Types";
 import Ball from "./Ball";
 import Paddle from "./Paddle";
 
 /**
  * A game state keeps track of the current state the game.
+ * 
+ * How it will work:
+ * 
+ * 1. Player 1 starts, meaning ball will be sent towards the direction of Player 1's paddle.
+ * 2. In case of rematch, we alternate the direction.
+ * 3. We start slow but at a hit we speed up only once.
+ * 4. Depending on where we hit the paddle we send it towards the direction of a spherical normal of the paddle.
+ * 5. Server has its own game state and verifies and updates the gamestate of clients.
+ * 6. We only ever update each hit, meaning we calculate a direction vector to where the ball will go and a distance.
+ * This keeps updates to a minimum, clients merely replicate the incoming data from the server and then on it inform the server that it has happened.
  */
 class GameState {
-	/** Current score of Player 1.*/
-	public p1Score: number = 0;
-	/** Current score of Player 2.*/
-	public p2Score: number = 0;
+	/** Current score of Player 1 & 2.*/
+	public score: Score = {p1: 0, p2: 0};
 
 	/** The ball.*/
 	public ball: Ball;
