@@ -1,22 +1,32 @@
+import "./Login.scss";
 import React from "react";
 import logo from "../assets/PongLogo.gif";
-import logo42 from "../assets/42-logo.svg";
+import logo42 from "../assets/42Logo.png";
 import Button from "../components/button/Button";
 import Logger from "../utils/Logger";
-import "./Login.scss";
 
 // Login page
 const Login = () => {
 	return (
-		<div className="Login">
-			<header className="Login-header">
-				<img src={logo} className="Login-logo" alt="logo" />
+		<header className="login-header">
+
+			{/* Logo */}
+			<img src={logo} className="login-logo" alt="logo" />
+
+			{/* Welcome + Login */}
+			<div className="login-body">
+				
 				<p>Welcome to BreadPong</p>
+
 				<Button callback={() => { Logger.info("Hello World!"); }}>
-					<p>LOGIN</p>
+					<div className="login-button-content">
+						<img src={logo42} width={32} height={32} alt="logo" />
+						<p>LOGIN</p>
+					</div>
 				</Button>
-			</header>
-		</div>
+			</div>
+
+		</header>
 	);
 };
 
