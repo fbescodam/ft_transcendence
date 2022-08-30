@@ -2,20 +2,21 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 .login-header {
-	color: white;
-	background-color: #282c34;
+	color: var(--foreground);
+	background-color: var(--general-background);
 	min-height: 100vh;
     
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+    gap: 1rem;
     
-	font-size: calc(8px + 2vmin);
+	font-size: calc(16px + 2vmin);
 }
 
 .login-body {
-    display: contents;
+	display: contents;
 }
 
 .login-button-content {
@@ -29,6 +30,12 @@
     text-transform: capitalize;
     font-weight: bold;
     font-size: 14px;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+#login-logo {
+	animation: Login-anim-spin infinite 10s linear;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

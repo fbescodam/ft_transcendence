@@ -9,7 +9,7 @@ class Logger {
 	 */
 	static error = (msg: string) => {
 		console.error(`%c${msg}`, 
-        `font-size: 18px; border-radius: 4px; padding: 8px;`);
+        `color: white; font-size: 14px; border-radius: 4px; padding: 8px; margin: 8px; background-color: #282c34`);
 	};
 
 	/**
@@ -18,7 +18,7 @@ class Logger {
 	 */
 	static info = (msg: string) => {
 		console.info(`%c${msg}`, 
-        `font-size: 18px; border-radius: 4px; padding: 8px;`);
+        `color: white; font-size: 14px; border-radius: 4px; padding: 8px; margin: 8px; background-color: #282c34`);
 	};
 
 	/**
@@ -27,7 +27,7 @@ class Logger {
 	 */
 	static warn = (msg: string) => {
 		console.warn(`%c${msg}`, 
-        `font-size: 18px; border-radius: 4px; padding: 8px;`);
+        `color: white; font-size: 14px; border-radius: 4px; padding: 8px; margin: 8px; background-color: #282c34`);
 	};
 }
 
