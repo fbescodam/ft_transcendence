@@ -4,6 +4,7 @@
   "description": "Surprise",
   "main": "index.js",
   "scripts": {
+    "start": "cd frontend && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
