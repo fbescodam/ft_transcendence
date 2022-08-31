@@ -15,15 +15,16 @@
 	border: solid #434a59 0.15rem;
 	color: white;
 
-	transition: all 0.2s ease-out;
+	transition: all 0.1s ease-out;
     
 	outline: none;
 	&:focus {
-		border-color: whitesmoke;
+		border-color: #7f8594;
 	}
-
+	
 	&:active {
-		border-color: #525a6a;
+		border-color: whitesmoke;
+		box-shadow: -3px 3px 4px 0px rgba(0,0,0,0.39);
 	}
 
 	&:hover {

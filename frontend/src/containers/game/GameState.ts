@@ -1,5 +1,6 @@
 import Logger from "../../utils/Logger";
 import { Score } from "../../utils/Types";
+import { Vec2, Vec3 } from "../../utils/Vector";
 import Ball from "./Ball";
 import Paddle from "./Paddle";
 
@@ -32,12 +33,40 @@ class GameState {
 	/** The canvas drawing context*/
 	private CTX: CanvasRenderingContext2D;
 
-	constructor(inCanvas: HTMLCanvasElement, inCTX: CanvasRenderingContext2D) {
+	constructor(inCanvas: HTMLCanvasElement) {
 		this.canvas = inCanvas;
-		this.CTX = inCTX;
-		this.p1Paddle = new Paddle({x: 0, y: 0}, 0);
-		this.p2Paddle = new Paddle({x: 0, y: 0}, 0);
-		this.ball = new Ball({x: 0, y: 0}, 0, {x: 0, y: 0, z: 0});
+		this.CTX = inCanvas.getContext("2d")!;
+		this.p1Paddle = new Paddle(new Vec2(0, 0), 0, this);
+		this.p2Paddle = new Paddle(new Vec2(0, 0), 0, this);
+		this.ball = new Ball(new Vec2(0, 0), 0, new Vec3(0, 0, 0), this);
+	}
+
+	/** Canvas rendering function */
+	public update() {
+		this.CTX.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		// Draw the elements at their position
+		this.ball.update();
+		this.p1Paddle.update();
+		this.p2Paddle.update();
+
+		// Check if we hit anything.
+
+		let hitObject;
+		if ((hitObject = this.ball.hit())) {
+
+			if (hitObject == "wall")
+				this.ball.direction.y = -this.ball.direction.y;
+			else if (hitObject == "player")
+				this.ball.direction.x = -this.ball.direction.x;
+			else {
+				// Make the ball faster
+				this.ball.speed += 0.5;
+				this.ball.speed = Math.min(Math.max(this.ball.speed, 0.1), 2);
+			}
+		}
+
+		requestAnimationFrame(this.update);
 	}
 }
 
