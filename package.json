@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/fbescodam/ft_transcendence/issues"
   },
-  "homepage": "https://github.com/fbescodam/ft_transcendence#readme"
+  "homepage": "https://github.com/fbescodam/ft_transcendence#readme",
+  "dependencies": {
+    "react-router-dom": "^6.3.0"
+  }
 }

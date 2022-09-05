@@ -12,7 +12,17 @@ const Main = () => {
 				<Navbar />
 			</header>
 			<main className="main-body">
-					<img src="https://thumbs.gfycat.com/DazzlingMajesticChihuahua-size_restricted.gif" />
+				<div id="main-container" className="background-default">
+					{/* Match selection */}
+					<div className="matchmaking">
+						MatchMaking
+					</div>
+
+					{/* Events / global chat */}
+					<div className="global-chat">
+						Chat
+					</div>
+				</div>
 			</main>
 		</div>
 	);

@@ -1,5 +1,5 @@
-import Scoretracker from "../../components/scoretracker/ScoreTracker";
 import "./Scoreboard.scss";
+import Scoretracker from "../../components/scoretracker/ScoreTracker";
 
 /**
  * Displays two user profiles with a score tracker in between

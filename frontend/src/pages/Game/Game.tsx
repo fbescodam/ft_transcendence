@@ -1,6 +1,6 @@
 
-import GameCanvas from "../../containers/GameCanvas/GameCanvas";
-import Scoreboard from "../../containers/Scoreboard/Scoreboard";
+import GameCanvas from "./containers/GameCanvas/GameCanvas";
+import Scoreboard from "./containers/Scoreboard/Scoreboard";
 import "./Game.scss";
 
 // Login page
