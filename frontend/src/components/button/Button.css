@@ -6,11 +6,11 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 19:05:28 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 21:16:03 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.button {
+.button-item {
 	user-select: none;
 	text-decoration: none;
 	border-style: solid;
@@ -31,19 +31,19 @@
 	outline: none;
 }
 
-.button:focus {
+.button-item:focus {
 	border-color: #7f8594;
 }
 
-.button:active {
+.button-item:active {
 	border-color: whitesmoke;
 	box-shadow: -3px 3px 4px 0px rgba(0,0,0,0.39);
 }
 
-.button:hover {
+.button-item:hover {
 	color: white;
 }
 
-.button i {
+.button-item i {
 	margin-right: 0.2rem;
 }

@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 20:59:36 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 21:12:31 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 import { Routes, Route } from "react-router-dom";
+import Login from "../../pages/Login/Login";
 
 import Guard from "../Guard/Guard";
 
@@ -25,7 +26,7 @@ const Router = () => (
         {/* Public routes */}
         <Route path="/" element={<h1>Home Page</h1>} />
         <Route path="/about" element={<h1>About Page</h1>} />
-        <Route path="/login" element={<> </>} />
+        <Route path="/login" element={<Login />} />
 
         {/* Pong debugging */}
         <Route path="/pong" element={<> </>} />
