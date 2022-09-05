@@ -6,25 +6,11 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 21:08:19 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 21:08:27 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 21:20:31 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 /*////////////////////////////////////////////////////////////////////////////*/
-
-.login-header {
-	color: var(--foreground);
-	background-color: var(--general-background);
-	min-height: 100vh;
-    
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-    gap: 1rem;
-    
-	font-size: calc(16px + 2vmin);
-}
 
 .login-body {
 	display: contents;
@@ -42,18 +28,33 @@
     font-weight: bold;
     font-size: 14px;
 }
+
 /*////////////////////////////////////////////////////////////////////////////*/
+
+#login {
+	color: var(--foreground);
+	background-color: var(--general-background);
+	min-height: 100vh;
+    
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+    gap: 1rem;
+    
+	font-size: calc(16px + 2vmin);
+}
 
 #login-logo {
 	width: 20vh;
 	user-select: none;
-	animation: Login-anim-spin infinite 10s linear;
+	animation: spin infinite 10s linear;
 	clip-path: circle(50% at 50% 50%);
 }
 
 /*////////////////////////////////////////////////////////////////////////////*/
 
-@keyframes Login-anim-spin {
+@keyframes spin {
 	from {
 		transform: rotate(0deg);
 	}

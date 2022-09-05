@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 21:16:47 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 21:23:20 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@ import "./Login.css"
 import React from 'react';
 import Button from "../../components/Button";
 import Logger from "../../utils/Logger";
-
+import LogoGIF from "../../assets/Logo.gif"
+import Logo42 from "../../assets/42Logo.png"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -23,10 +24,10 @@ import Logger from "../../utils/Logger";
  */
  const LoginPage = () => {
 	return (
-		<header className="login-header">
+		<div id="login">
 
 			{/* Logo */}
-			<img id="login-logo" alt="FFreek" />
+			<img id="login-logo" src={LogoGIF} alt="Freek" />
 
 			{/* Welcome + Login */}
 			<div className="login-body">
@@ -36,12 +37,12 @@ import Logger from "../../utils/Logger";
 				{/* TODO: Connect to backend */}
 				<Button callback={() => { Logger.info("Hello World!"); }}>
 					<div className="login-button-content">
-						<img  width={32} height={32} alt="42" />
+						<img src={Logo42} width={28} height={28} alt="42" />
 						<p>LOGIN</p>
 					</div>
 				</Button>
 			</div>
-		</header>
+		</div>
 	);
 };
 
