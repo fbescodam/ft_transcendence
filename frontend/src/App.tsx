@@ -5,7 +5,7 @@ import Game from "./pages/Game";
 import Logger from "./utils/Logger";
 
 function App() {
-	return (Login());
+	return (Game());
 }
 
 export default App;

@@ -1,0 +1,10 @@
+#game-canvas {
+    background: radial-gradient(ellipse at bottom, #002534 25%, #090a0f 100%);
+    background-size: cover;
+    background-attachment: fixed;
+	
+	margin-top: 8px;
+	border-radius: 8px;
+	border: solid var(--component-border-color) 0.15rem;
+	box-sizing: border-box;
+}
