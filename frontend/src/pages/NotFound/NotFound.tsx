@@ -1,27 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ScoreTracker.tsx                                   :+:    :+:            */
+/*   Login.tsx                                          :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/07/25 11:38:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 11:49:26 by lde-la-h      ########   odam.nl         */
+/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:13:09 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import "./ScoreTracker.scss";
+import "./Login.css"
+import React from 'react';
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const Scoretracker = () => {
-	return (
-		<div className="score">
-			<span id="p1-score">1</span>
-			<span>:</span>
-			<span id="p2-score">1</span>
-		</div>
-	)
+/**
+ * A button with a text value, a callback and possibly an icon.
+ */
+ const LoginPage = () => {
+    return (
+		<h1>Login Page</h1>
+    );
 };
 
-export default Scoretracker;
+export default LoginPage;

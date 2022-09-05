@@ -1,19 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ScoreTracker.scss                                  :+:    :+:            */
+/*   Chat.tsx                                           :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/07/25 11:40:29 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 11:46:51 by lde-la-h      ########   odam.nl         */
+/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:14:56 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.score {
-	color: white;
-	font-weight: bold;
-	font-size: 32px;
-	font-family: 'Courier New', Courier, monospace;
-	user-select: none;
-}
+import "./Chat.css"
+import React from 'react';
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A button with a text value, a callback and possibly an icon.
+ */
+ const ChatPage = () => {
+    return (
+		<h1>Chat Page</h1>
+    );
+};
+
+export default ChatPage;

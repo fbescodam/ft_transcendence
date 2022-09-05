@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Game.tsx                                           :+:    :+:            */
+/*   Home.tsx                                           :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 19:15:00 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 19:15:36 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import "./Game.css"
+import "./Home.css"
 import React from 'react';
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,10 @@ import React from 'react';
 /**
  * A button with a text value, a callback and possibly an icon.
  */
- const GamePage = () => {
+ const HomePage = () => {
     return (
-		<h1>Game Page</h1>
+		<h1>Home Page</h1>
     );
 };
 
-export default GamePage;
+export default HomePage;

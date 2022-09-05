@@ -1,23 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Separator.scss                                     :+:    :+:            */
+/*   Leaderboard.tsx                                    :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/07/25 11:40:29 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/08/30 19:40:17 by lde-la-h      ########   odam.nl         */
+/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:13:13 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.separator {
-	display: block;
+import "./Leaderboard.css"
+import React from 'react';
 
-	border-radius: 8px;
-	margin: 4px 2px 4px 2px;
+////////////////////////////////////////////////////////////////////////////////
 
-	width: 4px;
-	height: auto;
+/**
+ * A button with a text value, a callback and possibly an icon.
+ */
+ const LeaderboardPage = () => {
+    return (
+		<h1>Leaderboard Page</h1>
+    );
+};
 
-	background-color: var(--component-background);
-}
+export default LeaderboardPage;

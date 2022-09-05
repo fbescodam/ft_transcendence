@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Separator.tsx                                      :+:    :+:            */
+/*   Navbar.tsx                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/07/25 11:38:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/08/25 13:56:25 by W2Wizard      ########   odam.nl         */
+/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:16:33 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import "./Separator.scss";
+import "./Navbar.css";
+import React from "react";
 
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * A separator element that draws a vertical bar with a margin.
+ * A button with a text value, a callback and possibly an icon.
  */
-const Separator = () => {
-	return <div className="separator"></div>;
+const LoginPage = () => {
+	return <h1>Login Page</h1>;
 };
 
-export default Separator;
+export default LoginPage;

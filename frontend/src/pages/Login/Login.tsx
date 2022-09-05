@@ -1,33 +1,27 @@
-import "./Login.scss";
-import React from "react";
-import logo42 from "../../assets/42Logo.png";
-import logoPong from "../../assets/PongLogo.gif";
-import Logger from "../../utils/Logger";
-import Button from "../../components/button/Button";
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Login.tsx                                          :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:13:09 by lde-la-h      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
 
-// Login page
-const Login = () => {
-	return (
-		<header className="login-header">
+import "./Login.css"
+import React from 'react';
 
-			{/* Logo */}
-			<img id="login-logo" src={logoPong} alt="logo" />
+////////////////////////////////////////////////////////////////////////////////
 
-			{/* Welcome + Login */}
-			<div className="login-body">
-				
-				<p>Welcome to BreadPong</p>
-
-				{/* TODO: Connect to backend */}
-				<Button callback={() => { Logger.info("Hello World!"); }}>
-					<div className="login-button-content">
-						<img src={logo42} width={32} height={32} alt="logo" />
-						<p>LOGIN</p>
-					</div>
-				</Button>
-			</div>
-		</header>
-	);
+/**
+ * A button with a text value, a callback and possibly an icon.
+ */
+ const LoginPage = () => {
+    return (
+		<h1>Login Page</h1>
+    );
 };
 
-export default Login;
+export default LoginPage;

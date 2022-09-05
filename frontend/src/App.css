@@ -1,0 +1,75 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   App.css                                            :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/09/05 19:11:21 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/05 19:11:22 by lde-la-h      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
+/*Variables*/
+/*/////////////////////////////////////////////////////////////////////////////*/
+
+:root {
+	--general-background: #282c34;
+
+	--component-background: #1d2028;
+	--component-border-color: #424242;
+
+	--foreground: #ecf0f1;
+	--foreground-unfocused: #a0a0a0;
+
+	--transition-speed: 0.2s;
+}
+
+/*Elements*/
+/*/////////////////////////////////////////////////////////////////////////////*/
+
+body {
+	margin: 0px;
+	color: var(--foreground);
+	background-color: var(--general-background);
+
+	scroll-behavior: smooth;
+
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+		"Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+		"Helvetica Neue", sans-serif;
+}
+
+code {
+	font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+img {
+	user-select: none;
+	border-radius: 8px;
+	padding: 0px;
+	margin: 0px;
+}
+
+/*Classes*/
+/*/////////////////////////////////////////////////////////////////////////////*/
+
+.display-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.background-default {
+	background-color: var(--component-background);
+
+	padding: 0.4rem;
+
+	border-radius: 8px;
+	border: solid var(--component-border-color) 0.15rem;
+	box-sizing: border-box;
+}
+
+/*/ ////////////////////////////////////////////////////////////////////////////*/
