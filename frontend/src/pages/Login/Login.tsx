@@ -1,9 +1,9 @@
 import "./Login.scss";
 import React from "react";
-import Logger from "../utils/Logger";
-import logo42 from "../assets/42Logo.png";
-import logoPong from "../assets/PongLogo.gif";
-import Button from "../components/button/Button";
+import logo42 from "../../assets/42Logo.png";
+import logoPong from "../../assets/PongLogo.gif";
+import Logger from "../../utils/Logger";
+import Button from "../../components/button/Button";
 
 // Login page
 const Login = () => {

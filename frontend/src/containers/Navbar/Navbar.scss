@@ -1,22 +1,25 @@
-.score-board {
+.navbar {
+
 	background-color: var(--component-background);
-	padding: 0.4rem;
+	
+	padding: 0.5rem;
+
 	border-radius: 8px;
 	border: solid var(--component-border-color) 0.15rem;
 	box-sizing: border-box;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
 }
 
-.score-display {
+.navigation-content {
+
+}
+
+.login-content {
 	display: flex;
 	align-items: center;
-	overflow: hidden;
-	justify-content: space-between;
-}
-
-.score {
-	color: white;
-	font-weight: bold;
-	font-size: 48px;
-	font-family: 'Courier New', Courier, monospace;
-	user-select: none;
 }
