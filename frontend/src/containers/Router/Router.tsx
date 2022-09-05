@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 19:59:35 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 20:59:36 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 import { Routes, Route } from "react-router-dom";
+
+import Guard from "../Guard/Guard";
 
 // Container
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -30,7 +32,7 @@ const Router = () => (
         <Route path="/new-pong" element={<> </>} />
 
         {/* Routes that have to pass through authentication to be loaded */}
-        <Route element={<> </>}>
+        <Route element={<Guard />}>
             {/* Profile page is rendered in two different ways but same component */}
             <Route path="profile">
                 <Route path=":id" element={<> </>} />
@@ -44,7 +46,7 @@ const Router = () => (
         </Route>
 
         {/* 404 route */}
-        <Route path="*" element={<> </>} />
+        <Route path="*" element={<h1>Not found!</h1>} />
     </Routes>
 );
 

@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:30:16 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 19:39:42 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/05 20:59:57 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,4 +51,4 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 // Functions
 /*/////////////////////////////////////////////////////////////////////////////*/
 
-const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext);
