@@ -6,41 +6,39 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 21:12:31 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/08 16:42:18 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 // Imports
 /*/////////////////////////////////////////////////////////////////////////////*/
 
-import { Routes, Route } from "react-router-dom";
-import Login from "../../pages/Login/Login";
-
 import Guard from "../Guard/Guard";
+import Login from "../../pages/Login";
+import { Routes, Route } from "react-router-dom";
+import Home from "../../pages/Home";
+import ChatBox from "../ChatBox";
+import Game from "../../pages/Game";
 
 // Container
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 const Router = () => (
     <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<h1>Home Page</h1>} />
-        <Route path="/about" element={<h1>About Page</h1>} />
+        <Route path="/" element={<Home />} />
+
+        {/* TODO: Add guard here to redirect to home we are already logged in */}
         <Route path="/login" element={<Login />} />
 
-        {/* Pong debugging */}
-        <Route path="/pong" element={<> </>} />
-        <Route path="/new-pong" element={<> </>} />
+        <Route path="/chat" element={<ChatBox />} />
+        <Route path="/game" element={<Game />} />
 
-        {/* Routes that have to pass through authentication to be loaded */}
         <Route element={<Guard />}>
-            {/* Profile page is rendered in two different ways but same component */}
             <Route path="profile">
                 <Route path=":id" element={<> </>} />
-                <Route path="me" element={<> </>} />
+                <Route path="me" element={<> YES U </>} />
             </Route>
 
-            {/* Regular private routes */}
             <Route path="/play" element={<> </>} />
             <Route path="/chat" element={<> </>} />
             <Route path="/leaderboard" element={<> </>} />

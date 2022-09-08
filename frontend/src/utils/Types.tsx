@@ -13,3 +13,7 @@ export interface Profile {
     friends: Profile[];
     blocked: Profile[];
 }
+
+interface GameStateData {
+    
+}

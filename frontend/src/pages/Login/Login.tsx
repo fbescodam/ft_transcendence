@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 21:23:20 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/08 17:24:30 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ import Button from "../../components/Button";
 import Logger from "../../utils/Logger";
 import LogoGIF from "../../assets/Logo.gif"
 import Logo42 from "../../assets/42Logo.png"
+import Navbar from "../../containers/Navbar";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -24,25 +25,29 @@ import Logo42 from "../../assets/42Logo.png"
  */
  const LoginPage = () => {
 	return (
-		<div id="login">
+		<>
+			<Navbar />
 
-			{/* Logo */}
-			<img id="login-logo" src={LogoGIF} alt="Freek" />
+			<div id="login">
 
-			{/* Welcome + Login */}
-			<div className="login-body">
-				
-				<p>Welcome to BreadPong</p>
+				{/* Logo */}
+				<img id="login-logo" src={LogoGIF} alt="Freek" />
 
-				{/* TODO: Connect to backend */}
-				<Button callback={() => { Logger.info("Hello World!"); }}>
-					<div className="login-button-content">
-						<img src={Logo42} width={28} height={28} alt="42" />
-						<p>LOGIN</p>
-					</div>
-				</Button>
+				{/* Welcome + Login */}
+				<div className="login-body">
+					
+					<p>Welcome to BreadPong</p>
+
+					{/* TODO: Connect to backend */}
+					<Button callback={() => { Logger.info("Hello World!"); }}>
+						<div className="login-button-content">
+							<img src={Logo42} width={28} height={28} alt="42" />
+							<p>LOGIN</p>
+						</div>
+					</Button>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

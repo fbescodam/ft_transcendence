@@ -1,0 +1,11 @@
+#game-canvas {
+
+    background: var(--component-background);
+    background-size: cover;
+    background-attachment: fixed;
+	
+    border-radius: 8px;
+	margin: 0px 0px 8px 0px;
+	border: solid var(--component-border-color) 0.2rem;
+	box-sizing: border-box;
+}

@@ -1,30 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Home.tsx                                           :+:    :+:            */
+/*   Container.tsx                                      :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 13:44:45 by lde-la-h      ########   odam.nl         */
+/*   Created: 2022/09/05 19:05:18 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/08 13:40:32 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import "./Home.css"
+import "./Container.css"
 import React from 'react';
-import Container from "../../components/Container";
+
+////////////////////////////////////////////////////////////////////////////////
+
+export interface Properties {
+	children?: React.ReactNode;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * A button with a text value, a callback and possibly an icon.
+ * A standardized styled div.
  */
- const HomePage = () => {
-    return (
-		<Container>
-      <h1>Home Page</h1>
-    </Container>
-    );
+const Container: React.FC<Properties> = ({ children }) => {
+
+	return (
+		<div className="container">
+			{children}
+		</div>
+	);
 };
 
-export default HomePage;
+export default Container;

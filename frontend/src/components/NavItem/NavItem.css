@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Button.css                                         :+:    :+:            */
+/*   NavItem.css                                        :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 13:25:33 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/08 17:28:36 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.button-item {
+.nav-item {
 	user-select: none;
 	text-decoration: none;
 	border-style: solid;
@@ -33,21 +33,15 @@
 
 /*////////////////////////////////////////////////////////////////////////////*/
 
-.button-item:focus {
+.nav-item:focus {
 	border-color: #7f8594;
 }
 
-.button-item:active {
+.nav-item:active {
 	border-color: whitesmoke;
 	box-shadow: -3px 3px 4px 0px rgba(0,0,0,0.39);
 }
 
-.button-item:hover {
+.nav-item:hover {
 	color: white;
-}
-
-/*////////////////////////////////////////////////////////////////////////////*/
-
-.button-item i {
-	margin-right: 0.2rem;
 }
