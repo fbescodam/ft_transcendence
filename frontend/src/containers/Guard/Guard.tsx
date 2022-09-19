@@ -6,15 +6,15 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:48:50 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 21:00:04 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 11:24:47 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 // Imports
 /*/////////////////////////////////////////////////////////////////////////////*/
 
-import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "../../utils/AuthContext";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 
 // Container
 /*/////////////////////////////////////////////////////////////////////////////*/

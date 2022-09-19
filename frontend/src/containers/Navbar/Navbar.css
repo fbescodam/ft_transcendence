@@ -6,19 +6,23 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 17:11:11 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 17:14:15 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 14:30:08 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 .main-navbar {
-    display: flex;
+
+	--navbar-width: 64px;
+
+    display: inline-flex;
+    justify-content: space-between;
     flex-direction: column;
-    margin: 0;
 
-    position: fixed;
-    top: 0;
-    bottom: 0;
+    z-index: 10;
 
+    gap: 8px;
     height: 100vh;
-    width: 4rem;
+    min-width: var(--navbar-width);
+    overflow: hidden;
+    background: var(--component-background);
 }

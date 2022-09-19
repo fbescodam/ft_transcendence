@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 17:24:30 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 13:34:36 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ import Navbar from "../../containers/Navbar";
  const LoginPage = () => {
 	return (
 		<>
-			<Navbar />
 
 			<div id="login">
 
