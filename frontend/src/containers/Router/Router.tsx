@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 16:42:18 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 14:47:28 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ import { Routes, Route } from "react-router-dom";
 import Home from "../../pages/Home";
 import ChatBox from "../ChatBox";
 import Game from "../../pages/Game";
+import Chat from "../../pages/Chat";
+import NoPage from "../../pages/NotFound/NotFound";
 
 // Container
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -30,13 +32,13 @@ const Router = () => (
         {/* TODO: Add guard here to redirect to home we are already logged in */}
         <Route path="/login" element={<Login />} />
 
-        <Route path="/chat" element={<ChatBox />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/game" element={<Game />} />
 
         <Route element={<Guard />}>
             <Route path="profile">
                 <Route path=":id" element={<> </>} />
-                <Route path="me" element={<> YES U </>} />
+                <Route path="me" element={<> </>} />
             </Route>
 
             <Route path="/play" element={<> </>} />
@@ -45,7 +47,7 @@ const Router = () => (
         </Route>
 
         {/* 404 route */}
-        <Route path="*" element={<h1>Not found!</h1>} />
+        <Route path="*" element={<NoPage/>} />
     </Routes>
 );
 

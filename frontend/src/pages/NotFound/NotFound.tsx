@@ -6,12 +6,14 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/05 20:59:00 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 14:47:06 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 import "./NotFound.css"
 import React from 'react';
+import Layout from "../../containers/Layout";
+import Container from "../../components/Container";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -20,7 +22,11 @@ import React from 'react';
  */
  const NoPage = () => {
     return (
-		<h1>Page not found</h1>
+		<Layout>
+			<Container>
+				<h1>Page not found</h1>
+			</Container>
+		</Layout>
     );
 };
 

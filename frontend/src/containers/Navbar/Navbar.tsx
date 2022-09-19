@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 13:55:52 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 14:48:00 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,21 +26,26 @@ const Navbar = () => {
 
 				<NavItem href="/">
 					<span className="material-symbols-rounded">Home</span>
+					<p className="nav-item-text">Home</p>
 				</NavItem>
-				<NavItem href="/">
-					<span className="material-symbols-rounded">Search</span>
+				<NavItem href="/404">
+					<span className="material-symbols-rounded">Leaderboard</span>
+					<p className="nav-item-text">Friends</p>
 				</NavItem>
-				<NavItem href="/">
+				<NavItem href="/game">
 					<span className="material-symbols-rounded">Stadia_controller</span>
+					<p className="nav-item-text">Games</p>
 				</NavItem>
-				<NavItem href="/">
+				<NavItem href="/chat">
 					<span className="material-symbols-rounded">Chat</span>
+					<p className="nav-item-text">Chat</p>
 				</NavItem>
 			</div>
 
 			<div>
-				<NavItem href="/">
+				<NavItem href="/settings">
 					<span className="material-symbols-rounded">Settings</span>
+					<p className="nav-item-text">Settings</p>
 				</NavItem>
 			</div>
 		</div>
