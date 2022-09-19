@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 14:46:18 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 14:49:55 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ import Layout from "../../containers/Layout";
 			<Container>
 				<h1>Game Page</h1>
 			</Container>
-
 			<canvas ref={canvasRef} id="game-canvas" width={1080} height={720}/>
 		</Layout>
 	);

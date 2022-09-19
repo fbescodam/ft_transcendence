@@ -1,4 +1,5 @@
 #game-canvas {
+	display: block;
     background: var(--component-background);
     background-size: cover;
     background-attachment: fixed;
