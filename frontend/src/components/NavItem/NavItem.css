@@ -6,14 +6,13 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 12:09:28 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/19 17:06:13 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 .nav-item {
 	user-select: none;
 	text-decoration: none;
-	border-style: solid;
 
 	cursor: pointer;
 	display: block;
@@ -23,24 +22,24 @@
 	border-radius: 8px;
 	text-align: center;
 
-	background: #333944;
-	border: solid #434a59 0.15rem;
 	color: white;
-
+	
+	border: solid rgba(0, 0, 0, 0) 2px;
 	transition: all var(--transition-speed) ease-out;
+	transition-delay: 0.05s;
 	outline: none;
 }
 
 /*////////////////////////////////////////////////////////////////////////////*/
 
 .nav-item:focus {
-	border-color: #7f8594;
+	border-color: white;
 }
 
 .nav-item:active {
-	border-color: whitesmoke;
+	border-color: #7f8594;
 }
 
 .nav-item:hover {
-	color: white;
+	border-color:  white;
 }
