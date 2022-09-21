@@ -6,16 +6,17 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/21 20:40:53 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/21 23:18:27 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 import "./Chat.css"
-import React from 'react';
+import React, { useState } from 'react';
 import io from 'socket.io-client';
 import Layout from "../../containers/Layout";
 import Container from "../../components/Container";
 import ChatBox from "../../containers/ChatBox";
+import { setConstantValue } from "typescript";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -33,17 +34,16 @@ const ChatPage = () => {
 	function handleSend(e: any) {
 		e.preventDefault();
         if (inputValue) {
-		  console.log(inputValue);
+		//   console.log(inputValue);
           socket.emit('chat message', inputValue);
 		  (document.getElementById("input") as HTMLInputElement).value = '';
         }
 	}
+	
+	let [msgList, msgListUpdate] = useState([""])
 	socket.on('chat message', function(msg) {
-		console.log(msg);
-        // var item = document.createElement('li');
-        // item.textContent = msg;
-        // messages.appendChild(item);
-        // window.scrollTo(0, document.body.scrollHeight);
+		const penis = [...msgList, msg];
+		msgListUpdate(penis);
     });
 
     return (
@@ -51,8 +51,12 @@ const ChatPage = () => {
 			<Container>
 				<h1>Chat Page</h1>
 			</Container>
-			<ChatBox></ChatBox>
-			<ul id="messages"></ul>
+			<ul id="messages">                
+				{
+					msgList.map(msg => 
+					<li key={msg}>{msg}</li>)
+				}
+			</ul>
 			<form id="form" action="">
 				<input id="input" onChange={handleChange}/><button onClick={handleSend} type="submit">Send</button>
 			</form>
