@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/21 20:39:45 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/21 20:40:53 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@ import React from 'react';
 import io from 'socket.io-client';
 import Layout from "../../containers/Layout";
 import Container from "../../components/Container";
-import App from "../../App";
+import ChatBox from "../../containers/ChatBox";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +51,7 @@ const ChatPage = () => {
 			<Container>
 				<h1>Chat Page</h1>
 			</Container>
+			<ChatBox></ChatBox>
 			<ul id="messages"></ul>
 			<form id="form" action="">
 				<input id="input" onChange={handleChange}/><button onClick={handleSend} type="submit">Send</button>
