@@ -13,5 +13,6 @@ export class ChatGateway {
   @SubscribeMessage('chat message')
   handleMessage(@MessageBody() msg: string): void {
     this.server.emit('chat message', msg);
+    //TODO: shit msg into database
   }
 }
