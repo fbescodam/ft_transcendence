@@ -6,17 +6,16 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/21 23:18:27 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/21 23:34:59 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 import "./Chat.css"
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import io from 'socket.io-client';
 import Layout from "../../containers/Layout";
 import Container from "../../components/Container";
 import ChatBox from "../../containers/ChatBox";
-import { setConstantValue } from "typescript";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +24,8 @@ import { setConstantValue } from "typescript";
  */
 const ChatPage = () => {
 	let inputValue = '';
-	var socket = io("ws://localhost:3000");
+	let socket = io("ws://localhost:3000");
+	let inputRef = useRef<HTMLInputElement>(null);
 
 	function handleChange(event: any) {
     	inputValue = event.target.value;
@@ -34,14 +34,14 @@ const ChatPage = () => {
 	function handleSend(e: any) {
 		e.preventDefault();
         if (inputValue) {
-		//   console.log(inputValue);
           socket.emit('chat message', inputValue);
-		  (document.getElementById("input") as HTMLInputElement).value = '';
+		  inputRef.current!.value = '';
         }
 	}
 	
 	let [msgList, msgListUpdate] = useState([""])
 	socket.on('chat message', function(msg) {
+		//console.log(msg) //enable this to see the secret error
 		const penis = [...msgList, msg];
 		msgListUpdate(penis);
     });
@@ -58,7 +58,7 @@ const ChatPage = () => {
 				}
 			</ul>
 			<form id="form" action="">
-				<input id="input" onChange={handleChange}/><button onClick={handleSend} type="submit">Send</button>
+				<input ref={inputRef} id="input" onChange={handleChange}/><button onClick={handleSend} type="submit">Send</button>
 			</form>
 		</Layout>
 
