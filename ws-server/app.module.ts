@@ -8,7 +8,7 @@ import {join} from 'path';
 @Module({
   imports: [ 
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'ws-server/socket-client'),
+      rootPath: join(__dirname, '..', 'socket-client'),
     }),
   ],
   // controllers: [AppController],
