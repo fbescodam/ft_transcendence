@@ -1,25 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Container.css                                      :+:    :+:            */
+/*   ScoreDisplay.css                                   :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 20:02:46 by lde-la-h      ########   odam.nl         */
+/*   Created: 2022/09/19 19:50:46 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/19 19:57:58 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.container {
-	display: block;
-	background-color: var(--component-background);
-
-	margin: 0.4rem;
-	padding: 0.4rem;
-
-	border-radius: 8px;
-	border: solid var(--component-border-color) 0.15rem;
-	box-sizing: border-box;
+.score-display {
+	color: white;
+	font-weight: bold;
+	font-size: 32px;
+	font-family: 'Courier New', Courier, monospace;
 }
 
-/*////////////////////////////////////////////////////////////////////////////*/
+.score-panel {
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	justify-content: space-between;
+}

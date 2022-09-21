@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/fbescodam/ft_transcendence#readme",
   "dependencies": {
-    "react-router-dom": "^6.3.0"
+    "react-router-dom": "^6.3.0",
+    "vecti": "^2.1.14"
   }
 }

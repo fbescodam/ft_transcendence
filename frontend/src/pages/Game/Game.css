@@ -1,11 +1,27 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Game.css                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/09/19 19:45:21 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/09/19 19:45:33 by lde-la-h      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #game-canvas {
 	display: block;
     background: var(--component-background);
     background-size: cover;
     background-attachment: fixed;
 	
+	margin: 0.4rem;
     border-radius: 8px;
-	margin: 8px;
-	border: solid var(--component-border-color) 0.2rem;
+	border: solid var(--component-border-color) 0.15rem;
 	box-sizing: border-box;
+}
+
+.game-panel {
+	
 }
