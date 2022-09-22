@@ -15,4 +15,12 @@ export class ChatGateway {
     this.server.emit('chat message', msg);
     //TODO: shit msg into database
   }
+
+  @SubscribeMessage('createroom')
+  roomCreation(@MessageBody() roomInfo: Object): void {
+
+  }
 }
+
+
+
