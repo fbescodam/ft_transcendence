@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 12:10:49 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 14:10:41 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,37 +25,15 @@ const Navbar = () => {
 					<img width={72} height={72} src={LogoGIF} alt="Freek"/>
 				</div>
 
-				<NavItem href="/">
-					<span className="material-symbols-rounded">Home</span>
-					<p className="nav-item-text">Home</p>
-				</NavItem>
-
-				<NavItem href="/leaderboard">
-					<span className="material-symbols-rounded">Leaderboard</span>
-					<p className="nav-item-text">Friends</p>
-				</NavItem>
-
-				<NavItem href="/game">
-					<span className="material-symbols-rounded">Stadia_controller</span>
-					<p className="nav-item-text">Games</p>
-				</NavItem>
-				
-				<NavItem href="/chat">
-					<span className="material-symbols-rounded">Chat</span>
-					<p className="nav-item-text">Chat</p>
-				</NavItem>
+				<NavItem href="/" name="Home" icon="Home" />
+				<NavItem href="/leaderboard" name="Friends" icon="Leaderboard" />
+				<NavItem href="/game" name="Games" icon="Stadia_controller" />
+				<NavItem href="/chat" name="Chat" icon="Chat" />
 			</div>
 
-			<div>
-				<NavItem href="/settings">
-					<span className="material-symbols-rounded">Settings</span>
-					<p className="nav-item-text">Settings</p>
-				</NavItem>
-				
-				<NavItem href="/login">
-					<span className="material-symbols-rounded">Logout</span>
-					<p className="nav-item-text">Logout</p>
-				</NavItem>
+			<div  className="main-navbar-bot-items">
+				<NavItem href="/settings" name="Settingst" icon="Settings" />
+				<NavItem href="/login" name="Logout" icon="Logout" />
 			</div>
 		</div>
 	);

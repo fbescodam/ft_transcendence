@@ -1,23 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   NavItem.css                                        :+:    :+:            */
+/*   IconButton.css                                     :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 14:05:23 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 14:17:29 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-.nav-item {
+.icon-button {
 	user-select: none;
 	text-decoration: none;
 
 	cursor: pointer;
 	display: block;
 
-	margin: 6px;
+	margin: 4px;
 	padding: 6px;
 	border-radius: 8px;
 	text-align: center;
@@ -35,7 +35,7 @@
 }
 
 /* TODO: On overflow do some form of hover animation */
-.nav-item-text {
+.icon-button-text {
 	font-size: 10px;
 
 	overflow: hidden;
@@ -44,14 +44,14 @@
 
 /*////////////////////////////////////////////////////////////////////////////*/
 
-.nav-item:focus {
+.icon-button:focus {
 	border-color: white;
 }
 
-.nav-item:active {
+.icon-button:active {
 	border-color: #7f8594;
 }
 
-.nav-item:hover {
+.icon-button:hover {
 	border-color:  white;
 }
