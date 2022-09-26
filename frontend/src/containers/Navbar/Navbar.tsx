@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 17:41:23 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 12:10:49 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,9 @@ const Navbar = () => {
 	return (
 		<div className="main-navbar">
 			<div className="main-navbar-top-items">
-				<img width={64} height={64} src={LogoGIF} alt="Freek" />
+				<div className="main-navbar-logo">
+					<img width={72} height={72} src={LogoGIF} alt="Freek"/>
+				</div>
 
 				<NavItem href="/">
 					<span className="material-symbols-rounded">Home</span>

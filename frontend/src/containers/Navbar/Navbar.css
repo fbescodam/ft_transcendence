@@ -6,13 +6,11 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 17:11:11 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 17:41:16 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 12:11:03 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 .main-navbar {
-
-	--navbar-width: 64px;
 
     display: inline-flex;
     justify-content: space-between;
@@ -22,7 +20,7 @@
 
     gap: 8px;
     height: 100vh;
-    min-width: var(--navbar-width);
+    min-width: fit-content;
     background: var(--component-background);
 	box-shadow: 5px 0px 15px -8px rgba(0,0,0,0.5);
     overflow-y: auto;
@@ -31,6 +29,10 @@
 
 .main-navbar::-webkit-scrollbar {
 	display: none;
+}
+
+.main-navbar-logo {
+    align-self: center;
 }
 
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -42,6 +44,8 @@
 }
 
 .nav-item-text {
-	font-size: 8px;
+	font-size: 10px;
 	margin: 0px;
 }
+
+/*/////////////////////////////////////////////////////////////////////////////*/
