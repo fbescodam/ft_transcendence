@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/27 15:06:51 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/27 17:25:31 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,37 +22,69 @@ import { isConstructorDeclaration } from 'typescript';
 
 export interface Message {
     text: string;
+	inChannel: string;
 }
 
-export interface Chat {
+export interface ChatChannel {
 	id: number;
+	name: string;
 }
 
 /*/////////////////////////////////////////////////////////////////////////////*/
 
-const ChatBox = () => {
+const ChatBox = (props: ChatChannel) => {
 
 	const inputRef = useRef<HTMLInputElement>(null!);
-	const [msgList, msgListUpdate] = useState<string[]>(["null!"]);
+	const [msgList, msgListUpdate] = useState<string[]>([]); //TODO: get messages from db
 
+	let inputValue = '';
+	let [current, changeCurrent] = useState<string>('');
+	let socket = io("ws://localhost:3000");
+	
 	useEffect(() => {
+		
+		//dummy: string[] = [];
 
-		let dummy: string[] = [];
+		// for (let index = 0; index < 200; index++) {
+		// 	dummy.push((Math.random() + 1).toString(36).substring(7));
+		// }
 
-		for (let index = 0; index < 200; index++) {
-			dummy.push((Math.random() + 1).toString(36).substring(7));
-		}
+		// msgListUpdate(dummy)
 
-		msgListUpdate(dummy)
+		//TODO: msg should be and object with everything about that msg, username, date etc.
+		socket.on('chat message', function(msg) {
+			console.log(msg)
+			msgListUpdate(prevState => [...prevState, msg]);
+		});
 	}, []);
+	
+	useEffect(() => {
+		console.log('changed channel');
+
+		msgListUpdate([]);
+		socket.emit('joinRoom', {
+			join: props.name,
+			leave: current
+		});
+		changeCurrent(props.name);
+	}, [props.name]);
 
 
+	//set input value to msg in form
 	function handleChange(event: any) {
-		console.log("Sending ...")
+		// console.log("Sending ...");
+    	inputValue = event.target.value;
   	}
 
-	function handleSend() {
-
+	//on submit send the message to server
+	function handleSend(e: any) {
+		e.preventDefault();
+        if (inputValue) {
+			const msg: Message = {text:inputValue, inChannel:props.name}
+          socket.emit('chat message', msg);
+		  inputRef.current.value = '';
+        }
+		inputRef.current.scrollTo(0, document.body.scrollHeight)
 	}
 
 	return (
@@ -61,12 +93,15 @@ const ChatBox = () => {
 
 				{/* Chat display*/}
 				<Container>
-					<h1>Chat room name</h1>
+					<h1>{props.name}</h1>
 				</Container>
 
 				{/* Messages */}
 				<Container>
 					<ul id="messages">
+						{msgList.length == 0 && 
+							<li style={{opacity: 0.6}} key={`message-${Math.random()}`}>No messages yet...</li>
+						}
 						{
 							msgList.map(msg => 
 							<li key={`message-${Math.random()}`}>{msg}</li>)
@@ -77,7 +112,7 @@ const ChatBox = () => {
 				{/* Send & Input */}
 				<form id="chat-form" action="">
 					<input ref={inputRef} id="chat-input" onChange={handleChange}/>
-					<Button type="submit" callback={() => { handleSend() }}>Send</Button>
+					<button className="button-item" onClick={handleSend}>Submit</button>
 				</form>
 			</div>
 		</Container>
