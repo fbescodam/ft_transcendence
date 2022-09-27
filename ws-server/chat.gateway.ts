@@ -18,7 +18,7 @@ export class ChatGateway {
 
   @SubscribeMessage('createroom')
   roomCreation(@MessageBody() roomInfo: Object): void {
-
+    
   }
 }
 

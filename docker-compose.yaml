@@ -3,8 +3,7 @@ version: '3'
 services:
   frontend:
     container_name: ft_frontend
-    build:
-      context: "<TODO>"
+    build: ./frontend/
     restart: always
     ports:
       - "8080:8080"
@@ -13,8 +12,7 @@ services:
 
   backend:
     container_name: ft_backend
-    build:
-      context: "<TODO>"
+    build: ./ws-server/
     restart: always
     ports:
       - "3000:3000"

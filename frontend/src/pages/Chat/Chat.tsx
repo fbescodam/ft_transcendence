@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/22 19:21:35 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/22 19:22:29 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,6 @@ const ChatPage = () => {
         }
 		inputRef.current.scrollTo(0, document.body.scrollHeight)
 	}
-	
-	
 
 
     return (
