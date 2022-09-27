@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:55 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 17:41:03 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 15:09:06 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,34 @@
     flex-direction: column;
 }
 
-.chat-body {
+#chat-form {
+    padding: 8px;
+    display: flex;
+    height: 3rem;
+    box-sizing: border-box;
+	outline: none;
+	gap: 8px;
+}
+
+#chat-input {
+    border-radius: 8px;
+    border: none;
+    flex-grow: 1;
+}
+
+#input:focus {
+    outline: none;
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    height: 512px;
     overflow-y: auto;
-    scroll-behavior: smooth;
-    max-height: 218px;
-    min-width: 512px;
+}
+
+#messages > li {
+    list-style-type: none;
+    padding: 0.5rem 1rem;
 }

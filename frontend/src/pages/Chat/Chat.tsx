@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/22 19:22:29 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/27 15:06:59 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ import io from 'socket.io-client';
 import Layout from "../../containers/Layout";
 import Container from "../../components/Container";
 import ChatBox from "../../containers/ChatBox";
+import NavItem from "../../components/NavItem";
+import IconButton from "../../components/IconButton";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -58,21 +60,33 @@ const ChatPage = () => {
     return (
 		<Layout>
 			<Container>
-				<h1>Chat Page</h1>
+				<header>
+					<h1>Chat Page</h1>
+				</header>
 			</Container>
-			<Container>
+
+			<div>
+				{/* Channel selection */}
 				<Container>
-					<ul id="messages">
-						{
-							msgList.map(msg => 
-							<li key={`message-${Math.random()}`}>{msg}</li>)
-						}
-					</ul>
+					<div className="channel-selection">
+
+						{/* TODO: Replace these, and sync style with NavItem maybe */}
+
+						<IconButton icon="public" name="Global" callback={() => {}}/>
+						<hr />
+						<IconButton icon="chat" name="Bebou" callback={() => {}}/>
+						<IconButton icon="chat" name="Pepin & Pipi & Pepou" callback={() => {}}/>
+						<IconButton icon="chat" name="Chat 3" callback={() => {}}/>
+						<hr />
+						<IconButton icon="add" name="add" callback={() => {}}/>
+					</div>
+
 				</Container>
-			<form id="form" action="">
-				<input ref={inputRef} id="input" onChange={handleChange}/><button onClick={handleSend} type="submit">Send</button>
-			</form>
-			</Container>
+
+				{/* Channel chatbox */}
+				<ChatBox />
+			</div>
+
 		</Layout>
 
     );

@@ -1,42 +1,46 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Button.tsx                                         :+:    :+:            */
+/*   IconButton.tsx                                       :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:05:18 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 14:18:02 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 14:03:50 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import "./Button.css"
-import React from 'react';
+import "./IconButton.css";
+import React from "react";
 
 ////////////////////////////////////////////////////////////////////////////////
 
 export interface Properties {
 	type?: 'submit' | 'reset' | 'button' | undefined;
-    callback?: Function;
+	icon: string;
+    name: string;
+    callback: VoidFunction;
     children?: React.ReactNode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * A simple default styled button with no icon
+ * A button with a text value, a callback and possibly an icon.
  */
- const Button: React.FC<Properties> = ({ type, callback, children }) => {
-    const handleClick = () => {
-		if (callback != undefined)
-			callback();
-    };
+const IconButton: React.FC<Properties> = ({ type, icon, name, callback, children }) => {
 
-    return (
-        <button type={type} className="button-item" onClick={handleClick}>
-            {children}
-        </button>
-    );
+	const handle = () => {
+		callback();
+	}
+
+	return (
+		<button type={type} className="icon-button" onClick={() => { handle() }}>
+			<span className="material-symbols-rounded">{icon}</span>
+			<p className="icon-button-text">{name}</p>
+			{children}
+		</button>
+	);
 };
 
-export default Button;
+export default IconButton;

@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:21 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/08 15:23:24 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 14:07:18 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,12 @@
 /*Elements*/
 /*/////////////////////////////////////////////////////////////////////////////*/
 
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
 body {
 	margin: 0px;
 	color: var(--foreground);
@@ -54,12 +60,16 @@ code {
 img {
 	user-select: none;
 	border-radius: 8px;
-	padding: 0px;
-	margin: 0px;
 }
 
-h1, h2, h3, h4, p {
-	margin: 0px;
+hr {
+	border: 2px solid var(--component-border-color);
+	border-radius: 8px;
+	margin: 8px 4px 8px 4px;
+}
+
+.material-symbols-rounded {
+	font-size: 32px !important; /* Icon size */
 }
 
 /*Webkit styling*/

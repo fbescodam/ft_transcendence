@@ -6,11 +6,12 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/21 22:08:10 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/27 15:06:51 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Button from '../../components/Button';
 import Container from '../../components/Container';
 import Chat from '../../pages/Chat';
 import io from 'socket.io-client';
@@ -24,52 +25,62 @@ export interface Message {
 }
 
 export interface Chat {
-    id: number;
-    msgList: string[]
+	id: number;
 }
 
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 const ChatBox = () => {
 
-    let messages: Chat = {
-        id: 0,
-        msgList: []
-    };
-    
-    let listItems = messages.msgList.map((number) =>
-    <li>{number}</li>
-    );
+	const inputRef = useRef<HTMLInputElement>(null!);
+	const [msgList, msgListUpdate] = useState<string[]>(["null!"]);
 
-    function appendMsg(msg: string) {
-        messages.msgList.push(msg);
-        listItems = messages.msgList.map((number) =>
-        <li>{number}</li>
-        );
-    }
-    
+	useEffect(() => {
+
+		let dummy: string[] = [];
+
+		for (let index = 0; index < 200; index++) {
+			dummy.push((Math.random() + 1).toString(36).substring(7));
+		}
+
+		msgListUpdate(dummy)
+	}, []);
+
+
+	function handleChange(event: any) {
+		console.log("Sending ...")
+  	}
+
+	function handleSend() {
+
+	}
+
 	return (
-        <Container>
-            <div className="chat-content">
-                {/* Chat title, display users */}
-                <Container>
-                    <h1>Title</h1>
-                </Container>
+		<Container>
+			<div className="chat-content">
 
-                {/* Chat messages */}
-                <Container>
-                    <div className="chat-body">
-                        {listItems}
-                    </div>
-                </Container>
+				{/* Chat display*/}
+				<Container>
+					<h1>Chat room name</h1>
+				</Container>
 
-                {/* Text Input */}
-                {/* <form>
-                    <input id="chat-message" type="text" placeholder="Send a message ..." />
-                    <input type={"submit"}/>
-                </form>  */}
-            </div>
-        </Container>
+				{/* Messages */}
+				<Container>
+					<ul id="messages">
+						{
+							msgList.map(msg => 
+							<li key={`message-${Math.random()}`}>{msg}</li>)
+						}
+					</ul>
+				</Container>
+			
+				{/* Send & Input */}
+				<form id="chat-form" action="">
+					<input ref={inputRef} id="chat-input" onChange={handleChange}/>
+					<Button type="submit" callback={() => { handleSend() }}>Send</Button>
+				</form>
+			</div>
+		</Container>
 	);
 };
 

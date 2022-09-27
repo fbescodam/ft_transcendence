@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 20:24:32 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 12:53:24 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,12 @@ import ScoreDisplay from "../../components/ScoreDisplay";
  const LeaderboardPage = () => {
     return (
 		<Layout>
-			<div className="leaderboard-content">
+			<Container>
+				<h1>Leaderbord</h1>
+			</Container>
+
+			<Container>
+				<div className="leaderboard-content">
 					<ScoreDisplay />
 					<ScoreDisplay />
 					<ScoreDisplay />
@@ -32,7 +37,8 @@ import ScoreDisplay from "../../components/ScoreDisplay";
 					<ScoreDisplay />
 					<ScoreDisplay />
 					<ScoreDisplay />
-			</div>
+				</div>
+			</Container>
 		</Layout>
     );
 };
