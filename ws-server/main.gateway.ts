@@ -12,6 +12,7 @@ export interface Message {
 }
 
 export interface User {
+  id: string,
   userName: string,
   friends: User[],
   //some other shit add when necessary 
