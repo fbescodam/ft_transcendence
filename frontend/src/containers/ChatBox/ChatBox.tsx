@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/28 16:07:54 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/28 16:25:54 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,13 @@ import { isConstructorDeclaration } from 'typescript';
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 export interface Message {
-    text: string;
-	inChannel: string;
+	text: string,
+	inChannel: string,
+	sentAt?: Date, //TODO: optional for now, cant be fucked
 }
-
 export interface ChatChannel {
-	id: number;
-	name: string;
+	id: number,
+	name: string,
 }
 
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -42,15 +42,9 @@ const ChatBox = (props: ChatChannel) => {
 	
 	useEffect(() => {
 		
-		//dummy: string[] = [];
+		//just joining global by default for now
+		joinRoom();
 
-		// for (let index = 0; index < 200; index++) {
-		// 	dummy.push((Math.random() + 1).toString(36).substring(7));
-		// }
-
-		// msgListUpdate(dummy)
-
-		socket.emit('joinRoom', {name: 'Global'})
 		//TODO: msg should be and object with everything about that msg, username, date etc.
 		socket.on('sendMsg', function(msg) {
 			console.log(msg)
@@ -58,15 +52,16 @@ const ChatBox = (props: ChatChannel) => {
 		});
 	}, []);
 	
+	//When the channel name changes swap out messagelist
 	useEffect(() => {
 		console.log('changed channel');
-		msgListUpdate([]);
+		msgListUpdate([]); //TODO: get messages from corresponding channel instead of just clearing it
 	}, [props.name]);
 
 
 	//set input value to msg in form
 	function handleChange(event: any) {
-		// console.log("Sending ...");
+		// console.log("Typing ...");
     	inputValue = event.target.value;
   	}
 
@@ -81,9 +76,21 @@ const ChatBox = (props: ChatChannel) => {
 		inputRef.current.scrollTo(0, document.body.scrollHeight)
 	}
 
-	function joinRoom(e: any) {
-		const room: Object = {name:"Bebou"}
+
+	//do with these what you will
+	function joinRoom() {
+		const room: Object = {name:"Global"}
         socket.emit('joinRoom', room);
+	}
+
+	function leaveRoom() {
+		const room: Object = {name:"Global"}
+        socket.emit('leaveRoom', room);
+	}
+
+	function createRoom() {
+		const room: Object = {name:"Penis"}
+        socket.emit('createRoom', room);
 	}
 
 	return (
@@ -103,7 +110,7 @@ const ChatBox = (props: ChatChannel) => {
 						}
 						{
 							msgList.map(msg => 
-							<li key={`message-${Math.random()}`}>{msg}</li>)
+							<li key={`message-${Math.random()}`}>{msg}</li>) //TODO: this should be a message component with username, avatar, etc...
 						}
 					</ul>
 				</Container>

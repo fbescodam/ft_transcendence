@@ -38,9 +38,8 @@ export class ChatGateway {
 
   @SubscribeMessage('sendMsg')
   handleMessage(@MessageBody() msg: Message): void {
-    console.log(`sent ${msg.text} to ${msg.inChannel}`);
-    
     this.server.to(msg.inChannel).emit('sendMsg', msg.text);
+    this.logger.log(`sent ${msg.text} to ${msg.inChannel}`);
     //TODO: shit msg into database
   }
 
@@ -59,7 +58,7 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   roomCreation(@MessageBody() roomInfo: {name: string}, @ConnectedSocket() socket: Socket): void {
     socket.join(roomInfo.name);
-    socket.to(roomInfo.name).emit('roomCreated', {roomInfo});
+    this.server.to(roomInfo.name).emit('roomCreated', {roomInfo});
     this.logger.log(`created room: ${roomInfo.name}`);
   }
 }
