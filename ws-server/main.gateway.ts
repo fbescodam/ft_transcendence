@@ -18,7 +18,7 @@ export interface User {
   //some kinda object with all the game data
 
 }
-export interface RoomInfo {
+export interface Room {
   name: string,
   users: User[],
   //password? icon? idfk
@@ -30,7 +30,7 @@ export interface RoomInfo {
     credentials: false,
   },
 })
-export class ChatGateway {
+export class MainGateway {
   @WebSocketServer()
   server;
 
@@ -61,6 +61,29 @@ export class ChatGateway {
     this.server.to(roomInfo.name).emit('roomCreated', {roomInfo});
     this.logger.log(`created room: ${roomInfo.name}`);
   }
+
+
+
+  @SubscribeMessage('blockUser')
+  blockUser(@MessageBody() UserInfo: User) {
+
+  }
+
+  @SubscribeMessage('unBlockUser')
+  unBlockUser(@MessageBody() UserInfo: User) {
+    
+  }
+
+  @SubscribeMessage('sendFriendRequest')
+  sendFriendRequest(@MessageBody() UserInfo: User) {
+
+  }
+
+  @SubscribeMessage('unFriendUser')
+  unFriendUser(@MessageBody() UserInfo: User) {
+    
+  }
+
 }
 
 

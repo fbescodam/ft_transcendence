@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/28 16:25:54 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/28 16:30:49 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ const ChatBox = (props: ChatChannel) => {
 		//just joining global by default for now
 		joinRoom();
 
-		//TODO: msg should be and object with everything about that msg, username, date etc.
+		//TODO: msg should be an object with everything about that msg, username, date etc.
 		socket.on('sendMsg', function(msg) {
 			console.log(msg)
 			msgListUpdate(prevState => [...prevState, msg]);
