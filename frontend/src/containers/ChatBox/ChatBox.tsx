@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/27 17:25:31 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/28 16:07:54 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ const ChatBox = (props: ChatChannel) => {
 	const [msgList, msgListUpdate] = useState<string[]>([]); //TODO: get messages from db
 
 	let inputValue = '';
-	let [current, changeCurrent] = useState<string>('');
 	let socket = io("ws://localhost:3000");
 	
 	useEffect(() => {
@@ -51,8 +50,9 @@ const ChatBox = (props: ChatChannel) => {
 
 		// msgListUpdate(dummy)
 
+		socket.emit('joinRoom', {name: 'Global'})
 		//TODO: msg should be and object with everything about that msg, username, date etc.
-		socket.on('chat message', function(msg) {
+		socket.on('sendMsg', function(msg) {
 			console.log(msg)
 			msgListUpdate(prevState => [...prevState, msg]);
 		});
@@ -60,13 +60,7 @@ const ChatBox = (props: ChatChannel) => {
 	
 	useEffect(() => {
 		console.log('changed channel');
-
 		msgListUpdate([]);
-		socket.emit('joinRoom', {
-			join: props.name,
-			leave: current
-		});
-		changeCurrent(props.name);
 	}, [props.name]);
 
 
@@ -80,11 +74,16 @@ const ChatBox = (props: ChatChannel) => {
 	function handleSend(e: any) {
 		e.preventDefault();
         if (inputValue) {
-			const msg: Message = {text:inputValue, inChannel:props.name}
-          socket.emit('chat message', msg);
+			const msg: Message = {text:inputValue, inChannel:"Global"}
+          socket.emit('sendMsg', msg);
 		  inputRef.current.value = '';
         }
 		inputRef.current.scrollTo(0, document.body.scrollHeight)
+	}
+
+	function joinRoom(e: any) {
+		const room: Object = {name:"Bebou"}
+        socket.emit('joinRoom', room);
 	}
 
 	return (
