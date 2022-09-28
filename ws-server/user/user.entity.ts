@@ -9,11 +9,12 @@ export class User {
     @Column()
     userName: string;
 
-    @Column({ default: true })
-    isActive: boolean;
-
     @Column()
     joinDate: Date;
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    friends: User[];
 
     @ManyToMany(() => Game)
     @JoinTable()

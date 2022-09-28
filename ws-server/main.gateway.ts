@@ -2,6 +2,7 @@ import { IoAdapter } from "@nestjs/platform-socket.io";
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { User } from 'user/user.entity';
 
 //TODO: find elegant way to share objects between frontend and backen
 //TODO: move this shit
@@ -11,7 +12,7 @@ export interface Message {
   sentAt: Date
 }
 
-export interface User {
+export interface UserInfo {
   id: string,
   userName: string,
   friends: User[],
