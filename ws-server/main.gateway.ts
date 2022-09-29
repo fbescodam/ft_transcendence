@@ -1,30 +1,13 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { User } from 'user/user.entity';
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
 export interface Message {
   text: string,
   inChannel: string,
-  sentAt: Date
 }
-
-export interface UserInfo {
-  id: string,
-  userName: string,
-  friends: User[],
-  //some other shit add when necessary 
-  //some kinda object with all the game data
-
-}
-export interface Room {
-  name: string,
-  users: User[],
-  //password? icon? idfk
-}
-
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -66,22 +49,22 @@ export class MainGateway {
 
 
   @SubscribeMessage('blockUser')
-  blockUser(@MessageBody() UserInfo: User) {
+  blockUser(@MessageBody() UserInfo: Object) {
 
   }
 
   @SubscribeMessage('unBlockUser')
-  unBlockUser(@MessageBody() UserInfo: User) {
+  unBlockUser(@MessageBody() UserInfo: Object) {
     
   }
 
   @SubscribeMessage('sendFriendRequest')
-  sendFriendRequest(@MessageBody() UserInfo: User) {
+  sendFriendRequest(@MessageBody() UserInfo: Object) {
 
   }
 
   @SubscribeMessage('unFriendUser')
-  unFriendUser(@MessageBody() UserInfo: User) {
+  unFriendUser(@MessageBody() UserInfo: Object) {
     
   }
 

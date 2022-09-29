@@ -1,5 +1,5 @@
-import { Room } from 'chat/rooms/room.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Channel } from 'chat/channel/channel.entity';
 import { User } from '../../user/user.entity';
 
 
@@ -11,11 +11,11 @@ export class Message {
     @Column()
     message: string;
 
-    @Column()
+    @ManyToOne(() => User, (user) => user.id)
     sentBy: User;
 
-    @ManyToOne(() => Room, (room) => room.roomId)
-    sentIn: Room;
+    @ManyToOne(() => Channel, (room) => room.roomId)
+    sentIn: Channel;
 
     @Column()
     sentAt: Date;

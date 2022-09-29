@@ -3,7 +3,7 @@ import { User } from '../../user/user.entity';
 import { Message } from '../messages/message.entity';
 
 @Entity()
-export class Room {
+export class Channel {
     @PrimaryGeneratedColumn()
     roomId: number;
 
