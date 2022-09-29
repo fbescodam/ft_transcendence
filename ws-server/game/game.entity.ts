@@ -16,7 +16,6 @@ export class Game {
     inProgress: boolean
 
     @ManyToMany(() => User)
-    @JoinTable()
     users: User[]
 
     @Column()

@@ -12,7 +12,7 @@ export class User {
     @Column()
     joinDate: Date;
 
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, { cascade: true})
     @JoinTable()
     friends: User[];
 

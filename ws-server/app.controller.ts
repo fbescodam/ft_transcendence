@@ -10,3 +10,5 @@ export class AppController {
     return this.appService.getHello();
   }
 }
+
+//useless file since im serving the static index page in socket-client for testing, keeping it here for example
