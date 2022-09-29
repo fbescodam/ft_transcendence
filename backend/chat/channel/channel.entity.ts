@@ -11,7 +11,7 @@ export class Channel {
     roomName: string;
 
     @Column()
-    admin: User;
+    admin: string; //TODO: should really be the User type but that gives a warning, now its the uuid string or whatever
 
     @ManyToMany(() => User)
     users: User[]

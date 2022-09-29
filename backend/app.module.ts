@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 
+import { DatabaseModule } from 'database/database.module';
 import { GamesModule } from 'game/game.module';
 import { ChannelsModule } from 'chat/channel/channel.module';
 import { UsersModule } from 'user/user.module';
@@ -19,6 +20,7 @@ import {join} from 'path';
     UsersModule,
     GamesModule,
     ChannelsModule,
+    DatabaseModule,
   ],
   // controllers: [AppController],
   providers: [AppService, MainGateway],

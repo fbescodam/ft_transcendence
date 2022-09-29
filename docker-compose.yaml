@@ -1,23 +1,23 @@
 version: '3'
 
 services:
-  frontend:
-    container_name: ft_frontend
-    build: ./frontend/
-    restart: always
-    ports:
-      - "8080:8080"
-    links:
-      - ft_backend
+  # frontend:
+  #   container_name: ft_frontend
+  #   build: ./frontend/
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   links:
+  #     - ft_backend
 
-  backend:
-    container_name: ft_backend
-    build: ./ws-server/
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - database
+  # backend:
+  #   container_name: ft_backend
+  #   build: ./ws-server/
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - database
 
   database:
     container_name: ft_database

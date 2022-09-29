@@ -16,7 +16,7 @@ export class User {
     joinDate: Date;
 
     @OneToMany(() => Message, (message) => message.messageId)
-    messages: Message[];
+    messages: Message[]; //this is to remove a warning i didnt want to think about, but hey, now its a feature called 'message history'
 
     @ManyToMany(() => User, { cascade: true})
     @JoinTable()
