@@ -6,11 +6,22 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/26 13:26:03 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/27 15:06:43 by pvan-dij      ########   odam.nl         */
+/*   Updated: 2022/09/29 16:21:18 by pvan-dij      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 .channel-selection {
 	display: flex;
 	overflow-x: auto;
+}
+
+.channel-container {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+
+	overflow-x: auto;
+	scroll-behavior: smooth;
+	
+	max-width: 512px;
 }
