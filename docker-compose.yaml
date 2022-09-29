@@ -24,13 +24,11 @@ services:
     image: "postgres:14"
     restart: always
     env_file:
-      - ./back-end/.env
+      - ./backend/.env
     ports:
-      - "4242:4242"
+      - "5432:5432"
     volumes:
-      - db:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
 
 volumes:
-  db:
-    driver_opts:
-      device: "<TODO>"
+  postgres:
