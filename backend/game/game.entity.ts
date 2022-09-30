@@ -6,7 +6,7 @@ export class Game {
     @PrimaryGeneratedColumn()
     gameId: number;
 
-    @Column({default: [0, 0]})
+    @Column("int", { array: true, default: [0,0] })
     score: number[];
 
     @Column()
@@ -18,7 +18,7 @@ export class Game {
     @ManyToMany(() => User)
     users: User[]
 
-    @Column()
-    gameHistory: Object //some kinda data structure that allows a replay to be constructed from it, spatial columns?
+    // @Column()
+    // gameHistory: Object //some kinda data structure that allows a replay to be constructed from it, spatial columns?
 
 }

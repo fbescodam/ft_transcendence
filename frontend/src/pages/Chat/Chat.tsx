@@ -74,7 +74,7 @@ const ChatPage = () => {
 							<IconButton
 								icon="public"
 								name="Global"
-								callback={() => {}}
+								callback={() => {clickChannel("Global")}}
 							/>
 							<hr />
 							<div className="channel-container">
