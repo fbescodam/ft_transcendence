@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/30 13:46:45 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/30 18:04:23 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,24 +176,40 @@ class GameStateMachine {
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
-		this.ctx = canvas.getContext("2d")!;
+		const ctx = canvas.getContext("2d");
+		if (!ctx) { throw new Error("No context!") }
+
+		this.ctx = ctx;
 
 		this.scoreP1 = 0;
 		this.scoreP2 = 0;
 
-		this.ball = new Ball(
-			new Vector(this.canvas.width / 2, this.canvas.height / 2),
-			12
-		);
+		this.ball = new Ball( new Vector(this.canvas.width / 2, this.canvas.height / 2), 18);
 		this.paddleP1 = new Paddle(new Vector(10, 100), 10, 100);
 		this.paddleP2 = new Paddle(new Vector(1000, 100), 10, 100);
+	}
 
-		// Demo
+	public render() {
 
-		this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+		if (!this.ctx)
+			return console.error("No context!");
+
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.ball.render(this.ctx);
 		this.paddleP1.render(this.ctx);
 		this.paddleP2.render(this.ctx);
+
+		let dx = 2;
+		let dy = -2;
+
+		if(this.ball.pos.x + dx > this.canvas.width - this.ball.radius || this.ball.pos.x + dx < this.ball.radius) {
+            dx = -dx;
+        }
+        if(this.ball.pos.y + dy > this.canvas.height - this.ball.radius || this.ball.pos.y + dy < this.ball.radius) {
+            dy = -dy;
+        }
+
+        this.ball.pos.add(new Vector(dx, dy));
 	}
 }
 
@@ -205,14 +221,17 @@ class GameStateMachine {
 const GamePage = () => {
 	const [gameState, setGameState] = useState<GameStateMachine>();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-
+	
 	// Init
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if (canvas == null) return console.error("Canvas is null");
 
 		console.log(`Canvas size: ${canvas.width}, ${canvas.height}`);
-		setGameState(new GameStateMachine(canvasRef.current!));
+		const render = new GameStateMachine(canvasRef.current!);
+		setGameState(render);
+		render.render();
+		requestAnimationFrame(render.render);
 	}, []);
 
 	return (
@@ -223,12 +242,7 @@ const GamePage = () => {
 			<div className="display-center">
 				<Container>
 					<ScoreDisplay />
-					<canvas
-						ref={canvasRef}
-						id="game-canvas"
-						width={1080}
-						height={720}
-					/>
+					<canvas ref={canvasRef} id="game-canvas" width="1080" height="720"/>
 				</Container>
 			</div>
 		</Layout>
