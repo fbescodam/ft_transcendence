@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 17:46:03 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/30 11:51:22 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ const Router = () => (
         {/* TODO: Add guard here to redirect to home we are already logged in */}
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<Chat />} />
+        {/* TODO: Add guard here to check if player is playing the game, if they are send alert*/}
         <Route path="/game" element={<Game />} />
 		<Route path="/leaderboard" element={<Leaderboard />} />
 		<Route path="/settings" element={<Settings />} />

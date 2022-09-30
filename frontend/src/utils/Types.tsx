@@ -1,9 +1,10 @@
+import { Vector } from "vecti";
 
+// Single user profile
 export interface Profile {
     intraID: number;
     username: string;
     imgURL: string;
-    color: string;
 	
     rank: number;
 
@@ -14,6 +15,18 @@ export interface Profile {
     blocked: Profile[];
 }
 
-interface GameStateData {
-    
+// Message which was sent by a profile.
+export interface Message {
+    id: number;
+    text: string;
+    sender: Profile;
+}
+
+// Group chat with messages
+export interface ChatChannel {
+    id: number;
+
+    name: string;
+    messages: Message[];
+    users: Profile[];
 }

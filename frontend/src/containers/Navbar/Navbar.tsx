@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 14:10:41 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/30 12:57:34 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ const Navbar = () => {
 			</div>
 
 			<div  className="main-navbar-bot-items">
-				<NavItem href="/settings" name="Settingst" icon="Settings" />
+				<NavItem href="/settings" name="Settings" icon="Settings" />
 				<NavItem href="/login" name="Logout" icon="Logout" />
 			</div>
 		</div>

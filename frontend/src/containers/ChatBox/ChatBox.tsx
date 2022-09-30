@@ -6,13 +6,14 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/08 14:47:58 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 15:02:17 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/09/26 15:11:48 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../../components/Button';
 import Container from '../../components/Container';
+import Logger from '../../utils/Logger';
 import "./ChatBox.css"
 
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -49,7 +50,7 @@ const ChatBox = () => {
   	}
 
 	function handleSend() {
-
+		Logger.info("Sending message ...")
 	}
 
 	return (
@@ -72,7 +73,7 @@ const ChatBox = () => {
 				</Container>
 			
 				{/* Send & Input */}
-				<form id="chat-form" action="">
+				<form id="chat-form" action="" autoComplete='false' spellCheck='false' placeholder='Enter a message ...'>
 					<input ref={inputRef} id="chat-input" onChange={handleChange}/>
 					<Button type="submit" callback={() => { handleSend() }}>Send</Button>
 				</form>
