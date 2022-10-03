@@ -6,16 +6,17 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/30 18:04:23 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/03 14:22:27 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 import "./Game.css";
-import React, { useEffect, useRef, useState } from "react";
-import Container from "../../components/Container";
-import Layout from "../../containers/Layout";
-import ScoreDisplay from "../../components/ScoreDisplay";
 import { Vector } from "vecti";
+import Layout from "../../containers/Layout";
+import Container from "../../components/Container";
+import ScoreDisplay from "../../components/ScoreDisplay";
+import React, { useEffect, useRef, useState } from "react";
+import Logger from "../../utils/Logger";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -174,12 +175,12 @@ class GameStateMachine {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 
+	dx: number;
+	dy: number;
+
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
-		const ctx = canvas.getContext("2d");
-		if (!ctx) { throw new Error("No context!") }
-
-		this.ctx = ctx;
+		this.ctx = canvas.getContext("2d")!;
 
 		this.scoreP1 = 0;
 		this.scoreP2 = 0;
@@ -187,29 +188,28 @@ class GameStateMachine {
 		this.ball = new Ball( new Vector(this.canvas.width / 2, this.canvas.height / 2), 18);
 		this.paddleP1 = new Paddle(new Vector(10, 100), 10, 100);
 		this.paddleP2 = new Paddle(new Vector(1000, 100), 10, 100);
+
+		this.dx = Math.random() > 0.5 ? -8 : 8;
+		this.dy = Math.random() > 0.5 ? -8 : 8;
 	}
 
-	public render() {
-
-		if (!this.ctx)
-			return console.error("No context!");
-
+	// TODO: Refactor!
+	public animate = () => {
+		requestAnimationFrame(this.animate);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	
 		this.ball.render(this.ctx);
 		this.paddleP1.render(this.ctx);
 		this.paddleP2.render(this.ctx);
-
-		let dx = 2;
-		let dy = -2;
-
-		if(this.ball.pos.x + dx > this.canvas.width - this.ball.radius || this.ball.pos.x + dx < this.ball.radius) {
-            dx = -dx;
-        }
-        if(this.ball.pos.y + dy > this.canvas.height - this.ball.radius || this.ball.pos.y + dy < this.ball.radius) {
-            dy = -dy;
-        }
-
-        this.ball.pos.add(new Vector(dx, dy));
+	
+		if(this.ball.pos.x + this.dx > this.canvas.width - this.ball.radius || this.ball.pos.x + this.dx < this.ball.radius) {
+			this.dx = -this.dx;
+		}
+		if(this.ball.pos.y + this.dy > this.canvas.height - this.ball.radius || this.ball.pos.y + this.dy < this.ball.radius) {
+			this.dy = -this.dy;
+		}
+		
+		this.ball.pos = this.ball.pos.add(new Vector(this.dx, this.dy))
 	}
 }
 
@@ -219,20 +219,19 @@ class GameStateMachine {
  * A button with a text value, a callback and possibly an icon.
  */
 const GamePage = () => {
-	const [gameState, setGameState] = useState<GameStateMachine>();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	
+
 	// Init
 	useEffect(() => {
-		const canvas = canvasRef.current;
-		if (canvas == null) return console.error("Canvas is null");
+		if (canvasRef.current == null)
+			return Logger.error("Failed to get canvas reference!")
 
-		console.log(`Canvas size: ${canvas.width}, ${canvas.height}`);
-		const render = new GameStateMachine(canvasRef.current!);
-		setGameState(render);
-		render.render();
-		requestAnimationFrame(render.render);
+		const gameState = new GameStateMachine(canvasRef.current);
+		if (gameState == null)
+			return Logger.error("Failed to create a gamestate!")
+		gameState.animate();	
 	}, []);
+	
 
 	return (
 		<Layout>
