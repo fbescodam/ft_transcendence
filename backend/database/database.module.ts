@@ -21,3 +21,13 @@ import { Message } from 'chat/messages/message.entity';
     ],
   })
 export class DatabaseModule {}
+
+
+/*
+psql -h localhost -p 5432 -U user -d test
+
+
+list all tables
+SELECT table_name FROM information_schema.tables;
+
+*/

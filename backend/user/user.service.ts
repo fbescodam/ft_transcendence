@@ -21,6 +21,13 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     await this.usersRepository.delete(id);
   }
+
+  createUser(createUserDto: string) {
+    //TODO: dto for creating shit in database
+    // const newUser = this.usersRepository.create(createUserDto);
+    // return this.usersRepository.save(newUser);
+  }
+
 }
 
 //TODO: fix up copy pasted shit

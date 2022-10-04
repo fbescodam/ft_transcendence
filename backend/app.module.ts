@@ -11,6 +11,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MainGateway } from './main.gateway';
 import {join} from 'path';
+import { UsersService } from 'user/user.service';
 
 @Module({
   imports: [ 
@@ -23,6 +24,6 @@ import {join} from 'path';
     DatabaseModule,
   ],
   // controllers: [AppController],
-  providers: [AppService, MainGateway],
+  providers: [AppService, MainGateway, UsersService], //need to add, dependencies in here, in the imports, and on top of the file GOOD FUCKING JOB NESTJS
 })
 export class AppModule {}

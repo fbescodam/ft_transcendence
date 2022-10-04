@@ -1,6 +1,8 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
+import { User } from './user/user.entity'
+import { UsersService } from "user/user.service";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -15,6 +17,9 @@ export interface Message {
   },
 })
 export class MainGateway {
+  @Inject(UsersService) //need to inject the shit we need into the module to actually use it
+  private readonly userService: UsersService;
+  
   @WebSocketServer()
   server;
 
@@ -66,6 +71,11 @@ export class MainGateway {
   @SubscribeMessage('unFriendUser')
   unFriendUser(@MessageBody() UserInfo: Object) {
     
+  }
+
+  @SubscribeMessage('createUser')
+  createUser(@MessageBody() UserInfo: User) {
+    this.userService.createUser('penis');
   }
 
 }
