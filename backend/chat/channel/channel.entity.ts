@@ -1,20 +1,21 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, OneToMany } from 'typeorm';
-import { User } from '../../user/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm';
 import { Message } from '../messages/message.entity';
+import { UserInChannel } from './userInChannel.entity';
 
 @Entity()
 export class Channel {
     @PrimaryGeneratedColumn()
-    roomId: number;
+    channelId: number;
 
     @Column()
-    roomName: string;
+    channelName: string;
 
     @Column()
-    admin: string; //TODO: should really be the User type but that gives a warning, now its the uuid string or whatever
+    admin: string; //TODO: username for now
 
-    @ManyToMany(() => User)
-    users: User[]
+    @OneToMany(() => UserInChannel, (user) => user.id, {cascade: true})
+    @JoinColumn()
+    users: UserInChannel[];
 
     @OneToMany(() => Message, (message) => message.messageId)
     messages: Message[];

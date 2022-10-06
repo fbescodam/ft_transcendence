@@ -14,7 +14,7 @@ export class Message {
     @ManyToOne(() => User, (user) => user.id)
     sentBy: User;
 
-    @ManyToOne(() => Channel, (room) => room.roomId)
+    @ManyToOne(() => Channel, (channel) => channel.channelId)
     sentIn: Channel;
 
     @Column()

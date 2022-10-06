@@ -5,6 +5,7 @@ import { User } from '../user/user.entity';
 import { Game } from '../game/game.entity';
 import { Channel } from 'chat/channel/channel.entity';
 import { Message } from 'chat/messages/message.entity';
+import { UserInChannel } from 'chat/channel/userInChannel.entity';
 
 @Module({
     imports: [
@@ -15,7 +16,12 @@ import { Message } from 'chat/messages/message.entity';
         username: 'user',
         password: 'password',
         database: 'test',
-        entities: [User, Game, Channel, Message],
+        entities: [
+          User, 
+          Game, 
+          Channel, 
+          Message, 
+          UserInChannel],
         synchronize: true, //Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       }),
     ],

@@ -24,6 +24,6 @@ import { UsersService } from 'user/user.service';
     DatabaseModule,
   ],
   // controllers: [AppController],
-  providers: [AppService, MainGateway, UsersService], //need to add, dependencies in here, in the imports, and on top of the file GOOD FUCKING JOB NESTJS
+  providers: [AppService, MainGateway], //need to add, dependencies in here, in the imports, and on top of the file GOOD FUCKING JOB NESTJS
 })
 export class AppModule {}

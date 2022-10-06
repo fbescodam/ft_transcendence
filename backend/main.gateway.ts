@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { User } from './user/user.entity'
 import { UsersService } from "user/user.service";
+import { createUserDto } from "dto/all.dto";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -74,8 +75,8 @@ export class MainGateway {
   }
 
   @SubscribeMessage('createUser')
-  createUser(@MessageBody() UserInfo: User) {
-    this.userService.createUser('penis');
+  createUser(@MessageBody() UserInfo: createUserDto) {
+    this.userService.createUser(UserInfo);
   }
 
 }

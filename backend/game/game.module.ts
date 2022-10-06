@@ -7,5 +7,6 @@ import { Game } from './game.entity';
   imports: [TypeOrmModule.forFeature([Game])],
   providers: [GamesService],
   controllers: [], //controller are for http requests but idfk when that would ever be used so its empty
+  exports: [GamesService]
 })
 export class GamesModule {}

@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { Game } from '../game/game.entity';
 import { Channel } from '../chat/channel/channel.entity';
 import { Message } from 'chat/messages/message.entity';
+import { UserInChannel } from 'chat/channel/userInChannel.entity';
 
 
 @Entity()
@@ -26,9 +27,9 @@ export class User {
     @JoinTable()
     games: Game[]
 
-    @ManyToMany(() => Channel)
-    @JoinTable()
-    rooms: Channel[]
+    @OneToMany(() => UserInChannel, (user) => user.id, { cascade: true})
+    @JoinColumn()
+    channels: UserInChannel[];
 
     // @Column()
     // image: Avatar; TODO: users avatar, guess this should be and object with the filepath and mime-type? deal with it later
