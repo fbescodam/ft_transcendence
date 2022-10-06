@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/10/03 14:22:27 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/06 16:15:50 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ import Container from "../../components/Container";
 import ScoreDisplay from "../../components/ScoreDisplay";
 import React, { useEffect, useRef, useState } from "react";
 import Logger from "../../utils/Logger";
+import { GameProvider } from "../../utils/GameContext";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -25,9 +26,13 @@ import Logger from "../../utils/Logger";
  */
 abstract class Object {
 	pos: Vector;
+	width: number;
+	height: number;
 
-	constructor(pos: Vector) {
+	constructor(pos: Vector, width: number, height: number) {
 		this.pos = pos;
+		this.width = width;
+		this.height = height;
 	}
 
 	/**
@@ -37,59 +42,51 @@ abstract class Object {
 	abstract render(ctx: CanvasRenderingContext2D): void;
 
 	/**
-	 * Checks wether or not the given position intersects with the object.
-	 * @param pos The given position to check if it intersects.
-	 * @returns True if the point intersects with the object, else false.
+	 * Check if these two objects intersecting
+	 * @param objA Object A.
+	 * @param objB Object B.
+	 * @returns True if they intersect, else false.
 	 */
-	abstract intersects(pos: Vector): boolean;
+	public static intersects(objA: Object, objB: Object) {
+		return(
+			objA.pos.x < objB.pos.x + objB.width &&
+			objA.pos.x + objA.width > objB.pos.x &&
+			objA.pos.y < objB.pos.y + objB.height &&
+			objA.height + objA.pos.y > objB.pos.y
+		)
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 class Ball extends Object {
-	radius: number;
-
-	constructor(pos: Vector, radius: number) {
-		super(pos);
-		this.pos = pos;
-		this.radius = radius;
+	constructor(pos: Vector, width: number, height: number) {
+		super(pos, width, height);
 	}
 
 	//= Public =//
+
+	public move(vec: Vector) {
+		this.pos = this.pos.add(vec);
+	}
 
 	public override render(ctx: CanvasRenderingContext2D) {
 		ctx.save();
 		ctx.beginPath();
 		{
 			ctx.fillStyle = "#fff";
-			ctx.arc(this.pos.x, this.pos.y, this.radius, Math.PI * 2, 0);
-			ctx.stroke();
-			ctx.fill();
+			ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
 		}
 		ctx.closePath();
 		ctx.restore();
-	}
-
-	public override intersects(pos: Vector): boolean {
-		return (
-			(pos.x - this.pos.x) * (pos.x - this.pos.x) +
-				(pos.y - this.pos.y) * (pos.y - this.pos.y) <=
-			this.radius * this.radius
-		);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 class Paddle extends Object {
-	width: number;
-	height: number;
-
 	constructor(pos: Vector, width: number, height: number) {
-		super(pos);
-		this.pos = pos;
-		this.width = width;
-		this.height = height;
+		super(pos, width, height);
 	}
 
 	//= Public =//
@@ -139,21 +136,6 @@ class Paddle extends Object {
 		ctx.closePath();
 		ctx.restore();
 	}
-
-	// eturn isInsideRectangle(x, y, this.data.x, this.data.y, this.width, this.height);
-	public override intersects(pos: Vector): boolean {
-		const x1 = this.pos.x - this.width / 2;
-		const y1 = this.pos.y - this.height / 2;
-
-		if (
-			pos.x < x1 ||
-			pos.y < y1 ||
-			pos.x > x1 + this.width ||
-			pos.y > y1 + this.height
-		)
-			return false;
-		return true;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -165,52 +147,80 @@ class Paddle extends Object {
  * smoothing out stuff. Server will overwrite everything.
  */
 class GameStateMachine {
+
 	scoreP1: number;
 	scoreP2: number;
 
-	paddleP1: Paddle;
-	paddleP2: Paddle;
+	paddleP1: Paddle; // Left
+	paddleP2: Paddle; // Right
 	ball: Ball;
 
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 
+	// TODO: Implement custom vector instead
 	dx: number;
 	dy: number;
 
 	constructor(canvas: HTMLCanvasElement) {
+
+
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d")!;
 
 		this.scoreP1 = 0;
 		this.scoreP2 = 0;
 
-		this.ball = new Ball( new Vector(this.canvas.width / 2, this.canvas.height / 2), 18);
+		this.ball = new Ball(new Vector(this.canvas.width / 2, this.canvas.height / 2), 16, 16);
 		this.paddleP1 = new Paddle(new Vector(10, 100), 10, 100);
-		this.paddleP2 = new Paddle(new Vector(1000, 100), 10, 100);
+		this.paddleP2 = new Paddle(new Vector(1000, 600), 10, 100);
 
-		this.dx = Math.random() > 0.5 ? -8 : 8;
-		this.dy = Math.random() > 0.5 ? -8 : 8;
+		const speed = 8;
+		this.dx = Math.random() > 0.5 ? -speed : speed;
+		this.dy = Math.random() > 0.5 ? -speed : speed;
 	}
-
+	
 	// TODO: Refactor!
 	public animate = () => {
 		requestAnimationFrame(this.animate);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	
+
+		const p2Win = this.ball.pos.x < 0;
+		const p1Win = this.ball.pos.x > this.canvas.width;
+
+		if (p1Win || p2Win) {
+			this.ball.pos = new Vector(this.canvas.width / 2, this.canvas.height / 2);
+			this.dx = Math.random() > 0.5 ? -8 : 8;
+			this.dy = Math.random() > 0.5 ? -8 : 8;
+
+			if (p1Win)
+				this.scoreP1++;
+			else
+				this.scoreP2++;
+		}
+		// Check baddle intersection
+		else if (Object.intersects(this.ball, this.paddleP1) || 
+			Object.intersects(this.ball, this.paddleP2)) {
+			this.dx *= -1;
+		}
+		// Y-Up || Y-Down
+		else if (this.ball.pos.y + this.dy > this.canvas.height - this.ball.height || 
+			this.ball.pos.y + this.dy < 0) {
+			this.dy *= -1;
+		}
+
+		this.ball.move(new Vector(this.dx, this.dy));
+
 		this.ball.render(this.ctx);
 		this.paddleP1.render(this.ctx);
 		this.paddleP2.render(this.ctx);
-	
-		if(this.ball.pos.x + this.dx > this.canvas.width - this.ball.radius || this.ball.pos.x + this.dx < this.ball.radius) {
-			this.dx = -this.dx;
+
+		const grid = 7;
+		for (let i = grid; i < this.canvas.height - grid; i += grid * 2) {
+			this.ctx.fillStyle = "#fff"
+			this.ctx.fillRect(this.canvas.width / 2 - grid / 2, i, grid, grid);
 		}
-		if(this.ball.pos.y + this.dy > this.canvas.height - this.ball.radius || this.ball.pos.y + this.dy < this.ball.radius) {
-			this.dy = -this.dy;
-		}
-		
-		this.ball.pos = this.ball.pos.add(new Vector(this.dx, this.dy))
-	}
+	};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -219,19 +229,23 @@ class GameStateMachine {
  * A button with a text value, a callback and possibly an icon.
  */
 const GamePage = () => {
+	const [score, setScore] = useState([0, 0]);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	// Init
 	useEffect(() => {
 		if (canvasRef.current == null)
-			return Logger.error("Failed to get canvas reference!")
+			return Logger.error("Failed to get canvas reference!");
+
+		canvasRef.current.addEventListener('keydown', (event) => {
+			console.log(event.key);
+		});
 
 		const gameState = new GameStateMachine(canvasRef.current);
 		if (gameState == null)
-			return Logger.error("Failed to create a gamestate!")
-		gameState.animate();	
+			return Logger.error("Failed to create a gamestate!");
+		gameState.animate();
 	}, []);
-	
 
 	return (
 		<Layout>

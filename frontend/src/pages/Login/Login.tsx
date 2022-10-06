@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/19 15:54:17 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/06 14:05:53 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,27 +29,25 @@ import { Navigate, useNavigate } from "react-router-dom";
 	const navigate = useNavigate();
 
 	return (
-		<>
-			<div id="login">
+		<div id="login">
 
-				{/* Logo */}
-				<img id="login-logo" src={LogoGIF} alt="Freek" />
+			{/* Logo */}
+			<img id="login-logo" src={LogoGIF} alt="Freek" />
 
-				{/* Welcome + Login */}
-				<div className="login-body">
-					
-					<p>Welcome to BreadPong</p>
+			{/* Welcome + Login */}
+			<div className="login-body">
+				
+				<p>Welcome to BreadPong</p>
 
-					{/* TODO: Connect to backend */}
-					<Button callback={() => { navigate("/home") }}>
-						<div className="login-button-content">
-							<img src={Logo42} width={28} height={28} alt="42" />
-							<p>LOGIN</p>
-						</div>
-					</Button>
-				</div>
+				{/* TODO: Connect to backend */}
+				<Button callback={() => { navigate("/home") }}>
+					<div className="login-button-content">
+						<img src={Logo42} width={28} height={28} alt="42" />
+						<p>LOGIN</p>
+					</div>
+				</Button>
 			</div>
-		</>
+		</div>
 	);
 };
 
