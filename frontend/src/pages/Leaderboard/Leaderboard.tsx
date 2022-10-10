@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 12:53:24 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/10 10:10:03 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,13 @@ import ScoreDisplay from "../../components/ScoreDisplay";
 
 			<Container>
 				<div className="leaderboard-content">
-					<ScoreDisplay />
-					<ScoreDisplay />
-					<ScoreDisplay />
-					<ScoreDisplay />
-					<ScoreDisplay />
-					<ScoreDisplay />
-					<ScoreDisplay />
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
+					<ScoreDisplay score={[1, 1]}/>
 				</div>
 			</Container>
 		</Layout>

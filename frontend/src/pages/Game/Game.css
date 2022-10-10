@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/19 19:45:21 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/30 17:27:41 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/10 10:38:29 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,4 @@
     border-radius: 8px;
 	border: solid var(--component-border-color) 0.15rem;
 	box-sizing: border-box;
-}
-
-.game-panel {
-	
 }

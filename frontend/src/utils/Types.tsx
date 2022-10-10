@@ -1,5 +1,7 @@
 import { Vector } from "vecti";
 
+export type ReactDispatch<T> = React.Dispatch<React.SetStateAction<T>>
+
 // Single user profile
 export interface Profile {
     intraID: number;

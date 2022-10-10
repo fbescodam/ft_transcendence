@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/10/06 16:15:50 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/10 10:47:31 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ import ScoreDisplay from "../../components/ScoreDisplay";
 import React, { useEffect, useRef, useState } from "react";
 import Logger from "../../utils/Logger";
 import { GameProvider } from "../../utils/GameContext";
+import { ReactDispatch } from "../../utils/Types";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -157,14 +158,15 @@ class GameStateMachine {
 
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
+	setScore: ReactDispatch<number[]>;
 
 	// TODO: Implement custom vector instead
 	dx: number;
 	dy: number;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, setScore: ReactDispatch<number[]>) {
 
-
+		this.setScore = setScore;
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d")!;
 
@@ -175,7 +177,7 @@ class GameStateMachine {
 		this.paddleP1 = new Paddle(new Vector(10, 100), 10, 100);
 		this.paddleP2 = new Paddle(new Vector(1000, 600), 10, 100);
 
-		const speed = 8;
+		const speed = 3;
 		this.dx = Math.random() > 0.5 ? -speed : speed;
 		this.dy = Math.random() > 0.5 ? -speed : speed;
 	}
@@ -190,13 +192,15 @@ class GameStateMachine {
 
 		if (p1Win || p2Win) {
 			this.ball.pos = new Vector(this.canvas.width / 2, this.canvas.height / 2);
-			this.dx = Math.random() > 0.5 ? -8 : 8;
-			this.dy = Math.random() > 0.5 ? -8 : 8;
+			this.dx = Math.random() > 0.5 ? -3 : 3;
+			this.dy = Math.random() > 0.5 ? -3 : 3;
 
 			if (p1Win)
 				this.scoreP1++;
 			else
 				this.scoreP2++;
+			this.setScore([this.scoreP1, this.scoreP2]);
+			
 		}
 		// Check baddle intersection
 		else if (Object.intersects(this.ball, this.paddleP1) || 
@@ -229,8 +233,9 @@ class GameStateMachine {
  * A button with a text value, a callback and possibly an icon.
  */
 const GamePage = () => {
-	const [score, setScore] = useState([0, 0]);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const [score, setScore] = useState([0, 0]);
+	const [gameState, setGameState] = useState<GameStateMachine>(null!);
 
 	// Init
 	useEffect(() => {
@@ -241,20 +246,44 @@ const GamePage = () => {
 			console.log(event.key);
 		});
 
-		const gameState = new GameStateMachine(canvasRef.current);
-		if (gameState == null)
+		const state = (new GameStateMachine(canvasRef.current, setScore));
+		if (state == null)
 			return Logger.error("Failed to create a gamestate!");
-		gameState.animate();
+		state.animate();
+		setGameState(state);
 	}, []);
+
+	const keyDownHandler = (event: React.KeyboardEvent<HTMLDivElement>) => {
+		console.log(event.code);
+		if (event.code === "ArrowUp") {
+			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y - 25);
+			// setTop((top) => top - 10);
+		  }
+	  
+		  if (event.code === "ArrowDown") {
+			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y + 25);
+			// setTop((top) => top + 10);
+		  }
+	  
+		  if (event.code === "ArrowLeft") {
+			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y - 25);
+			// setLeft((left) => left - 10);
+		  }
+	  
+		  if (event.code === "ArrowRight") {
+			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y + 25);
+			// setLeft((left) => left + 10);
+		  }
+	};
 
 	return (
 		<Layout>
 			<Container>
 				<h1>Game Page</h1>
 			</Container>
-			<div className="display-center">
+			<div className="display-center" tabIndex={0} onKeyDown={keyDownHandler}>
 				<Container>
-					<ScoreDisplay />
+					<ScoreDisplay score={score} />
 					<canvas ref={canvasRef} id="game-canvas" width="1080" height="720"/>
 				</Container>
 			</div>
