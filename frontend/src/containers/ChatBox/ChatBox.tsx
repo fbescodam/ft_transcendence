@@ -17,13 +17,12 @@ import Chat from '../../pages/Chat';
 import io from 'socket.io-client';
 import "./ChatBox.css"
 import { isConstructorDeclaration } from 'typescript';
-
 /*/////////////////////////////////////////////////////////////////////////////*/
 
 export interface Message {
 	text: string,
 	inChannel: string,
-	sentAt?: Date, //TODO: optional for now, cant be fucked
+	user: string;
 }
 export interface ChatChannel {
 	id: number,
@@ -34,11 +33,13 @@ export interface ChatChannel {
 
 const ChatBox = (props: ChatChannel) => {
 
+	let inputValue = '';
+	let socket = io("ws://localhost:3000");
+
 	const inputRef = useRef<HTMLInputElement>(null!);
 	const [msgList, msgListUpdate] = useState<string[]>([]); //TODO: get messages from db
 
-	let inputValue = '';
-	let socket = io("ws://localhost:3000");
+
 	
 	useEffect(() => {
 		
@@ -69,7 +70,7 @@ const ChatBox = (props: ChatChannel) => {
 	function handleSend(e: any) {
 		e.preventDefault();
         if (inputValue) {
-			const msg: Message = {text:inputValue, inChannel:"Global"}
+			const msg: Message = {text:inputValue, inChannel:"Global", user:"penis"}
           socket.emit('sendMsg', msg);
 		  inputRef.current.value = '';
         }

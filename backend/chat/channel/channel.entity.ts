@@ -7,7 +7,7 @@ export class Channel {
     @PrimaryGeneratedColumn()
     channelId: number;
 
-    @Column()
+    @Column({unique: true})
     channelName: string;
 
     @Column()

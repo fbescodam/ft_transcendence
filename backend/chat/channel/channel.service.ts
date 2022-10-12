@@ -2,9 +2,10 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Channel } from './channel.entity';
-import { createChannelDto } from 'dto/all.dto';
+import { addMessageToChannelDto, createChannelDto } from 'dto/all.dto';
 import { UsersService } from 'user/user.service';
 import { UserInChannel } from './userInChannel.entity';
+import { Message } from 'chat/messages/message.entity';
 
 @Injectable()
 export class ChannelsService {
@@ -49,6 +50,23 @@ export class ChannelsService {
     newChannel.users = [adminUser];
 
     return this.channelsRepository.save(newChannel);
+  }
+
+  //return last 20 messages
+  async getChannelMessages(channelName: string): Promise<Message[]> {
+    return await (await this.getChannelByName(channelName)).messages.slice(0, 20);
+  }
+
+  async addMessageToChannel(message: addMessageToChannelDto): Promise<void> {
+    const channel = await this.getChannelByName(message.channelName);
+    const messageData = new Message();
+
+    messageData.message = message.text;
+    messageData.sentAt = new Date();
+    messageData.sentBy = await this.userService.getuserByName(message.user);
+    messageData.sentIn = channel;
+
+    channel.messages.push(messageData);
   }
 
 }

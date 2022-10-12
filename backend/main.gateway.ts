@@ -4,12 +4,14 @@ import { Inject, Logger } from '@nestjs/common';
 import { User } from './user/user.entity'
 import { UsersService } from "user/user.service";
 import { createUserDto } from "dto/all.dto";
+import { ChannelsService } from "chat/channel/channel.service";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
 export interface Message {
-  text: string,
-  inChannel: string,
+  text: string;
+  inChannel: string;
+  byUser: string;
 }
 @WebSocketGateway({
   cors: {
@@ -20,6 +22,8 @@ export interface Message {
 export class MainGateway {
   @Inject(UsersService) //need to inject the shit we need into the module to actually use it
   private readonly userService: UsersService;
+  @Inject(ChannelsService)
+  private readonly channelService: ChannelsService;
   
   @WebSocketServer()
   server;
@@ -29,8 +33,8 @@ export class MainGateway {
   @SubscribeMessage('sendMsg')
   handleMessage(@MessageBody() msg: Message): void {
     this.server.to(msg.inChannel).emit('sendMsg', msg.text);
+    this.channelService.addMessageToChannel({user: msg.byUser, text: msg.text, channelName: msg.inChannel})
     this.logger.log(`sent ${msg.text} to ${msg.inChannel}`);
-    //TODO: shit msg into database
   }
 
   @SubscribeMessage('joinRoom')
@@ -52,7 +56,11 @@ export class MainGateway {
     this.logger.log(`created room: ${roomInfo.name}`);
   }
 
-
+  @SubscribeMessage('getMessagesFromChannel')
+  getMessagesFromChanel(@MessageBody() chanelName: string, @ConnectedSocket() socket: Socket): void {
+    const penis = this.channelService.getChannelMessages(chanelName);
+    socket.emit('getMessagesFromChannel', penis);
+  }
 
   @SubscribeMessage('blockUser')
   blockUser(@MessageBody() UserInfo: Object) {

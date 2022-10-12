@@ -12,3 +12,9 @@ export class createChannelDto {
   name: string;
   admin: string; //uuid of user, for now i guess;
 }
+
+export class addMessageToChannelDto {
+  text: string;
+  user: string;
+  channelName: string;
+}
