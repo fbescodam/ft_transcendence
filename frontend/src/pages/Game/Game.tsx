@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/10/10 10:47:31 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/13 13:21:53 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,8 +174,13 @@ class GameStateMachine {
 		this.scoreP2 = 0;
 
 		this.ball = new Ball(new Vector(this.canvas.width / 2, this.canvas.height / 2), 16, 16);
-		this.paddleP1 = new Paddle(new Vector(10, 100), 10, 100);
-		this.paddleP2 = new Paddle(new Vector(1000, 600), 10, 100);
+
+		const paddleWidth = 10;
+		const paddleHeight = 100;
+
+		// Disgusting to read but basic math to center and offset both paddles to the middle
+		this.paddleP1 = new Paddle(new Vector(paddleWidth, canvas.height / 2 - 100 / 2), paddleWidth, paddleHeight);
+		this.paddleP2 = new Paddle(new Vector(canvas.width - (paddleWidth * 2), canvas.height / 2 - 100 / 2), paddleWidth, paddleHeight);
 
 		const speed = 3;
 		this.dx = Math.random() > 0.5 ? -speed : speed;
@@ -255,25 +260,15 @@ const GamePage = () => {
 
 	const keyDownHandler = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		console.log(event.code);
-		if (event.code === "ArrowUp") {
+		
+		if (event.code === "ArrowUp")
 			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y - 25);
-			// setTop((top) => top - 10);
-		  }
-	  
-		  if (event.code === "ArrowDown") {
+		if (event.code === "ArrowDown")
 			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y + 25);
-			// setTop((top) => top + 10);
-		  }
-	  
-		  if (event.code === "ArrowLeft") {
+		if (event.code === "ArrowLeft")
 			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y - 25);
-			// setLeft((left) => left - 10);
-		  }
-	  
-		  if (event.code === "ArrowRight") {
+		if (event.code === "ArrowRight")
 			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y + 25);
-			// setLeft((left) => left + 10);
-		  }
 	};
 
 	return (
