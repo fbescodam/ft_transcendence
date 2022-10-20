@@ -10,6 +10,8 @@ import { Message } from 'chat/messages/message.entity';
 @Injectable()
 export class ChannelsService {
   constructor(
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
     @InjectRepository(Channel)
     private channelsRepository: Repository<Channel>,
     @InjectRepository(UserInChannel)
@@ -39,6 +41,7 @@ export class ChannelsService {
     
     newChannel.channelName = channelDto.name;
     newChannel.admin = channelDto.admin;
+    newChannel.messages = [];
 
     const adminUser = new UserInChannel();
     adminUser.userName = channelDto.admin;
@@ -66,7 +69,7 @@ export class ChannelsService {
     messageData.sentBy = await this.userService.getuserByName(message.user);
     messageData.sentIn = channel;
 
-    channel.messages.push(messageData);
+    this.messageRepository.save(messageData);
   }
 
 }

@@ -37,3 +37,5 @@ list all tables
 SELECT table_name FROM information_schema.tables;
 
 */
+
+//https://stackoverflow.com/questions/37970743/postgresql-unique-violation-7-error-duplicate-key-value-violates-unique-const //TODO: this cause duplicate key error

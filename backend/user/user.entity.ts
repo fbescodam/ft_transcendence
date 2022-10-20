@@ -23,7 +23,7 @@ export class User {
     @JoinTable()
     friends: User[];
 
-    @ManyToMany(() => Game)
+    @ManyToMany(() => Game, (game) => game.gameId)
     @JoinTable()
     games: Game[]
 

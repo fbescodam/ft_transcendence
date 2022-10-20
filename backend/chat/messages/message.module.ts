@@ -7,5 +7,6 @@ import { Message } from './message.entity';
   imports: [TypeOrmModule.forFeature([Message])],
   providers: [MessagesService],
   controllers: [], //controller are for http requests but idfk when that would ever be used so its empty
+  exports: [MessagesService]
 })
 export class MessagesModule {}

@@ -57,8 +57,8 @@ export class MainGateway {
   }
 
   @SubscribeMessage('getMessagesFromChannel')
-  getMessagesFromChanel(@MessageBody() chanelName: string, @ConnectedSocket() socket: Socket): void {
-    const penis = this.channelService.getChannelMessages(chanelName);
+  getMessagesFromChanel(@MessageBody() channelName: string, @ConnectedSocket() socket: Socket): void {
+    const penis = this.channelService.getChannelMessages(channelName);
     socket.emit('getMessagesFromChannel', penis);
   }
 

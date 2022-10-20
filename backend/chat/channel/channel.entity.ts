@@ -19,4 +19,4 @@ export class Channel {
 
     @OneToMany(() => Message, (message) => message.messageId)
     messages: Message[];
-}
+} 
