@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/30 12:57:34 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/20 16:05:51 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ const Navbar = () => {
 
 				<NavItem href="/" name="Home" icon="Home" />
 				<NavItem href="/leaderboard" name="Friends" icon="Leaderboard" />
-				<NavItem href="/game" name="Games" icon="Stadia_controller" />
+				<NavItem href="/gamemenu" name="Games" icon="Stadia_controller" />
 				<NavItem href="/chat" name="Chat" icon="Chat" />
 			</div>
 

@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/26 14:16:31 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/20 12:15:39 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ import IconButton from "../../components/IconButton";
  * A button with a text value, a callback and possibly an icon.
  */
  const ChatPage = () => {
+
+
+
     return (
 		<Layout>
 			<Container>
@@ -36,14 +39,14 @@ import IconButton from "../../components/IconButton";
 				{/* Channel selection */}
 				<Container>
 					<div className="channel-selection">
-
-						{/* TODO: Replace these, and sync style with NavItem maybe */}
-
 						<IconButton icon="public" name="Global" callback={() => {}}/>
 						<hr />
+						
+						{/* TODO: Replace these, and sync style with NavItem maybe */}
 						<IconButton icon="chat" name="Bebou" callback={() => {}}/>
 						<IconButton icon="chat" name="Pepin & Pipi & Pepou" callback={() => {}}/>
 						<IconButton icon="chat" name="Chat 3" callback={() => {}}/>
+
 						<hr />
 						<IconButton icon="add" name="add" callback={() => {}}/>
 					</div>

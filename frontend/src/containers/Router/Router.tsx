@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:24:56 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/09/30 11:51:22 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/20 16:11:02 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ import Chat from "../../pages/Chat";
 import NoPage from "../../pages/NotFound/NotFound";
 import Leaderboard from "../../pages/Leaderboard";
 import Settings from "../../pages/Settings";
+import GamePage, { GamePlayPage } from "../../pages/Game/Game";
 
 // Container
 /*/////////////////////////////////////////////////////////////////////////////*/
@@ -34,7 +35,8 @@ const Router = () => (
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<Chat />} />
         {/* TODO: Add guard here to check if player is playing the game, if they are send alert*/}
-        <Route path="/game" element={<Game />} />
+        <Route path="/gamemenu" element={<GamePage />} />
+        <Route path="/game" element={<GamePlayPage />} />
 		<Route path="/leaderboard" element={<Leaderboard />} />
 		<Route path="/settings" element={<Settings />} />
 

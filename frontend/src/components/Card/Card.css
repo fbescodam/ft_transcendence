@@ -1,0 +1,64 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Card.css                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/09/05 19:05:27 by lde-la-h      #+#    #+#                 */
+/*   Updated: 2022/10/20 14:42:31 by lde-la-h      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+
+.card {
+    position: relative;
+    min-width: 8rem;
+    width: 22rem;
+    height: 28rem;
+    color: var(--foreground-unfocused);
+    background: var(--component-background);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    box-shadow: 0 0 0.2em var(--shadow-color);
+    transition: all var(--transition-speed);
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 1em var(--shadow-color);
+}
+
+.card img {
+    border-radius: 0.75rem 0.75rem 0 0;
+    height: 40%;
+    width: inherit;
+    background-color: var(--header-background-shadow);
+    background-size: cover;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border-bottom: solid 4px var(--component-border-color);
+}
+
+.game-menu .card span {
+    display: block;
+}
+
+/* ************************************************************************** */
+
+.game-menu .card .title {
+    font-size: 1.5em;
+    margin-bottom: 1rem;
+    padding: 0 0.4em;
+    font-style: oblique;
+}
+
+.game-menu .card .description {
+    font-size: 1em;
+    padding: 0 0.75em;
+    white-space: normal;
+    text-overflow: ellipsis;
+}
+
+/* ************************************************************************** */

@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:21 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/10/10 10:35:33 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/20 19:09:10 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 
 	--foreground: #ecf0f1;
 	--foreground-unfocused: #a0a0a0;
+
+	--shadow-color: #24242e;
 
 	--scrollbar-background-color: #2d313c;
     --scrollbar-thumb-color: #474b54;
@@ -66,6 +68,11 @@ hr {
 	border: 2px solid var(--component-border-color);
 	border-radius: 8px;
 	margin: 8px 4px 8px 4px;
+}
+
+a {
+	color: unset !important;
+    text-decoration: none !important;
 }
 
 .material-symbols-rounded {

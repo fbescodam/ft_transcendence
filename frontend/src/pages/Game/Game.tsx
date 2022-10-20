@@ -6,7 +6,7 @@
 /*   By: lde-la-h <lde-la-h@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/09/05 19:11:25 by lde-la-h      #+#    #+#                 */
-/*   Updated: 2022/10/13 13:21:53 by lde-la-h      ########   odam.nl         */
+/*   Updated: 2022/10/20 18:54:35 by lde-la-h      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Logger from "../../utils/Logger";
 import { GameProvider } from "../../utils/GameContext";
 import { ReactDispatch } from "../../utils/Types";
+import Card from "../../components/Card";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -141,6 +142,8 @@ class Paddle extends Object {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
 /**
  * Handles the state of the game such as rendering, input control, ...
  *
@@ -182,7 +185,7 @@ class GameStateMachine {
 		this.paddleP1 = new Paddle(new Vector(paddleWidth, canvas.height / 2 - 100 / 2), paddleWidth, paddleHeight);
 		this.paddleP2 = new Paddle(new Vector(canvas.width - (paddleWidth * 2), canvas.height / 2 - 100 / 2), paddleWidth, paddleHeight);
 
-		const speed = 3;
+		const speed = 4;
 		this.dx = Math.random() > 0.5 ? -speed : speed;
 		this.dy = Math.random() > 0.5 ? -speed : speed;
 	}
@@ -197,20 +200,20 @@ class GameStateMachine {
 
 		if (p1Win || p2Win) {
 			this.ball.pos = new Vector(this.canvas.width / 2, this.canvas.height / 2);
-			this.dx = Math.random() > 0.5 ? -3 : 3;
-			this.dy = Math.random() > 0.5 ? -3 : 3;
+			this.dx = Math.random() > 0.5 ? -4 : 4;
+			this.dy = Math.random() > 0.5 ? -4 : 4;
 
 			if (p1Win)
 				this.scoreP1++;
 			else
 				this.scoreP2++;
 			this.setScore([this.scoreP1, this.scoreP2]);
-			
 		}
 		// Check baddle intersection
 		else if (Object.intersects(this.ball, this.paddleP1) || 
 			Object.intersects(this.ball, this.paddleP2)) {
-			this.dx *= -1;
+			this.dx *= -1.2;
+			this.dy *= 1.2;
 		}
 		// Y-Up || Y-Down
 		else if (this.ball.pos.y + this.dy > this.canvas.height - this.ball.height || 
@@ -220,10 +223,12 @@ class GameStateMachine {
 
 		this.ball.move(new Vector(this.dx, this.dy));
 
+		this.paddleP2.pos = new Vector(this.paddleP2.pos.x, this.ball.pos.y);
 		this.ball.render(this.ctx);
 		this.paddleP1.render(this.ctx);
 		this.paddleP2.render(this.ctx);
 
+		
 		const grid = 7;
 		for (let i = grid; i < this.canvas.height - grid; i += grid * 2) {
 			this.ctx.fillStyle = "#fff"
@@ -234,10 +239,26 @@ class GameStateMachine {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+
+const GamePage = () => {
+	return (
+		<Layout>
+			<Container>
+				<h1>Game Page</h1>
+			</Container>
+			<div className="game-menu">
+				{/* HREF to a matchmaking page that then holds and directs the user  */}
+				<Card title="Singleplayer" description="Have fun with the bot!" image="https://portfolio.w2wizard.dev/assets/CodamLogo.png" href="/game"/>
+				<Card title="Multiplayer" description="Have fun with retards!" image="https://i.stack.imgur.com/hMDvl.jpg?s=96" href="/game"/>
+			</div>
+		</Layout>
+	)
+}
+
 /**
  * A button with a text value, a callback and possibly an icon.
  */
-const GamePage = () => {
+export const GamePlayPage = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [score, setScore] = useState([0, 0]);
 	const [gameState, setGameState] = useState<GameStateMachine>(null!);
@@ -261,14 +282,14 @@ const GamePage = () => {
 	const keyDownHandler = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		console.log(event.code);
 		
+		if (event.code === "KeyW")
+			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y - 45);
+		if (event.code === "KeyS")
+			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y + 45);
 		if (event.code === "ArrowUp")
-			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y - 25);
+			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y - 45);
 		if (event.code === "ArrowDown")
-			gameState.paddleP1.pos = new Vector(gameState.paddleP1.pos.x, gameState.paddleP1.pos.y + 25);
-		if (event.code === "ArrowLeft")
-			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y - 25);
-		if (event.code === "ArrowRight")
-			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y + 25);
+			gameState.paddleP2.pos = new Vector(gameState.paddleP2.pos.x, gameState.paddleP2.pos.y + 45);
 	};
 
 	return (
