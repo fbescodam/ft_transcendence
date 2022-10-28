@@ -12,11 +12,6 @@
 # ft_transcendence | BreadPong
 This project is about creating a website for the mighty Pong contest!
 
-Made by: [W2Wizard](https://github.com/W2Wizard), [Freek Bes](https://github.com/FreekBes) & [Pjotr van Dijk](https://github.com/TheBriar)
-
-
-
-
 ## How to build
 
 To run the pong game do the following:

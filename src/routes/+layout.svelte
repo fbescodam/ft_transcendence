@@ -47,7 +47,7 @@
 		width: 100%;
 		flex-grow: 1;
 		max-height: 100vh;
-		background-color: var(--secondary-background);
+		background-color: var(--background);
 	}
 }
 
@@ -62,9 +62,9 @@
   	height: calc(var(--vh, 1vh) * 100);
 	min-width: fit-content;
 	max-width: 1rem;
-	padding: 0 4px 0 4px;
+	padding: 0 8px 0 8px;
 
-	background: var(--background);
+	background: var(--navbar-background);
 
 	overflow-y: auto;
 	scroll-behavior: smooth;

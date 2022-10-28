@@ -21,13 +21,17 @@
 	--purple: #b63288;
 	--red: #e42b2f;
 
+	--foreground: white;
 	--background: #121212;
 	--secondary-background: #1b1b1b;
 	
+	--navbar-background: #121212;
+
 	--component-border: #171717;
 	--component-background: #212121;
 	--component-secondary-bg: #313131;
-	--component-foreground: white;
+
+	color: var(--foreground);
 }
 
 * {
@@ -41,7 +45,12 @@ body {
 
 @media (prefers-color-scheme: light) {
 	:root {
-		color: #213547;
-		background-color: #ffffff;
+		--background: #ffffff;
+		--secondary-background: #f9f9f9;
+		
+		--component-border: #8e8e8e;
+		--component-background: #f9f9f9;
+		--component-secondary-bg: #cbcbcb;
+		--component-foreground: #213547;
 	}
 }

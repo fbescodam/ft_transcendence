@@ -6,6 +6,8 @@
 <!-- Scripting -->
 
 <script lang="ts">
+import Container from "$lib/Container/Container.svelte";
+
 
 </script>
 
@@ -25,16 +27,6 @@
 		height: 100%;
 	}
 
-	.chat-container {
-		margin: 1rem;
-		padding: 2rem;
-
-		border-radius: 8px;
-		border: 1px var(--component-border) solid;
-		background-color: var(--component-background);
-		box-shadow: 10px 20px 30px -20px rgba(0, 0, 0, 0.30);
-	}
-
 	.chats {
 		display: flex;
 		flex-wrap: wrap;
@@ -51,10 +43,13 @@
 </svelte:head>
 
 <div class="page">
-	<div class="chat-container">
+	<Container>
 		<h1>Chat Page</h1>
 		<div class="chats">
 			<!-- TODO: Fetch Channels and create a elements -->
 		</div>
-	</div>
+	</Container>
+	<Container>
+		
+	</Container>
 </div>
