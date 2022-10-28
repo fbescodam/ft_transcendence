@@ -1,17 +1,13 @@
-# ft_transcendence
-This project is about creating a website for the mighty Pong contest!
+</br>
+<div align="center">
+  <img width=420 src="https://user-images.githubusercontent.com/63303990/186118455-d1a2c167-702d-4be9-8e9e-08f3b7791902.png" alt="Logo">
+</div>
+<div align="center">
+  <sub>Written by <a href="https://portfolio.w2wizard.dev/">W2.Wizard</a> for Codam</sub>
+</div>
+</br>
 
-Made by: [W2Wizard](https://github.com/W2Wizard), [Freek Bes](https://github.com/FreekBes) & [Pjotr van Dijk](https://github.com/TheBriar)
-
-
-## How to build
-
-To run the pong game do the following:
-```bash
-git clone https://github.com/fbescodam/ft_transcendence
-npm install
-make
-```
-
-## Result
-![Result](./imgs/Result.png)
+# Stack
+Frontend: Vite + SvelteKit + TS + Houdini
+Backend: Rust + Juniper
+Icons: Heroicons 
