@@ -11,8 +11,8 @@
 
 <style lang="scss">
 	div {
-		margin: 1rem;
-		padding: 2rem;
+		margin: 0.5rem;
+		padding: 1rem;
 
 		border-radius: 8px;
 		border: 1px var(--component-border) solid;

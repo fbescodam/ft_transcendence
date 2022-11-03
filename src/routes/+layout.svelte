@@ -9,7 +9,7 @@
 	import "./styles.scss"
 	import Logo from "$lib/Assets/Logo.gif"
 	import { Home, Cube , Menu, Globe } from "svelte-hero-icons"
-	import NavItem from "$lib/NavItem/NavItem.svelte";
+	import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 
 	let navitems = [
 		{

@@ -3,15 +3,14 @@
  See README in the root project for more information.
 ------------------------------------------------------------------------------>
 <script lang="ts">
-    // Styles
-    import "./Button.scss";
+	import { createEventDispatcher } from 'svelte';
 
-    /** The function to execute on click. */
-    export let onClick: VoidFunction;
+	const dispatch = createEventDispatcher();
+
 </script>
 
-<button on:click={onClick}>
-    <slot></slot>
+<button on:click={() => { dispatch("click"); }}>
+    <slot/>
 </button>
 
 <style lang="scss">
