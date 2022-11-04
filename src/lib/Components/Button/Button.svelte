@@ -7,9 +7,10 @@
 
 	const dispatch = createEventDispatcher();
 
+    export let type: string = "button";
 </script>
 
-<button on:click={() => { dispatch("click"); }}>
+<button {type} on:click={() => { dispatch("click"); }}>
     <slot/>
 </button>
 
@@ -17,11 +18,11 @@
 button {
     border-radius: 8px;
     border: 1px solid transparent;
-    padding: 0.6em 1.2em;
+    padding: 0.4em 0.7em;
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #1a1a1a;
+    background-color: var(--component-secondary-bg);
     cursor: pointer;
     transition: border-color 0.25s;
 
