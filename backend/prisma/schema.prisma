@@ -13,6 +13,7 @@ model User {
   name      String    @unique
   role      Role      @default(USER)
   messages  Message[]
+  channels  Channel[]
 }
 
 model Channel {
@@ -20,7 +21,8 @@ model Channel {
   createdAt DateTime    @default(now())
   name      String      @unique
   type      ChannelType @default(STANDARD)
-  messages  Message[]
+  users     User[]
+  messages  Message[] //TODO: figure out implicit vs explicit many to many
 }
 
 model Message {
