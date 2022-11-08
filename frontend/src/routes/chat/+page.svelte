@@ -7,6 +7,8 @@
 
 <script lang="ts">
 	import {  Globe, Chat, Plus } from "svelte-hero-icons";
+	import { io } from "$lib/socketIO";
+	import { onMount } from "svelte";
 	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 	import Container from "$lib/Components/Container/Container.svelte";
 
@@ -14,16 +16,24 @@
 		{ author: 'other', text: "Yo!" }
 	];
 
-	/**
+	onMount(() => {
+        io.on("sendMsg", message => { // Listen to the message event
+            messages = [...messages, { author: 'user', text: message}]
+        })
+    })
+
+	/** 
 	 * When the user sends a message.
 	 * @param event The Input event.
 	 */
 	function onSend(event: any) {
 		if (event.key === 'Enter') {
+			console.log("fwfwfwaewfw");
 			const text = event.target.value;
 			if (!text) return;
+			io.emit("sendMsg", {inChannel: 'reee', text: text});
 
-			messages = messages.concat({ author: 'user', text });
+			// messages = messages.concat({ author: 'user', text });
 			event.target.value = "";
 		}
 	}

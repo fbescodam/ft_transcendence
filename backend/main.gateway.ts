@@ -1,10 +1,6 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
-import { User } from './user/user.entity'
-import { UsersService } from "user/user.service";
-import { createUserDto } from "dto/all.dto";
-import { ChannelsService } from "chat/channel/channel.service";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -20,10 +16,6 @@ export interface Message {
   },
 })
 export class MainGateway {
-  @Inject(UsersService) //need to inject the shit we need into the module to actually use it
-  private readonly userService: UsersService;
-  @Inject(ChannelsService)
-  private readonly channelService: ChannelsService;
   
   @WebSocketServer()
   server;
@@ -32,9 +24,10 @@ export class MainGateway {
 
   @SubscribeMessage('sendMsg')
   handleMessage(@MessageBody() msg: Message): void {
-    this.server.to(msg.inChannel).emit('sendMsg', msg.text);
-    this.channelService.addMessageToChannel({user: msg.byUser, text: msg.text, channelName: msg.inChannel})
+    this.server.emit('sendMsg', msg.text);
+    // this.server.to(msg.inChannel).emit('sendMsg', msg.text);
     this.logger.log(`sent ${msg.text} to ${msg.inChannel}`);
+    //TODO: msg to db
   }
 
   @SubscribeMessage('joinRoom')
@@ -58,8 +51,8 @@ export class MainGateway {
 
   @SubscribeMessage('getMessagesFromChannel')
   getMessagesFromChanel(@MessageBody() channelName: string, @ConnectedSocket() socket: Socket): void {
-    const penis = this.channelService.getChannelMessages(channelName);
-    socket.emit('getMessagesFromChannel', penis);
+    // const penis = this.channelService.getChannelMessages(channelName);
+    // socket.emit('getMessagesFromChannel', penis);
   }
 
   @SubscribeMessage('blockUser')
@@ -80,11 +73,6 @@ export class MainGateway {
   @SubscribeMessage('unFriendUser')
   unFriendUser(@MessageBody() UserInfo: Object) {
     
-  }
-
-  @SubscribeMessage('createUser')
-  createUser(@MessageBody() UserInfo: createUserDto) {
-    this.userService.createUser(UserInfo);
   }
 
 }
