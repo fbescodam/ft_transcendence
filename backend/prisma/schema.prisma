@@ -1,0 +1,43 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://user:password@localhost:5432/test?schema=public"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  name      String    @unique
+  role      Role      @default(USER)
+  messages  Message[]
+}
+
+model Channel {
+  id        Int         @id @default(autoincrement())
+  createdAt DateTime    @default(now())
+  name      String      @unique
+  type      ChannelType @default(STANDARD)
+  messages  Message[]
+}
+
+model Message {
+  id        Int       @id @default(autoincrement())
+  sentAt    DateTime  @default(now())
+  sender    User?     @relation(fields: [senderId], references: [id])
+  senderId  Int?
+  inChannel Channel?  @relation(fields: [channelId], references: [id])
+  channelId Int?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ChannelType {
+  DIRECT
+  STANDARD
+}

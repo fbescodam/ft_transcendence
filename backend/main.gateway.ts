@@ -1,6 +1,7 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
+import { PrismaService } from "prisma/prisma.service";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -16,18 +17,24 @@ export interface Message {
   },
 })
 export class MainGateway {
-  
+  @Inject(PrismaService)
+  private readonly prismaService: PrismaService;
   @WebSocketServer()
   server;
 
   private readonly logger = new Logger("sockets");
 
   @SubscribeMessage('sendMsg')
-  handleMessage(@MessageBody() msg: Message): void {
+  async handleMessage(@MessageBody() msg: Message): Promise<void> {
     this.server.emit('sendMsg', msg.text);
     // this.server.to(msg.inChannel).emit('sendMsg', msg.text);
-    this.logger.log(`sent ${msg.text} to ${msg.inChannel}`);
-    //TODO: msg to db
+    this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.byUser}`);
+    const user = await this.prismaService.user.findFirst({where: { name: msg.byUser}})
+    const channel = await this.prismaService.channel.findFirst({where: { name: msg.inChannel}})
+    this.prismaService.message.create({data: { 
+      senderId: user.id,
+      channelId: channel.id
+    }});
   }
 
   @SubscribeMessage('joinRoom')

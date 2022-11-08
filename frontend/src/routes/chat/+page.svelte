@@ -13,12 +13,12 @@
 	import Container from "$lib/Components/Container/Container.svelte";
 
 	let messages = [
-		{ author: 'other', text: "Yo!" }
+		{ byUser: 'other', text: "Yo!" }
 	];
 
 	onMount(() => {
         io.on("sendMsg", message => { // Listen to the message event
-            messages = [...messages, { author: 'user', text: message}]
+            messages = [...messages, { byUser: 'user', text: message}]
         })
     })
 
@@ -28,12 +28,11 @@
 	 */
 	function onSend(event: any) {
 		if (event.key === 'Enter') {
-			console.log("fwfwfwaewfw");
 			const text = event.target.value;
 			if (!text) return;
-			io.emit("sendMsg", {inChannel: 'reee', text: text});
+			io.emit("sendMsg", {inChannel: 'channelName', text: text, byUser: 'user'});
 
-			// messages = messages.concat({ author: 'user', text });
+			// messages = messages.concat({ byUser: 'user', text });
 			event.target.value = "";
 		}
 	}
@@ -135,7 +134,7 @@
 			<h1>Pjotr</h1>
 			<div class="messages">
 				{#each messages as message}
-					<article class={message.author}>
+					<article class={message.byUser}>
 						<span>{message.text}</span>
 					</article>
 				{/each}
