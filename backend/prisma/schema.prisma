@@ -14,10 +14,12 @@ model User {
 	name      String    @unique
 	password  String
 	role      Role      @default(USER)
-	// friends		User[]		@relation("UserFriends") //TODO: needs to be explicit
 	messages  Message[]
 	channels  UserInChannel[]
 	games			Game[]
+	friends		Int[]	//TODO: better way for this?
+	pendingFriends	Int[]
+	blocked		Int[]
 }
 
 model Channel {
