@@ -20,8 +20,7 @@ async function main() {
         role: Role.ADMIN,
         channel: {create: {name: "Global"}}
       }
-      ]
-  }}});
+  ]}}});
 
 }
 

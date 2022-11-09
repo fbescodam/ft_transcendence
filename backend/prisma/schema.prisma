@@ -1,6 +1,7 @@
 datasource db {
 	provider = "postgresql"
 	url      = "postgresql://user:password@localhost:5432/test?schema=public" //TODO: should get this from env
+	//url      = "postgresql://user:password@ft_transcendence.database:5432/test?schema=public"
 	//url = env("DATABASE_URL")
 }
 
