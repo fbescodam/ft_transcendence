@@ -1,4 +1,4 @@
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket } from "@nestjs/websockets";
+import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, WsResponse } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { PrismaService } from "prisma/prisma.service";
@@ -8,7 +8,7 @@ import { PrismaService } from "prisma/prisma.service";
 export interface Message {
   text: string;
   inChannel: string;
-  byUser: string;
+  senderName: string;
 }
 @WebSocketGateway({
   cors: {
@@ -28,13 +28,30 @@ export class MainGateway {
   async handleMessage(@MessageBody() msg: Message): Promise<void> {
     this.server.emit('sendMsg', msg.text);
     // this.server.to(msg.inChannel).emit('sendMsg', msg.text);
-    this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.byUser}`);
-    const user = await this.prismaService.user.findFirst({where: { name: msg.byUser}})
-    const channel = await this.prismaService.channel.findFirst({where: { name: msg.inChannel}})
-    this.prismaService.message.create({data: { 
-      senderId: user.id,
-      channelId: channel.id
+    this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.senderName}`);
+    await this.prismaService.message.create({data: { 
+      senderName: msg.senderName,
+      channelName: msg.inChannel,
+      text: msg.text
     }});
+  }
+
+  @SubscribeMessage('getChannelsForUser')
+  async getChannelsForUser(@MessageBody() userName: string): Promise<Object[]> {
+    const user = await this.prismaService.user.findFirst({
+      where: { name: userName }, 
+      include: { channels: true }})
+    this.logger.log(userName);
+    return user.channels;
+  }
+
+  @SubscribeMessage('getMessagesFromChannel')
+  async getMessagesFromChanel(@MessageBody() channelName: string): Promise<Object[]> {
+    const channel = await this.prismaService.channel.findFirst({
+      where: {name: channelName },
+      include: { messages: true}
+    })
+    return channel.messages;
   }
 
   @SubscribeMessage('joinRoom')
@@ -56,11 +73,6 @@ export class MainGateway {
     this.logger.log(`created room: ${roomInfo.name}`);
   }
 
-  @SubscribeMessage('getMessagesFromChannel')
-  getMessagesFromChanel(@MessageBody() channelName: string, @ConnectedSocket() socket: Socket): void {
-    // const penis = this.channelService.getChannelMessages(channelName);
-    // socket.emit('getMessagesFromChannel', penis);
-  }
 
   @SubscribeMessage('blockUser')
   blockUser(@MessageBody() UserInfo: Object) {

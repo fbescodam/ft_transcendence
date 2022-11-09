@@ -6,21 +6,33 @@
 <!-- Scripting -->
 
 <script lang="ts">
-	import {  Globe, Chat, Plus } from "svelte-hero-icons";
+	import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
 	import { io } from "$lib/socketIO";
 	import { onMount } from "svelte";
 	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 	import Container from "$lib/Components/Container/Container.svelte";
 
-	let messages = [
-		{ byUser: 'other', text: "Yo!" }
-	];
+	let messages: Array<any> = [];
+	let channels: any = []
+	let openChannel = "Global";
+	let currentUser = 'AdminUser'; //TODO: need to do auth huh
 
 	onMount(() => {
+		updateMessages("Global");
+
         io.on("sendMsg", message => { // Listen to the message event
-            messages = [...messages, { byUser: 'user', text: message}]
+            messages = [...messages, { senderName: 'AdminUser', text: message}]
         })
+		//TODO: admin is username
+		io.emit('getChannelsForUser', 'AdminUser', (answer: any) => 
+			channels = answer); 
+
     })
+
+	function updateMessages(channelName: string) {
+		io.emit('getMessagesFromChannel', channelName, (answer: any) =>
+			messages = answer);
+	}
 
 	/** 
 	 * When the user sends a message.
@@ -30,9 +42,8 @@
 		if (event.key === 'Enter') {
 			const text = event.target.value;
 			if (!text) return;
-			io.emit("sendMsg", {inChannel: 'channelName', text: text, byUser: 'user'});
+			io.emit("sendMsg", {inChannel: 'Global', text: text, senderName: 'AdminUser'});
 
-			// messages = messages.concat({ byUser: 'user', text });
 			event.target.value = "";
 		}
 	}
@@ -117,24 +128,26 @@
 <div class="page">
 	<Container>
 		<div class="channels">
-			<ChatItem text="Global" icon={Globe} on:click={() => { }} />
-			<hr />
-			
-			<!-- TODO: Fetch channels, add them -->
-			<ChatItem text="Chat 1" icon={Chat} on:click={() => { }} />
-			<ChatItem text="Chat 2" icon={Chat} on:click={() => { }} />
-			<ChatItem text="Chat 3" icon={Chat} on:click={() => { }} />
-			
+			{#each channels as channel}
+				<ChatItem text={channel.name} 
+				icon={channel.name == "Global" ? Globe : Chat} 
+				on:click={() => {openChannel = channel.name;updateMessages(channel.name)}} />
+			{/each}			
 			<hr />
 			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
 		</div>
 	</Container>
 	<Container flexGrow={1}>
 		<div class="chat">
-			<h1>Pjotr</h1>
+			<h1>{openChannel}</h1>
 			<div class="messages">
+				{#if messages.length == 0}
+					<article class="other">
+						<span>no messages for this channel</span>
+					</article>
+				{/if}
 				{#each messages as message}
-					<article class={message.byUser}>
+					<article class={message.senderName == currentUser ? "user" : "other"}>
 						<span>{message.text}</span>
 					</article>
 				{/each}

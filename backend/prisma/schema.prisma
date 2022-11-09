@@ -9,8 +9,9 @@ generator client {
 
 model User {
   id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
+  joinedAt  DateTime  @default(now())
   name      String    @unique
+  password  String
   role      Role      @default(USER)
   messages  Message[]
   channels  Channel[]
@@ -26,12 +27,13 @@ model Channel {
 }
 
 model Message {
-  id        Int       @id @default(autoincrement())
-  sentAt    DateTime  @default(now())
-  sender    User?     @relation(fields: [senderId], references: [id])
-  senderId  Int?
-  inChannel Channel?  @relation(fields: [channelId], references: [id])
-  channelId Int?
+  id          Int       @id @default(autoincrement())
+  sentAt      DateTime  @default(now())
+  text        String
+  sender      User?     @relation(fields: [senderName], references: [name])
+  senderName  String?
+  channel     Channel?  @relation(fields: [channelName], references: [name])
+  channelName String?
 }
 
 enum Role {
