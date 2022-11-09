@@ -1,47 +1,72 @@
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://user:password@localhost:5432/test?schema=public"
+	provider = "postgresql"
+	url      = "postgresql://user:password@localhost:5432/test?schema=public" //TODO: should get this from env
+	//url = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+	provider = "prisma-client-js"
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  joinedAt  DateTime  @default(now())
-  name      String    @unique
-  password  String
-  role      Role      @default(USER)
-  messages  Message[]
-  channels  Channel[]
+	id        Int       @id @default(autoincrement())
+	joinedAt  DateTime  @default(now())
+	name      String    @unique
+	password  String
+	role      Role      @default(USER)
+	// friends		User[]		@relation("UserFriends") //TODO: needs to be explicit
+	messages  Message[]
+	channels  UserInChannel[]
+	games			Game[]
 }
 
 model Channel {
-  id        Int         @id @default(autoincrement())
-  createdAt DateTime    @default(now())
-  name      String      @unique
-  type      ChannelType @default(STANDARD)
-  users     User[]
-  messages  Message[] //TODO: figure out implicit vs explicit many to many
+	id        Int         @id @default(autoincrement())
+	createdAt DateTime    @default(now())
+	name      String      @unique
+	type      ChannelType @default(STANDARD)
+	password  String?
+	users     UserInChannel[]
+	messages  Message[]
+}
+
+model UserInChannel {
+	user				User    @relation(fields: [userName], references: [name])
+	userName		String
+	channel   	Channel @relation(fields: [channelName], references: [name])
+	channelName String
+
+	role      Role
+	joinedOn  DateTime @default(now())
+
+	@@id([userName, channelName])
 }
 
 model Message {
-  id          Int       @id @default(autoincrement())
-  sentAt      DateTime  @default(now())
-  text        String
-  sender      User?     @relation(fields: [senderName], references: [name])
-  senderName  String?
-  channel     Channel?  @relation(fields: [channelName], references: [name])
-  channelName String?
+	id          Int       @id @default(autoincrement())
+	sentAt      DateTime  @default(now())
+	text        String
+	sender      User?     @relation(fields: [senderName], references: [name])
+	senderName  String?
+	channel     Channel?  @relation(fields: [channelName], references: [name])
+	channelName String?
+}
+
+model Game {
+	id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+	players			User[]
+	victorScore	Int
+	loserScore	Int
+	WinnerId		Int
 }
 
 enum Role {
-  USER
-  ADMIN
+	USER
+	ADMIN
 }
 
 enum ChannelType {
-  DIRECT
-  STANDARD
+	DIRECT
+	STANDARD
 }

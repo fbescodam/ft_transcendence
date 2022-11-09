@@ -23,10 +23,13 @@
         io.on("sendMsg", message => { // Listen to the message event
             messages = [...messages, { senderName: 'AdminUser', text: message}]
         })
+		
 		//TODO: admin is username
-		io.emit('getChannelsForUser', 'AdminUser', (answer: any) => 
-			channels = answer); 
-
+		io.emit('getChannelsForUser', 'AdminUser', function (answer: any) {
+			channels = answer;
+			io.emit('joinRooms', channels.map((el: any) => el.channelName));
+		});
+		
     })
 
 	function updateMessages(channelName: string) {
@@ -42,7 +45,7 @@
 		if (event.key === 'Enter') {
 			const text = event.target.value;
 			if (!text) return;
-			io.emit("sendMsg", {inChannel: 'Global', text: text, senderName: 'AdminUser'});
+			io.emit("sendMsg", {inChannel: openChannel, text: text, senderName: 'AdminUser'});
 
 			event.target.value = "";
 		}
@@ -129,9 +132,9 @@
 	<Container>
 		<div class="channels">
 			{#each channels as channel}
-				<ChatItem text={channel.name} 
-				icon={channel.name == "Global" ? Globe : Chat} 
-				on:click={() => {openChannel = channel.name;updateMessages(channel.name)}} />
+				<ChatItem text={channel.channelName} 
+				icon={channel.channelName == "Global" ? Globe : Chat} 
+				on:click={() => {openChannel = channel.channelName; updateMessages(channel.channelName)}} />
 			{/each}			
 			<hr />
 			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
@@ -145,12 +148,13 @@
 					<article class="other">
 						<span>no messages for this channel</span>
 					</article>
+				{:else}
+					{#each messages as message}
+						<article class={message.senderName == currentUser ? "user" : "other"}>
+							<span>{message.text}</span>
+						</article>
+					{/each}
 				{/if}
-				{#each messages as message}
-					<article class={message.senderName == currentUser ? "user" : "other"}>
-						<span>{message.text}</span>
-					</article>
-				{/each}
 			</div>
 			<input on:keydown={onSend}>
 		</div>

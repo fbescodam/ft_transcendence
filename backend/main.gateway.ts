@@ -2,6 +2,7 @@ import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, Conne
 import { Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { PrismaService } from "prisma/prisma.service";
+import { prisma } from "@prisma/client";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -46,24 +47,39 @@ export class MainGateway {
   }
 
   @SubscribeMessage('getMessagesFromChannel')
-  async getMessagesFromChanel(@MessageBody() channelName: string): Promise<Object[]> {
+  async getMessagesFromChannel(@MessageBody() channelName: string): Promise<Object[]> {
     const channel = await this.prismaService.channel.findFirst({
       where: {name: channelName },
       include: { messages: true}
     })
     return channel.messages;
   }
-
-  @SubscribeMessage('joinRoom')
-  joinRoom(@MessageBody() roomInfo: {name: string}, @ConnectedSocket() socket: Socket) {
-    socket.join(roomInfo.name);
-    this.logger.log(`joined ${roomInfo.name}`);
+  
+  @SubscribeMessage('joinRooms')
+  joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
+    socket.join(roomInfo);
+    this.logger.log(`joined ${roomInfo}`);
   }
-
+  
   @SubscribeMessage('leaveRoom')
   leaveRoom(@MessageBody() roomInfo: {name: string}, @ConnectedSocket() socket: Socket) {
     socket.leave(roomInfo.name);
     this.logger.log(`left ${roomInfo.name}`);
+  }
+  
+  @SubscribeMessage('createChannel')
+  async createChannel(@MessageBody() channelData: Object): Promise<void> {
+
+  }
+
+  @SubscribeMessage('enterChannel')
+  async enterChannel(@MessageBody() channelData: Object): Promise<void> {
+
+  }
+
+  @SubscribeMessage('leaveChannel')
+  async leaveChannel(@MessageBody() channelData: Object): Promise<void> {
+
   }
 
   @SubscribeMessage('createRoom')

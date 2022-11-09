@@ -8,10 +8,20 @@ async function main() {
     password: "penis",
     role: Role.ADMIN,
     channels: { create: [
-      {name: "Global"}, 
-      {name: "testchannel1"},
-      {name: "testchannel2"}
-  ]}}});
+      {
+        role: Role.ADMIN,
+        channel: {create: {name: "number2"}}
+      },
+      {
+        role: Role.ADMIN,
+        channel: {create: {name: "number3"}}
+      },
+      {
+        role: Role.ADMIN,
+        channel: {create: {name: "Global"}}
+      }
+      ]
+  }}});
 
 }
 
