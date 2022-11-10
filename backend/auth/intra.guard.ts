@@ -1,5 +1,5 @@
 import { Injectable, CanActivate } from '@nestjs/common';
-import { jwt } from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 import { PrismaService } from "prisma/prisma.service";
 import { Observable } from 'rxjs';
 

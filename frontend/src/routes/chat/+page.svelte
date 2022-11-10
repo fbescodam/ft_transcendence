@@ -5,6 +5,8 @@
 	import { onMount } from "svelte";
 	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 	import Container from "$lib/Components/Container/Container.svelte";
+	import { authGuard } from "$lib/Guards/AuthGuard"
+	import { page } from "$app/stores";
 
 	let messages: Array<any> = [];
 	let channels: any = []
@@ -14,9 +16,9 @@
 	onMount(() => {
 		updateMessages("Global");
 
-        io.on("sendMsg", message => { // Listen to the message event
-            messages = [...messages, { senderName: 'AdminUser', text: message}]
-        })
+		io.on("sendMsg", message => { // Listen to the message event
+			messages = [...messages, { senderName: 'AdminUser', text: message}]
+		})
 
 		//TODO: admin is username
 		io.emit('getChannelsForUser', 'AdminUser', function (answer: any) {
@@ -24,7 +26,7 @@
 			io.emit('joinRooms', channels.map((el: any) => el.channelName));
 		});
 
-    })
+	})
 
 	function updateMessages(channelName: string) {
 		io.emit('getMessagesFromChannel', channelName, (answer: any) =>
@@ -97,16 +99,16 @@
 }
 
 .channels {
-    display: inline-flex;
-    overflow-x: auto;
+	display: inline-flex;
+	overflow-x: auto;
 	max-width: 100%;
-    gap: 8px;
+	gap: 8px;
 }
 
 .chat {
 	flex: 1;
 	display: flex;
-    padding: 1rem;
+	padding: 1rem;
 	flex-direction: column;
 
 	& .messages {

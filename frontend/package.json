@@ -19,16 +19,17 @@
 		"@typescript-eslint/parser": "^5.27.0",
 		"eslint": "^8.16.0",
 		"eslint-plugin-svelte3": "^4.0.0",
+		"socket.io-client": "^4.5.3",
 		"svelte": "^3.46.0",
 		"svelte-check": "^2.7.1",
 		"svelte-preprocess": "^4.10.6",
 		"tslib": "^2.3.1",
 		"typescript": "^4.7.4",
-		"socket.io-client": "^4.5.3",
 		"vite": "^3.1.0"
 	},
 	"type": "module",
 	"dependencies": {
+		"@macfja/svelte-persistent-store": "^2.2.1",
 		"sass": "^1.55.0",
 		"svelte-hero-icons": "^4.1.3"
 	}

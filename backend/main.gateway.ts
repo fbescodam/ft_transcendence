@@ -32,7 +32,7 @@ export class MainGateway {
     this.server.emit('sendMsg', msg.text);
     // this.server.to(msg.inChannel).emit('sendMsg', msg.text);
     this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.senderName}`);
-    await this.prismaService.message.create({data: { 
+    await this.prismaService.message.create({data: {
       senderName: msg.senderName,
       channelName: msg.inChannel,
       text: msg.text
@@ -42,7 +42,7 @@ export class MainGateway {
   @SubscribeMessage('getChannelsForUser')
   async getChannelsForUser(@MessageBody() userName: string): Promise<Object[]> {
     const user = await this.prismaService.user.findFirst({
-      where: { name: userName }, 
+      where: { name: userName },
       include: { channels: true }})
     this.logger.log(userName);
     return user.channels;
@@ -56,19 +56,19 @@ export class MainGateway {
     })
     return channel.messages;
   }
-  
+
   @SubscribeMessage('joinRooms')
   joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
     socket.join(roomInfo);
     this.logger.log(`joined ${roomInfo}`);
   }
-  
+
   @SubscribeMessage('leaveRoom')
   leaveRoom(@MessageBody() roomInfo: {name: string}, @ConnectedSocket() socket: Socket) {
     socket.leave(roomInfo.name);
     this.logger.log(`left ${roomInfo.name}`);
   }
-  
+
   @SubscribeMessage('createChannel')
   async createChannel(@MessageBody() channelData: Object): Promise<void> {
 
@@ -90,7 +90,7 @@ export class MainGateway {
   //   await this.prismaService.user.create({data: {
   //     name: userData.name,
   //     password: userData.password,
-  //     channels: { create: 
+  //     channels: { create:
   //       {
   //         role: Role.USER,
   //         channel: {connect: {name: "Global"}}
@@ -105,9 +105,13 @@ export class MainGateway {
 
   @SubscribeMessage('unFriendUser')
   unFriendUser(@MessageBody() UserInfo: Object) {
-    
+
   }
 
+  @SubscribeMessage('authStart')
+  async authStart(@MessageBody() code: string, @ConnectedSocket() socket: Socket): Promise<void> {
+    socket.emit('authEnd', {token: "token"}); // TODO: implement Oauth2 here
+  }
 }
 
 
