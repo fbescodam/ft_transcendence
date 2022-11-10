@@ -5,6 +5,7 @@ import { PrismaService } from "prisma/prisma.service";
 import { Role } from "@prisma/client";
 import { IntraGuard } from "auth/intra.guard";
 import fetch from "node-fetch";
+const jwt = require('jsonwebtoken');
 
 export type idfk = any;
 
@@ -29,7 +30,7 @@ export class MainGateway {
 
   private readonly logger = new Logger("sockets");
 
-  @UseGuards(IntraGuard)
+  @UseGuards(IntraGuard) //TODO: verify this works
   @SubscribeMessage('sendMsg')
   async handleMessage(@MessageBody() msg: Message): Promise<void> {
     this.server.emit('sendMsg', msg.text);
@@ -137,12 +138,23 @@ export class MainGateway {
       method: 'GET',
       headers: {'Authorization': 'Bearer ' + authResponse['access_token'], 'Content-Type': 'application/json'}
     });
-    this.logger.log(await responseUser.text());
-    // const userResponse = await responseUser.json();
 
 
+    const userResponse = await responseUser.json();
+    const userData = await this.prismaService.user.create({data: { //TODO: upsert
+      name: userResponse['login'] + '-penis',
+      intraId: userResponse['id'],
+      intraName: userResponse['login'],
+      avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+      channels: { create: [
+        {
+          role: Role.USER,
+          channel: {connect: {name: "Global"}}
+        }
+      ]}}});
 
-    return {token: "token", state: data['state']}; // <===== jwt
+    const jwtToken = jwt.sign(userData, process.env.INTRA_SECRET);
+    return {token: jwtToken, state: data['state']}; // <===== jwt
 
 
     //TODO: get token from intra
