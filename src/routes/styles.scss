@@ -20,14 +20,16 @@
 	--orange: #f19018;
 	--purple: #b63288;
 	--red: #e42b2f;
+	
+	--border-radius: 4px;
 
 	--foreground: white;
-	--background: #121212;
+	--background: #1a1a1a;
 	--secondary-background: #151515;
 	
 	--navbar-background: #121212;
 
-	--component-border: #171717;
+	--component-border: #292929;
 	--component-background: #212121;
 	--component-secondary-bg: #313131;
 
@@ -41,6 +43,13 @@
 
 body {
 	overflow: hidden;
+}
+
+hr {
+	border: 2px solid var(--component-border);
+	background-color: var(--component-border);
+	border-radius: 8px;
+	margin: 0.5em 0.1em;
 }
 
 @media (prefers-color-scheme: light) {

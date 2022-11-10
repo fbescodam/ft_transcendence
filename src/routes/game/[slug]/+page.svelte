@@ -52,7 +52,7 @@ canvas {
     margin-top: 8px;
 
 	border-radius: 8px;
-	border: 1px rgb(22, 22, 22) solid;
+	border: 1px var(--component-border) solid;
 }
 
 .center {

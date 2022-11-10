@@ -1,137 +1,167 @@
-<!-----------------------------------------------------------------------------
- Codam Coding College, Amsterdam @ 2022.
- See README in the root project for more information.
------------------------------------------------------------------------------->
-
 <!-- Scripting -->
-
 <script lang="ts">
-	import {  Globe, Chat, Plus } from "svelte-hero-icons";
-	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
-	import Container from "$lib/Components/Container/Container.svelte";
+import { Globe, Chat, Plus } from "svelte-hero-icons";
+import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
+import Container from "$lib/Components/Container/Container.svelte";
+import Button from "$lib/Components/Button/Button.svelte";
 
-	let messages = [
-		{ author: 'other', text: "Yo!" }
-	];
+let textInput: HTMLInputElement;
+let messages = [{ author: "other", type: "other" ,text: "Yo!" }];
+let currentChannel: { name: string, id: number } = { name: "Global", id: 0 };
+let channels = [
+    { name: "Chat 1", id: 123 },
+    { name: "Chat 2", id: 123 },
+    { name: "Chat 3", id: 123 },
+    { name: "Chat 1", id: 123 },
+    { name: "Chat 2", id: 123 },
+    { name: "Chat 3", id: 123 },
+    { name: "Chat 1", id: 123 },
+    { name: "Chat 2", id: 123 },
+    { name: "Chat 3", id: 123 },
+    { name: "Chat 1", id: 123 },
+    { name: "Chat 2", id: 123 },
+    { name: "Chat 3", id: 123 },
+];
 
-	/**
-	 * When the user sends a message.
-	 * @param event The Input event.
-	 */
-	function onSend(event: any) {
-		if (event.key === 'Enter') {
-			const text = event.target.value;
-			if (!text) return;
-
-			messages = messages.concat({ author: 'user', text });
-			event.target.value = "";
-		}
-	}
+/**
+ * When the user sends a message.
+ * @param event The Input event.
+ */
+function onSend(event: any) {
+	event.preventDefault();
+	const text = textInput.value;
+	messages = messages.concat({ author: 'user', text: text, type: "user" });
+	textInput.value = "";
+}
 </script>
-
-<!-- Styling -->
-
-<style lang="scss">
-	.page {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		gap: 1em;
-
-		& h1 {
-			border-bottom: 1px solid;
-			padding-bottom: 1rem;
-			margin-bottom: 1rem;
-			text-align: center;
-		}
-	}
-
-	.channels {
-		display: flex;
-		overflow-x: auto;
-		gap: 8px;
-
-		& hr {
-			border: 2px solid var(--component-border);
-			background-color: var(--component-border);
-			border-radius: 8px;
-			margin: 0.5em 0.1em;
-		}
-	}
-
-	.chat {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-
-		& .messages {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-			margin: 0 0 0.5em 0;
-			overflow-y: auto;
-		}
-		& span {
-			padding: 0.5em 1em;
-			display: inline-block;
-		}
-
-		.user {
-			text-align: right;
-
-			& span {
-					color: white;
-					text-align: right;
-					background-color: #0074D9;
-					border-radius: 1em 1em 0 1em;
-			}
-		}
-
-		.other {
-			text-align: left;
-
-			& span {
-				color: black;
-				background-color: #eee;
-				border-radius: 1em 1em 1em 0;
-			}
-		}
-	}
-</style>
 
 <!-- HTML -->
 
 <svelte:head>
-	<title>Chat</title>
-	<meta name="description" content="Talk with your friends!" />
+    <title>Chat</title>
+    <meta name="description" content="Talk with your friends!" />
 </svelte:head>
 
-<div class="page">
+<div class="content">
+	<!-- Channel Selection -->
 	<Container>
-		<div class="channels">
-			<ChatItem text="Global" icon={Globe} on:click={() => { }} />
+		<menu class="channels">
+			<ChatItem text="Global" icon={Globe} on:click={() => {
+				currentChannel = { name: "Global", id: 0 };
+			}} />
 			<hr />
-			
-			<!-- TODO: Fetch channels, add them -->
-			<ChatItem text="Chat 1" icon={Chat} on:click={() => { }} />
-			<ChatItem text="Chat 2" icon={Chat} on:click={() => { }} />
-			<ChatItem text="Chat 3" icon={Chat} on:click={() => { }} />
-			
+			{#each channels as channel}
+				<ChatItem
+					text={channel.name}
+					icon={Chat}
+					on:click={() => {
+						currentChannel = channel;
+						// TODO: Fetch and update the messages array.
+					}}
+				/>
+			{/each}
 			<hr />
-			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
-		</div>
+			<ChatItem text="Add" icon={Plus} on:click={() => {
+				// TODO: Modal popup, then handle, switch to channel.
+			}} />
+		</menu>
 	</Container>
-	<Container flexGrow={1}>
-		<div class="chat">
-			<h1>Pjotr</h1>
+	<hr />
+	<!-- Channel messages -->
+	<Container style="flex: 1; display: flex; flex-direction: column;">
+		<h1>{currentChannel.name}</h1>
+		<hr />
+		<section class="chat">
 			<div class="messages">
+				<!-- TODO: Improve styling on these. -->
 				{#each messages as message}
-					<article class={message.author}>
-						<span>{message.text}</span>
-					</article>
+					<article id={message.type} >{message.text}</article>
 				{/each}
 			</div>
-			<input on:keydown={onSend}>
-		</div>
+			<form on:submit={onSend}>
+				<input required bind:this={textInput} type="text"/>
+				<Button type="submit">Send</Button>
+			</form>
+		</section>
 	</Container>
 </div>
+
+<!-- Styling -->
+<style lang="scss">
+
+.content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.channels {
+    display: inline-flex;
+    overflow-x: auto;
+	max-width: 100%;
+    gap: 8px;
+}
+
+.chat {
+	flex: 1;
+	display: flex;
+    padding: 1rem;
+	flex-direction: column;
+
+	& .messages {
+		flex: 1;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+
+		& #user {
+			text-align: right;
+		}
+	}
+
+	& form {
+		display: flex;
+		gap: 10px;
+		width: 100%;
+
+		& input {
+			flex: 1;
+		}
+	}
+}
+
+</style>
+
+
+<!-- <ul class="messages">
+	{#each messages as message}
+		<li kind={message.type} >{message.text}</li>
+	{/each}
+</ul>
+<hr />
+<form on:submit={onSend}>
+	<input type="text"/>
+	<Button type="submit">Bruh</Button>
+</form> -->
+
+<!-- .chat {
+	display: block;
+	& .messages {
+		overflow-y: auto;
+		max-height: 500px;
+	}
+
+	& form {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+
+		& input {
+			flex: 1;
+			padding: 0px 8px;
+			border-style: none;
+			border-radius: var(--border-radius);
+		}
+	}
+} -->

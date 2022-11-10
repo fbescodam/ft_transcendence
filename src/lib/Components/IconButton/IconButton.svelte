@@ -56,8 +56,8 @@ button {
 
 	font-size: 32px;
 
-	width: 64px;
-	height: 64px;
+	min-width: 64px;
+	min-height: 64px;
 
 	&:focus {
 		border-color: white;
