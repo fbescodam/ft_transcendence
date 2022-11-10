@@ -1,111 +1,129 @@
-
 <!-- Scripting -->
-
 <script lang="ts">
-import "./styles.scss"
-import Logo from "$lib/Assets/Logo.gif"
-import { Home, Cube , Menu, Globe } from "svelte-hero-icons"
+import "./styles.scss";
+import Logo from "$lib/Assets/Logo.gif";
+import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
-import { page } from '$app/stores';
+import DeviceDetector from "svelte-device-detector";
+import { page } from "$app/stores";
 
 let navitems = [
-	{
-		href: '/',
-		icon: Home,
-		text: 'Home',
-		color: 'blue'
-	},
-	{
-		href: '/game',
-		icon: Cube,
-		text: 'Game',
-		color: 'orange'
-	},
-	{
-		href: '/chat',
-		icon: Globe,
-		text: 'Chat',
-		color: 'purple'
-	},
-]
+    {
+        href: "/",
+        icon: Home,
+        text: "Home",
+        color: "blue",
+    },
+    {
+        href: "/game",
+        icon: Cube,
+        text: "Game",
+        color: "orange",
+    },
+    {
+        href: "/chat",
+        icon: Globe,
+        text: "Chat",
+        color: "purple",
+    },
+];
 </script>
 
 <!-- HTML -->
 
-{#if !$page.url.pathname.startsWith("/auth")}
-	<div class="layout">
-		<nav class="navbar">
-			<div class="top-content">
-				<a href="/">
-					<img class="logo" src={Logo} alt="42-logo">
-				</a>
-				{#each navitems as item}
-					<NavItem {...item}/>
-				{/each}
-			</div>
-			<NavItem href="/settings" icon={Menu} text="Settings" color="red"/>
-		</nav>
-		<main>
-			<slot/>
-		</main>
-	</div>
-{:else}
-	<slot/>
-{/if}
+<DeviceDetector showInDevice="desktop">
+    {#if !$page.url.pathname.startsWith("/auth")}
+        <div class="layout">
+            <nav class="navbar">
+                <div class="top-content">
+                    <a href="/">
+                        <img class="logo" src={Logo} alt="42-logo" />
+                    </a>
+                    {#each navitems as item}
+                        <NavItem {...item} />
+                    {/each}
+                </div>
+                <NavItem href="/settings" icon={Menu} text="Settings" color="red" />
+            </nav>
+            <main>
+                <slot />
+            </main>
+        </div>
+    {:else}
+        <slot />
+    {/if}
+</DeviceDetector>
 
+<!-- No filthy mobile users -->
+<DeviceDetector showInDevice="mobile">
+    <div style="background-color: #e20005; height: 100vh;">
+        <div class="fuck-off">
+            <Icon src={XCircle} size="8rem" />
+            <h1>FUCK OFF</h1>
+        </div>
+    </div>
+</DeviceDetector>
 
 <!-- Styles -->
-
 <style lang="scss">
 
-.layout {
+.fuck-off {
 	display: flex;
-	position: relative;
+	gap: 1rem;
+	justify-content: center; 
+	align-items: center; 
+	height: 100%; 
+	flex-direction: column;
+}
 
-	& main {
-		overflow-y: auto;
-		padding: 1rem;
-		width: 100%;
-		background-color: var(--background);
-	}
+.layout {
+    display: flex;
+    position: relative;
+
+    & main {
+        overflow-y: auto;
+        padding: 1rem;
+        width: 100%;
+        background-color: var(--background);
+    }
 }
 
 .navbar {
-	display: inline-flex;
-	align-items: center;
-	flex-direction: column;
-	justify-content: space-between;
+    display: inline-flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
 
-	z-index: 10;
-	height: 100vh; // Fallback
-	min-width: fit-content;
-	max-width: 1rem;
-	padding: 0 8px 0 8px;
+    z-index: 10;
+    height: 100vh; // Fallback
+    min-width: fit-content;
+    max-width: 1rem;
+    padding: 0 8px 0 8px;
 
-	background: var(--navbar-background);
+    background: var(--navbar-background);
 
-	overflow-y: auto;
-	scroll-behavior: smooth;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 
-	&::-webkit-scrollbar {
-		display: none;
-	}
+    &::-webkit-scrollbar {
+        display: none;
+    }
 
-	& .logo {
-		height: 64px;
-		padding: 0.75rem;
-		transition: filter 0.1s;
-	}
+    & .logo {
+        height: 64px;
+        padding: 0.75rem;
+        transition: filter 0.1s;
+    }
 
-	& .logo:hover {
-		cursor: pointer;
-		filter: drop-shadow(0 0 0.5em #ffffffaa);
-	}
+    & .logo:hover {
+        cursor: pointer;
+        filter: drop-shadow(0 0 0.5em #ffffffaa);
+    }
 
-	& .top-content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
+    & .top-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 }
 </style>

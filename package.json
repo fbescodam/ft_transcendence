@@ -29,6 +29,7 @@
 	"type": "module",
 	"dependencies": {
 		"sass": "^1.55.0",
+		"svelte-device-detector": "^0.2.2",
 		"svelte-hero-icons": "^4.1.3"
 	}
 }
