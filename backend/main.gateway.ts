@@ -1,8 +1,9 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, WsResponse } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from "prisma/prisma.service";
 import { Role } from "@prisma/client";
+import { IntraGuard } from "auth/intra.guard";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -25,6 +26,7 @@ export class MainGateway {
 
   private readonly logger = new Logger("sockets");
 
+  @UseGuards(IntraGuard)
   @SubscribeMessage('sendMsg')
   async handleMessage(@MessageBody() msg: Message): Promise<void> {
     this.server.emit('sendMsg', msg.text);
@@ -83,18 +85,18 @@ export class MainGateway {
   }
 
 
-  @SubscribeMessage('createUser')
-  async createUser(@MessageBody() userData: any): Promise<void> {
-    await this.prismaService.user.create({data: {
-      name: userData.name,
-      password: userData.password,
-      channels: { create: 
-        {
-          role: Role.USER,
-          channel: {connect: {name: "Global"}}
-        }
-    }}})
-  }
+  // @SubscribeMessage('createUser')
+  // async createUser(@MessageBody() userData: any): Promise<void> {
+  //   await this.prismaService.user.create({data: {
+  //     name: userData.name,
+  //     password: userData.password,
+  //     channels: { create: 
+  //       {
+  //         role: Role.USER,
+  //         channel: {connect: {name: "Global"}}
+  //       }
+  //   }}})
+  // }
 
   @SubscribeMessage('sendFriendRequest')
   sendFriendRequest(@MessageBody() UserInfo: Object) {
