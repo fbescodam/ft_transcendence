@@ -32,6 +32,7 @@ onMount(() => {
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); //this is jwt, on profile we return to the /auth page
+			// user.jwtToken = answer.token //TODO: make that work
 		});
 	}
 });
