@@ -10,17 +10,21 @@ generator client {
 }
 
 model User {
-	id        Int       @id @default(autoincrement())
-	joinedAt  DateTime  @default(now())
-	name      String    @unique
-	password  String
-	role      Role      @default(USER)
-	messages  Message[]
-	channels  UserInChannel[]
-	games			Game[]
-	friends		Int[]	//TODO: better way for this?
-	pendingFriends	Int[]
-	blocked		Int[]
+	id        	Int       		@id @default(autoincrement())
+	intraId		Int				@unique
+	name      	String    		@unique
+	intraName	String			@unique
+	role      	Role      		@default(USER)
+	joinedAt  	DateTime  		@default(now())
+	messages  	Message[]
+	channels  	UserInChannel[]
+	games		Game[]
+	avatar		String
+
+	//----- subject to removal -----//
+	friends				Int[]	//TODO: better way for this?
+	pendingFriends		Int[]
+	blocked				Int[]
 }
 
 model Channel {
@@ -34,13 +38,13 @@ model Channel {
 }
 
 model UserInChannel {
-	user				User    @relation(fields: [userName], references: [name])
-	userName		String
+	user		User    @relation(fields: [userName], references: [name])
+	userName	String
 	channel   	Channel @relation(fields: [channelName], references: [name])
 	channelName String
 
-	role      Role
-	joinedOn  DateTime @default(now())
+	role      	Role
+	joinedOn  	DateTime @default(now())
 
 	@@id([userName, channelName])
 }
@@ -57,11 +61,11 @@ model Message {
 
 model Game {
 	id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-	players			User[]
+  	createdAt   DateTime @default(now())
+	players		User[]
 	victorScore	Int
 	loserScore	Int
-	WinnerId		Int
+	winnerId	Int
 }
 
 enum Role {
