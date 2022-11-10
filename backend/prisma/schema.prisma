@@ -10,41 +10,41 @@ generator client {
 }
 
 model User {
-	id        	Int       		@id @default(autoincrement())
-	intraId		Int				@unique
-	name      	String    		@unique
-	intraName	String			@unique
-	role      	Role      		@default(USER)
-	joinedAt  	DateTime  		@default(now())
-	messages  	Message[]
-	channels  	UserInChannel[]
-	games		Game[]
-	avatar		String
+	id          Int             @id @default(autoincrement())
+	intraId     Int             @unique
+	name        String          @unique
+	intraName   String          @unique
+	role        Role            @default(USER)
+	joinedAt    DateTime        @default(now())
+	messages    Message[]
+	channels    UserInChannel[]
+	games       Game[]
+	avatar      String
 
 	//----- subject to removal -----//
-	friends				Int[]	//TODO: better way for this?
-	pendingFriends		Int[]
-	blocked				Int[]
+	friends             Int[]	//TODO: better way for this?
+	pendingFriends      Int[]
+	blocked             Int[]
 }
 
 model Channel {
-	id        Int         @id @default(autoincrement())
-	createdAt DateTime    @default(now())
-	name      String      @unique
-	type      ChannelType @default(STANDARD)
+	id        Int           @id @default(autoincrement())
+	createdAt DateTime      @default(now())
+	name      String        @unique
+	type      ChannelType   @default(STANDARD)
 	password  String?
 	users     UserInChannel[]
 	messages  Message[]
 }
 
 model UserInChannel {
-	user		User    @relation(fields: [userName], references: [name])
-	userName	String
-	channel   	Channel @relation(fields: [channelName], references: [name])
+	user        User    @relation(fields: [userName], references: [name])
+	userName    String
+	channel     Channel @relation(fields: [channelName], references: [name])
 	channelName String
 
-	role      	Role
-	joinedOn  	DateTime @default(now())
+	role        Role
+	joinedOn    DateTime @default(now())
 
 	@@id([userName, channelName])
 }
@@ -61,11 +61,11 @@ model Message {
 
 model Game {
 	id          Int      @id @default(autoincrement())
-  	createdAt   DateTime @default(now())
-	players		User[]
-	victorScore	Int
-	loserScore	Int
-	winnerId	Int
+	createdAt   DateTime @default(now())
+	players     User[]
+	victorScore Int
+	loserScore  Int
+	winnerId    Int
 }
 
 enum Role {

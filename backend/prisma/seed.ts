@@ -2,10 +2,12 @@ import { PrismaClient, Role } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  
+
   await prisma.user.create({data: {
     name: "AdminUser",
-    password: "penis",
+    intraId: 80962,
+    intraName: "clafoutis",
+    avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
     role: Role.ADMIN,
     channels: { create: [
       {
