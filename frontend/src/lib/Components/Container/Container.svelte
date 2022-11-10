@@ -11,7 +11,6 @@
 
 <style lang="scss">
 	div {
-		margin: 0.5rem;
 		padding: 1rem;
 
 		border-radius: 8px;

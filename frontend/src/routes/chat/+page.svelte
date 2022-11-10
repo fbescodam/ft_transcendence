@@ -59,6 +59,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		gap: 1em;
 
 		& h1 {
 			border-bottom: 1px solid;
