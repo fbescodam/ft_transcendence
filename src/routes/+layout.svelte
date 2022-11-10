@@ -47,7 +47,7 @@
 		width: 100%;
 		flex-grow: 1;
 		max-height: 100vh;
-		background-color: var(--background);
+		background-color: var(--secondary-background);
 	}
 }
 
