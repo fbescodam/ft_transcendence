@@ -3,7 +3,7 @@
   <img width=256 src="./imgs/Freek.gif" alt="Logo">
 </div>
 <div align="center">
-  <sub>Written by <a href="https://github.com/FreekBes">Freek Bes, <a href="https://github.com/TheBriar">Pjotr van Deijk, <a href="https://portfolio.w2wizard.dev/">Leon de la Hamette</a></sub>
+  <sub>Written by <a href="https://github.com/FreekBes">Freek Bes, <a href="https://github.com/TheBriar">Pjotr van Dijk, <a href="https://portfolio.w2wizard.dev/">Leon de la Hamette</a></sub>
 </div>
 </br>
 
