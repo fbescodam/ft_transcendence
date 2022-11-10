@@ -27,13 +27,12 @@ let stateMismatch = $page.url.searchParams.get("state") == $state;
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
 		console.log(authCode);
-		// on retrieval of a session token, we have logged in
-		io.on("authEnd", (token: string) => {
-			console.log(token);
-		});
 
+		
 		// send authentication code to backend
-		io.emit("authStart", { authCode: authCode, state: $state });
+		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
+			console.log(answer); //this is jwt, on profile we return to the /auth page
+		});
 	}
 });
 </script>

@@ -4,6 +4,9 @@ import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from "prisma/prisma.service";
 import { Role } from "@prisma/client";
 import { IntraGuard } from "auth/intra.guard";
+import fetch from "node-fetch";
+
+export type idfk = any;
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -86,7 +89,7 @@ export class MainGateway {
 
 
   // @SubscribeMessage('createUser')
-  // async createUser(@MessageBody() userData: any): Promise<void> {
+  // async createUser(@MessageBody() userData: idfk): Promise<void> {
   //   await this.prismaService.user.create({data: {
   //     name: userData.name,
   //     password: userData.password,
@@ -108,9 +111,45 @@ export class MainGateway {
 
   }
 
+
   @SubscribeMessage('authStart')
-  async authStart(@MessageBody() code: string, @ConnectedSocket() socket: Socket): Promise<void> {
-    socket.emit('authEnd', {token: "token"}); // TODO: implement Oauth2 here
+  async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket): Promise<idfk> {
+    
+    this.logger.log(data);
+
+
+    const response = await fetch('https://api.intra.42.fr/oauth/token', {
+      method: 'POST',
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: process.env.INTRA_KEY,
+        client_secret: process.env.INTRA_SECRET,
+        code: data['authCode'],
+        state: data['state'], 
+        redirect_uri: 'http://localhost:5173/auth'
+      }),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} });
+    
+    if (!response.ok) { this.logger.log(`shits fucked`); return {error: response.statusText} }
+    const authResponse = await response.json()
+    
+    const responseUser = await fetch('https://api.intra.42.fr/v2/me', {
+      method: 'GET',
+      headers: {'Authorization': 'Bearer ' + authResponse['access_token'], 'Content-Type': 'application/json'}
+    });
+    this.logger.log(await responseUser.text());
+    // const userResponse = await responseUser.json();
+
+
+
+    return {token: "token", state: data['state']}; // <===== jwt
+
+
+    //TODO: get token from intra
+    //TODO: pull user data from intra
+    //TODO: create user object in db
+    //TODO: make jwt and return it
+
   }
 }
 

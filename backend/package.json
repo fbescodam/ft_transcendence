@@ -34,6 +34,7 @@
     "@prisma/client": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
     "nestjs": "^0.0.1",
+    "node-fetch": "^2.6.7",
     "pg": "^8.8.0",
     "prisma": "^4.6.0",
     "react-router-dom": "^6.3.0",
