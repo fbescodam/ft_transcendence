@@ -6,6 +6,7 @@ import "./styles.scss"
 import Logo from "$lib/Assets/Logo.gif"
 import { Home, Cube , Menu, Globe } from "svelte-hero-icons"
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
+import { page } from '$app/stores';
 
 let navitems = [
 	{
@@ -31,22 +32,27 @@ let navitems = [
 
 <!-- HTML -->
 
-<div class="layout">
-	<nav class="navbar">
-		<div class="top-content">
-			<a href="/">
-				<img class="logo" src={Logo} alt="42-logo">
-			</a>
-			{#each navitems as item}
-				<NavItem {...item}/>
-			{/each}
-		</div>
-		<NavItem href="/settings" icon={Menu} text="Settings" color="red"/>
-	</nav>
-	<main>
-		<slot/>
-	</main>
-</div>
+{#if !$page.url.pathname.startsWith("/auth")}
+	<div class="layout">
+		<nav class="navbar">
+			<div class="top-content">
+				<a href="/">
+					<img class="logo" src={Logo} alt="42-logo">
+				</a>
+				{#each navitems as item}
+					<NavItem {...item}/>
+				{/each}
+			</div>
+			<NavItem href="/settings" icon={Menu} text="Settings" color="red"/>
+		</nav>
+		<main>
+			<slot/>
+		</main>
+	</div>
+{:else}
+	<slot/>
+{/if}
+
 
 <!-- Styles -->
 
