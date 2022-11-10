@@ -1,10 +1,4 @@
-<!-----------------------------------------------------------------------------
- Codam Coding College, Amsterdam @ 2022.
- See README in the root project for more information.
------------------------------------------------------------------------------->
-
 <!-- Scripting -->
-
 <script lang="ts">
 	import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
 	import { io } from "$lib/socketIO";
@@ -23,13 +17,13 @@
         io.on("sendMsg", message => { // Listen to the message event
             messages = [...messages, { senderName: 'AdminUser', text: message}]
         })
-		
+
 		//TODO: admin is username
 		io.emit('getChannelsForUser', 'AdminUser', function (answer: any) {
 			channels = answer;
 			io.emit('joinRooms', channels.map((el: any) => el.channelName));
 		});
-		
+
     })
 
 	function updateMessages(channelName: string) {
@@ -37,7 +31,7 @@
 			messages = answer);
 	}
 
-	/** 
+	/**
 	 * When the user sends a message.
 	 * @param event The Input event.
 	 */
@@ -52,76 +46,6 @@
 	}
 </script>
 
-<!-- Styling -->
-
-<style lang="scss">
-	.page {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		gap: 1em;
-
-		& h1 {
-			border-bottom: 1px solid;
-			padding-bottom: 1rem;
-			margin-bottom: 1rem;
-			text-align: center;
-		}
-	}
-
-	.channels {
-		display: flex;
-		overflow-x: auto;
-		gap: 8px;
-
-		& hr {
-			border: 2px solid var(--component-border);
-			background-color: var(--component-border);
-			border-radius: 8px;
-			margin: 0.5em 0.1em;
-		}
-	}
-
-	.chat {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-
-		& .messages {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-			margin: 0 0 0.5em 0;
-			overflow-y: auto;
-		}
-		& span {
-			padding: 0.5em 1em;
-			display: inline-block;
-		}
-
-		.user {
-			text-align: right;
-
-			& span {
-					color: white;
-					text-align: right;
-					background-color: #0074D9;
-					border-radius: 1em 1em 0 1em;
-			}
-		}
-
-		.other {
-			text-align: left;
-
-			& span {
-				color: black;
-				background-color: #eee;
-				border-radius: 1em 1em 1em 0;
-			}
-		}
-	}
-</style>
-
 <!-- HTML -->
 
 <svelte:head>
@@ -133,10 +57,10 @@
 	<Container>
 		<div class="channels">
 			{#each channels as channel}
-				<ChatItem text={channel.channelName} 
-				icon={channel.channelName == "Global" ? Globe : Chat} 
+				<ChatItem text={channel.channelName}
+				icon={channel.channelName == "Global" ? Globe : Chat}
 				on:click={() => {openChannel = channel.channelName; updateMessages(channel.channelName)}} />
-			{/each}			
+			{/each}
 			<hr />
 			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
 		</div>
@@ -161,3 +85,51 @@
 		</div>
 	</Container>
 </div>
+
+
+<!-- Styling -->
+<style lang="scss">
+
+.content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.channels {
+    display: inline-flex;
+    overflow-x: auto;
+	max-width: 100%;
+    gap: 8px;
+}
+
+.chat {
+	flex: 1;
+	display: flex;
+    padding: 1rem;
+	flex-direction: column;
+
+	& .messages {
+		flex: 1;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+
+		& #user {
+			text-align: right;
+		}
+	}
+
+	& form {
+		display: flex;
+		gap: 10px;
+		width: 100%;
+
+		& input {
+			flex: 1;
+		}
+	}
+}
+
+</style>

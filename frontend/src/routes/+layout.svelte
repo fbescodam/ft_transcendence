@@ -10,6 +10,9 @@
 	import Logo from "$lib/Assets/Logo.gif"
 	import { Home, Cube , Menu, Globe } from "svelte-hero-icons"
 	import NavItem from "$lib/Components/NavItem/NavItem.svelte";
+	import { user } from "$lib/Stores/User"
+	import { goto } from "$app/navigation";
+	import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 
 	let navitems = [
 		{
@@ -93,6 +96,7 @@
 </style>
 
 <!-- HTML -->
+
 
 <div class="layout">
 	<nav class="navbar">

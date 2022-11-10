@@ -5,9 +5,22 @@
 
 <!-- Simple standardized, styled container -->
 
+<!-- Scripting -->
+
 <script lang="ts">
-    export let flexGrow: number = 0;
+
+/** Inline styling for the container. */
+export let style: string = "";
+
 </script>
+
+<!-- HTML -->
+
+<div style="{style}">
+    <slot/>
+</div>
+
+<!-- Styling -->
 
 <style lang="scss">
 	div {
@@ -20,6 +33,3 @@
 	}
 </style>
 
-<div style="flex-grow: {flexGrow};">
-    <slot/>
-</div>
