@@ -119,7 +119,7 @@ export class MainGateway {
     
     this.logger.log(data);
 
-
+    //fetch the oauth token
     const response = await fetch('https://api.intra.42.fr/oauth/token', {
       method: 'POST',
       body: new URLSearchParams({
@@ -135,25 +135,14 @@ export class MainGateway {
     if (!response.ok) { this.logger.log(`shits fucked`); return {error: response.statusText} }
     const authResponse = await response.json()
     
+    //fetch all user data from /me
     const responseUser = await fetch('https://api.intra.42.fr/v2/me', {
       method: 'GET',
       headers: {'Authorization': 'Bearer ' + authResponse['access_token'], 'Content-Type': 'application/json'}
     });
-
-
     const userResponse = await responseUser.json();
-    // const userData = await this.prismaService.user.create({data: { //TODO: upsert
-    //   name: userResponse['login'] + '-penis',
-    //   intraId: userResponse['id'],
-    //   intraName: userResponse['login'],
-    //   avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
-    //   channels: { create: [
-    //     {
-    //       role: Role.USER,
-    //       channel: {connect: {name: "Global"}}
-    //     }
-    //   ]}}});
 
+    //store user data with upsert, if user already exists this does nothing
     const userData = await this.prismaService.user.upsert({
       where: { intraId: userResponse['id'] },
       update:{}, //empty since if user exists already all this data should be there 
@@ -171,16 +160,10 @@ export class MainGateway {
         }
     })
 
+    //sign a jwttoken and store it in the auth of the socket handshake
     const jwtToken = jwt.sign(userData, process.env.JWT_SECRET);
     socket.handshake.auth = { token: jwtToken}
     return {token: jwtToken, state: data['state']}; // <===== jwt
-
-
-    //TODO: get token from intra
-    //TODO: pull user data from intra
-    //TODO: create user object in db
-    //TODO: make jwt and return it
-
   }
 }
 
