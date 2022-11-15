@@ -6,6 +6,8 @@ import { generateRandomString } from "$lib/Utils/Basic";
 import { page } from '$app/stores';
 import { onMount } from "svelte";
 import { io } from "$lib/socketIO";
+import { goto } from "$app/navigation";
+import { Socket } from "socket.io-client";
 
 if ($state == "empty") {
 	$state = generateRandomString(32);
@@ -32,7 +34,8 @@ onMount(() => {
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); //this is jwt, on profile we return to the /auth page
-			// user.jwtToken = answer.token //TODO: make that work
+			$user.jwtToken = answer.token
+			goto('http://localhost:5173')
 		});
 	}
 });

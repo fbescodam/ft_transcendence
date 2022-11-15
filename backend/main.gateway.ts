@@ -3,8 +3,8 @@ import { Socket } from 'socket.io';
 import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from "prisma/prisma.service";
 import { Role } from "@prisma/client";
-import { IntraGuard } from "auth/intra.guard";
 import fetch from "node-fetch";
+import { JwtGuard } from "auth/Guard";
 const jwt = require('jsonwebtoken');
 
 export type idfk = any;
@@ -16,6 +16,7 @@ export interface Message {
   inChannel: string;
   senderName: string;
 }
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -30,7 +31,7 @@ export class MainGateway {
 
   private readonly logger = new Logger("sockets");
 
-  @UseGuards(IntraGuard) //TODO: verify this works
+  @UseGuards(JwtGuard) //TODO: test
   @SubscribeMessage('sendMsg')
   async handleMessage(@MessageBody() msg: Message): Promise<void> {
     this.server.emit('sendMsg', msg.text);
@@ -141,19 +142,37 @@ export class MainGateway {
 
 
     const userResponse = await responseUser.json();
-    const userData = await this.prismaService.user.create({data: { //TODO: upsert
-      name: userResponse['login'] + '-penis',
-      intraId: userResponse['id'],
-      intraName: userResponse['login'],
-      avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
-      channels: { create: [
-        {
-          role: Role.USER,
-          channel: {connect: {name: "Global"}}
-        }
-      ]}}});
+    // const userData = await this.prismaService.user.create({data: { //TODO: upsert
+    //   name: userResponse['login'] + '-penis',
+    //   intraId: userResponse['id'],
+    //   intraName: userResponse['login'],
+    //   avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+    //   channels: { create: [
+    //     {
+    //       role: Role.USER,
+    //       channel: {connect: {name: "Global"}}
+    //     }
+    //   ]}}});
 
-    const jwtToken = jwt.sign(userData, process.env.INTRA_SECRET);
+    const userData = await this.prismaService.user.upsert({
+      where: { intraId: userResponse['id'] },
+      update:{}, //empty since if user exists already all this data should be there 
+      create: 
+      {
+        name: userResponse['login'] + '-penis',
+        intraId: userResponse['id'],
+        intraName: userResponse['login'],
+        avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+        channels: { create: 
+          {
+            role: Role.USER,
+            channel: {connect: {name: "Global"}}
+          }}
+        }
+    })
+
+    const jwtToken = jwt.sign(userData, process.env.JWT_SECRET);
+    socket.handshake.auth = { token: jwtToken}
     return {token: jwtToken, state: data['state']}; // <===== jwt
 
 

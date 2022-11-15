@@ -7,6 +7,8 @@
 	import Container from "$lib/Components/Container/Container.svelte";
 	import { authGuard } from "$lib/Guards/AuthGuard"
 	import { page } from "$app/stores";
+	import { user } from "$lib/Stores/User";
+
 
 	let messages: Array<any> = [];
 	let channels: any = []
@@ -20,7 +22,7 @@
 			messages = [...messages, { senderName: 'AdminUser', text: message}]
 		})
 
-		//TODO: admin is username
+		//TODO: admin is username 
 		io.emit('getChannelsForUser', 'AdminUser', function (answer: any) {
 			channels = answer;
 			io.emit('joinRooms', channels.map((el: any) => el.channelName));
