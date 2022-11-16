@@ -1,9 +1,5 @@
-</br>
 <div align="center">
-  <img width=256 src="./imgs/Freek.gif" alt="Logo">
-</div>
-<div align="center">
-  <sub>Written by <a href="https://github.com/FreekBes">Freek Bes, <a href="https://github.com/TheBriar">Pjotr van Dijk, <a href="https://portfolio.w2wizard.dev/">Leon de la Hamette</a></sub>
+  <sub>Written by <a href="https://github.com/FreekBes">Freek Bes</a>, <a href="https://github.com/TheBriar">Pjotr van Dijk</a>, <a href="https://portfolio.w2wizard.dev/">Leon de la Hamette</a></sub>
 </div>
 </br>
 
@@ -22,4 +18,4 @@ make
 ```
 
 ## Result
-![Result](./imgs/Result.png)
+[![in progress](https://badge42.vercel.app/api/v2/cl1o16nym001109lewimxyxs8/project/2773502)](https://github.com/JaeSeoKim/badge42)
