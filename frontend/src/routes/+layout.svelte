@@ -1,6 +1,6 @@
 <!-- Scripting -->
 <script lang="ts">
-import "./styles.scss";
+import "../global.scss"
 import Logo from "$lib/Assets/Logo.gif";
 import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";

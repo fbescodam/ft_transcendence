@@ -5,9 +5,7 @@ import { PrismaService } from "prisma/prisma.service";
 import { Role } from "@prisma/client";
 import fetch from "node-fetch";
 import { JwtGuard } from "auth/Guard";
-const jwt = require('jsonwebtoken');
-
-export type idfk = any;
+import jwt from "jsonwebtoken";
 
 //TODO: find elegant way to share objects between frontend and backend
 //TODO: move this shit
@@ -91,7 +89,7 @@ export class MainGateway {
 
 
   // @SubscribeMessage('createUser')
-  // async createUser(@MessageBody() userData: idfk): Promise<void> {
+  // async createUser(@MessageBody() userData: any): Promise<void> {
   //   await this.prismaService.user.create({data: {
   //     name: userData.name,
   //     password: userData.password,
@@ -115,7 +113,7 @@ export class MainGateway {
 
 
   @SubscribeMessage('authStart')
-  async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket): Promise<idfk> {
+  async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket): Promise<any> {
     
     this.logger.log(data);
 

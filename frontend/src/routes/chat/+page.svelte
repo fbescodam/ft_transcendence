@@ -69,7 +69,7 @@
 			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
 		</div>
 	</Container>
-	<Container flexGrow={1}>
+	<Container style="flex: 1;">
 		<div class="chat">
 			<h1>{openChannel}</h1>
 			<div class="messages">

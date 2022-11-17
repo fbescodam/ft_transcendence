@@ -6,9 +6,12 @@ const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
 	preprocess: preprocess({
-		scss: {
-			prependData: `@import 'src/routes/styles.scss';`
-		}
+		defaults: {
+			style: 'scss'
+		},
+		// scss: {
+		// 	prependData: `@import 'src/global.scss';`
+		// }
 	}),
 
 	kit: {

@@ -48,7 +48,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 </svelte:head>
 
 <div class="page">
-	<Container flexGrow={1}>
+	<Container style="flex: 1;">
 		<form method="POST">
 			<fieldset>
 				<legend>User Data</legend>
