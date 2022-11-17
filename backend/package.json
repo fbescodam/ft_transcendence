@@ -34,6 +34,7 @@
     "@nestjs/typeorm": "^9.0.1",
     "@nestjs/websockets": "^9.1.1",
     "@prisma/client": "^4.6.0",
+    "@types/node-fetch": "^2.6.2",
     "jsonwebtoken": "^8.5.1",
     "nestjs": "^0.0.1",
     "node-fetch": "^2.6.7",
