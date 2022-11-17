@@ -12,20 +12,19 @@ import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
 import Logo from "$lib/Assets/Logo.gif";
+import Container from "$lib/Components/Container/Container.svelte";
 </script>
 
 <script lang="ts">
-import Container from "$lib/Components/Container/Container.svelte";
-
 $state = $state == "empty" ? generateRandomString(32) : $state;
 let authCode = $page.url.searchParams.get("code");
 let stateMismatch = $page.url.searchParams.get("state") == $state;
 
 //====//
+
 //TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
-		console.log(authCode);
 		const io = authSocket()
 
 		// send authentication code to backend
