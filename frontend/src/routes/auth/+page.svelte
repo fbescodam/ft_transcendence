@@ -103,6 +103,7 @@ function onClick() {
 		}
 
 		& .freek {
+			clip-path: circle(50%);
 			animation-name: spin;
 			animation-duration: 6000ms;
 			animation-iteration-count: infinite;
