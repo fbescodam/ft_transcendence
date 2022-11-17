@@ -1,5 +1,4 @@
 import fetch from "node-fetch";
-import { Server } from "typeorm";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
@@ -27,7 +26,7 @@ export class MainGateway {
 	private readonly prismaService: PrismaService;
 
 	@WebSocketServer()
-	server: Server;
+	server;
 
 	private readonly logger = new Logger("sockets");
 
@@ -40,6 +39,8 @@ export class MainGateway {
    @UseGuards(JwtGuard)
    @SubscribeMessage('sendMsg')
    async handleMessage(@MessageBody() msg: any): Promise<void> {
+     //this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
+     //TODO: this ^ doesnt work. why?
      this.server.emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
      this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
      await this.prismaService.message.create({data: {
@@ -82,6 +83,7 @@ export class MainGateway {
    }
  
 
+  //TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
 	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
 		socket.join(roomInfo);
@@ -94,6 +96,12 @@ export class MainGateway {
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
+  /**
+   * Creates a new channel.
+   * @param channelData The channel data. E.g: Name, public or private, password ...
+   * @param socket The web socket that is the client.
+   * @returns The newly created channel.
+   */
   @UseGuards(JwtGuard)
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
