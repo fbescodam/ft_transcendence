@@ -95,12 +95,25 @@ export class MainGateway {
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
+  @UseGuards(JwtGuard)
 	@SubscribeMessage("createChannel")
-	public async createChannel(@MessageBody() channelData: Object) {
+	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
+
+    await this.prismaService.channel.create({ data: {
+      name: channelData["name"],
+      password: channelData["password"] || null,
+      users: {
+        connect: {
+          userName_channelName: {
+            userName: channelData["user"].intraName,
+            channelName: channelData["name"]
+    }}}}});
+    socket.join(channelData["name"])
+    this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
 
 	}
 
-	@SubscribeMessage("enterChannel")
+  @SubscribeMessage("enterChannel")
 	public async enterChannel(@MessageBody() channelData: Object) {
 
 	}
