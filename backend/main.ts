@@ -4,9 +4,9 @@ import { AppModule } from './app.module';
 
 /*==========================================================================*/
 
-(async () => {
+async function bootstrap() {
 	dotenv.config();
-	
 	const app = await NestFactory.create(AppModule);
 	await app.listen(3000);
-})
+}
+bootstrap();

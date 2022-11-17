@@ -31,6 +31,7 @@
 	"dependencies": {
 		"@macfja/svelte-persistent-store": "^2.2.1",
 		"sass": "^1.55.0",
+		"svelte-device-detector": "^0.2.2",
 		"svelte-hero-icons": "^4.1.3"
 	}
 }

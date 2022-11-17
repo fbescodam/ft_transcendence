@@ -1,11 +1,19 @@
 import ioClient from "socket.io-client";
-import { user } from "./Stores/User";
+import { onMount } from "svelte";
+import { jwtToken } from "./Stores/User";
 const ENDPOINT = "http://localhost:3000";
 
-const socket = ioClient(ENDPOINT, {
-	auth: {
-		token: "temp"
-	}
-})
+export function authSocket() {
+	const socket = ioClient(ENDPOINT)
+	return (socket);
+}
 
-export const io = socket
+export function initSocket() {
+	const socket = ioClient(ENDPOINT, {
+		auth: {
+			token: window.localStorage.getItem("jwt")
+		}
+	})
+
+	return (socket);
+};

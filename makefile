@@ -14,8 +14,8 @@ endef
 WORKDIR = ${shell pwd}
 
 DOCKER=cd ${WORKDIR} && docker-compose up --build
-BACKEND=cd ${WORKDIR}/backend && npm run dev
-FRONTED=cd ${WORKDIR}/frontend && npm run dev
+BACKEND=cd ${WORKDIR}/backend && npm i && npm run dev
+FRONTED=cd ${WORKDIR}/frontend && npm i && npm run dev
 
 
 all: new_tabs db_migrate
@@ -28,4 +28,4 @@ new_tabs:
 
 db_migrate: new_tabs
 	while ! echo exit | nc localhost 3000; do sleep 5; done
-	cd backend/prisma; npx prisma migrate dev --name init; npx ts-node --compiler-options {\"module\":\"CommonJS\"} seed.ts
+	cd backend/prisma; npm i; npx prisma migrate dev --name init; npx ts-node --compiler-options {\"module\":\"CommonJS\"} seed.ts

@@ -1,37 +1,39 @@
 <!-- Scripting -->
 <script lang="ts">
 	import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
-	import { io } from "$lib/socketIO";
 	import { onMount } from "svelte";
 	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 	import Container from "$lib/Components/Container/Container.svelte";
 	import { authGuard } from "$lib/Guards/AuthGuard"
 	import { page } from "$app/stores";
 	import { user } from "$lib/Stores/User";
+	import { initSocket } from "$lib/socketIO";
 
 
+	let io: any;
 	let messages: Array<any> = [];
 	let channels: any = []
 	let openChannel = "Global";
 	let currentUser = 'AdminUser'; //TODO: need to do auth huh
 
 	onMount(() => {
+		io = initSocket()
 		updateMessages("Global");
 
-		io.on("sendMsg", message => { // Listen to the message event
-			messages = [...messages, { senderName: 'AdminUser', text: message}]
+		io.on("sendMsg", (message: any) => { // Listen to the message event
+			messages = [...messages, { senderName: message.user, text: message.text}]
 		})
 
 		//TODO: admin is username 
-		io.emit('getChannelsForUser', 'AdminUser', function (answer: any) {
+		io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 			channels = answer;
-			io.emit('joinRooms', channels.map((el: any) => el.channelName));
+			io.emit('joinRooms', {channels:channels.map((el: any) => el.channelName)});
 		});
 
 	})
 
 	function updateMessages(channelName: string) {
-		io.emit('getMessagesFromChannel', channelName, (answer: any) =>
+		io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
 			messages = answer);
 	}
 
@@ -43,7 +45,7 @@
 		if (event.key === 'Enter') {
 			const text = event.target.value;
 			if (!text) return;
-			io.emit("sendMsg", {inChannel: openChannel, text: text, senderName: 'AdminUser'});
+			io.emit("sendMsg", {inChannel: openChannel, text: text});
 
 			event.target.value = "";
 		}

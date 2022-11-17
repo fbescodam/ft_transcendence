@@ -4,6 +4,7 @@ datasource db {
 	//url      = "postgresql://user:password@ft_transcendence.database:5432/test?schema=public"
 	//url = env("DATABASE_URL")
 }
+//psql -h localhost -p 5432 -U user -d test
 
 generator client {
 	provider = "prisma-client-js"
@@ -38,7 +39,7 @@ model Channel {
 }
 
 model UserInChannel {
-	user        User    @relation(fields: [userName], references: [name])
+	user        User    @relation(fields: [userName], references: [intraName])
 	userName    String
 	channel     Channel @relation(fields: [channelName], references: [name])
 	channelName String
@@ -53,7 +54,7 @@ model Message {
 	id          Int       @id @default(autoincrement())
 	sentAt      DateTime  @default(now())
 	text        String
-	sender      User?     @relation(fields: [senderName], references: [name])
+	sender      User?     @relation(fields: [senderName], references: [intraName])
 	senderName  String?
 	channel     Channel?  @relation(fields: [channelName], references: [name])
 	channelName String?

@@ -17,15 +17,6 @@ import {
 
 /*==========================================================================*/
 
-//TODO: Move to types folder shared between backend and frontend
-export interface Message {
-	text: string;
-	inChannel: string;
-	senderName: string;
-}
-
-/*==========================================================================*/
-
 /** TODO: What is this GateWay? Some refs or docs please... */
 @WebSocketGateway({ cors: { origin: "*", credentials: false } })
 export class MainGateway {
@@ -46,21 +37,18 @@ export class MainGateway {
 	 * Hanlder for messages that are being sent.
 	 * @param msg The message that was sent.
 	 */
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("sendMsg")
-	public async handleMessage(@MessageBody() msg: Message) {
-		this.server.emit("sendMsg", msg.text);
-		this.logger.log(`[MessageSent]: To ${msg.inChannel} by ${msg.senderName}: ${msg.text}`);
-
-		// this.server.to(msg.inChannel).emit("sendMsg", msg.text);
-		await this.prismaService.message.create({
-			data: {
-				senderName: msg.senderName,
-				channelName: msg.inChannel,
-				text: msg.text
-			}
-		});
-	}
+   @UseGuards(JwtGuard)
+   @SubscribeMessage('sendMsg')
+   async handleMessage(@MessageBody() msg: any): Promise<void> {
+     this.server.emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
+     this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+     await this.prismaService.message.create({data: {
+       senderName: msg.user.intraName,
+       channelName: msg.inChannel,
+       text: msg.text
+     }});
+   }
+ 
 
 	/**
 	 * TODO: Figure out the correct types...
@@ -69,39 +57,31 @@ export class MainGateway {
 	 * @param userName The name of the user.
 	 * @returns All the channels that the user is subscribed to.
 	 */
-	@SubscribeMessage("getChannelsForUser")
-	public async getChannelsForUser(@MessageBody() userName: string) {
-		const user = await this.prismaService.user.findFirst({
-			where: {
-				name: userName
-			},
-			include: {
-				channels: true
-			}
-		});
-		
-		this.logger.log(userName);
-		return user.channels;
-	}
+  @UseGuards(JwtGuard)
+  @SubscribeMessage('getChannelsForUser')
+  async getChannelsForUser(@MessageBody() data: any) {
+    const user = await this.prismaService.user.findFirst({
+      where: { name: data.user.intraName },
+      include: { channels: true }})
+    this.logger.log(user);
+    return user.channels;
+  }
 
 	/**
 	 * Retrieves the messages in a channel.
 	 * @param channelName The channel name
 	 * @returns All the messages in the channel.
 	 */
-	@SubscribeMessage("getMessagesFromChannel")
-	public async getMessagesFromChannel(@MessageBody() channelName: string) {
-		const channel = await this.prismaService.channel.findFirst({
-			where: {
-				name: channelName
-			},
-			include: {
-				messages: true
-			}
-		});
-
-		return channel.messages
-	}
+   @UseGuards(JwtGuard)
+   @SubscribeMessage('getMessagesFromChannel')
+   async getMessagesFromChannel(@MessageBody() name: any) {
+     const channel = await this.prismaService.channel.findFirst({
+       where: {name: name.name },
+       include: { messages: true}
+     })
+     return channel.messages;
+   }
+ 
 
 	@SubscribeMessage("joinRooms")
 	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {

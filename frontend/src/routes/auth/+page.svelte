@@ -3,11 +3,11 @@
 <script context="module" lang="ts">
 import { page } from '$app/stores';
 import { onMount } from "svelte";
-import { io } from "$lib/socketIO";
+import { authSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import { Socket } from "socket.io-client";
 import Button from "$lib/Components/Button/Button.svelte";
-import { state, user, loggedIn } from "$lib/Stores/User";
+import { state, jwtToken, loggedIn } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
@@ -22,15 +22,16 @@ let authCode = $page.url.searchParams.get("code");
 let stateMismatch = $page.url.searchParams.get("state") == $state;
 
 //====//
-
+//TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
 		console.log(authCode);
+		const io = authSocket()
 
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); // This is jwt, on profile we return to the /auth page
-			$user.jwtToken = answer.token
+			window.localStorage.setItem("jwt", answer.token);
 			goto('http://localhost:5173', { replaceState: true })
 		});
 	}
