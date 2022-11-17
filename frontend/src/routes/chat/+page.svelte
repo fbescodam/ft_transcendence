@@ -1,15 +1,18 @@
 <!-- Scripting -->
+<script context="module" lang="ts">
+import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
+import { onMount } from "svelte";
+import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
+import Container from "$lib/Components/Container/Container.svelte";
+import { authGuard } from "$lib/Guards/AuthGuard"
+import { page } from "$app/stores";
+import { user } from "$lib/Stores/User";
+import { initSocket } from "$lib/socketIO";
+import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
+</script>
+
 <script lang="ts">
-	import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
-	import { onMount } from "svelte";
-	import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
-	import Container from "$lib/Components/Container/Container.svelte";
-	import { authGuard } from "$lib/Guards/AuthGuard"
-	import { page } from "$app/stores";
-	import { user } from "$lib/Stores/User";
-	import { initSocket } from "$lib/socketIO";
-
-
+	let showAddModal: boolean = false;
 	let io: any;
 	let messages: Array<any> = [];
 	let channels: any = []
@@ -60,6 +63,7 @@
 </svelte:head>
 
 <div class="page">
+	<ChatAddModal bind:visible={showAddModal}/>
 	<Container>
 		<div class="channels">
 			{#each channels as channel}
@@ -68,7 +72,7 @@
 				on:click={() => {openChannel = channel.channelName; updateMessages(channel.channelName)}} />
 			{/each}
 			<hr />
-			<ChatItem text="Add" icon={Plus} on:click={() => { }} />
+			<ChatItem text="Add" icon={Plus} on:click={() => { showAddModal = true; }} />
 		</div>
 	</Container>
 	<Container style="flex: 1;">

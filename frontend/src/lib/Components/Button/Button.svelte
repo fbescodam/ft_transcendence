@@ -24,15 +24,19 @@ button {
     font-family: inherit;
     background-color: var(--component-secondary-bg);
     cursor: pointer;
-    transition: border-color 0.25s;
+    transition: all 0.25s;
 
     &:hover {
         border-color: #646cff;
     }
 
+    &:active {
+        transform: scale(0.85);
+    }
+
     &:focus,
     &:focus-visible {
-        outline: 4px auto -webkit-focus-ring-color;
+        outline: none;
     }
 }
 </style>
