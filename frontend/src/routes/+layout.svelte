@@ -1,63 +1,81 @@
-
 <!-- Scripting -->
-
 <script lang="ts">
-import "./styles.scss"
-import Logo from "$lib/Assets/Logo.gif"
-import { Home, Cube , Menu, Globe } from "svelte-hero-icons"
+import "./styles.scss";
+import Logo from "$lib/Assets/Logo.gif";
+import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
+import DeviceDetector from "svelte-device-detector";
 import { authGuard } from "$lib/Guards/AuthGuard"
 
 let navitems = [
 	{
-		href: '/',
+		href: "/",
 		icon: Home,
-		text: 'Home',
-		color: 'blue'
+		text: "Home",
+		color: "blue",
 	},
 	{
-		href: '/game',
+		href: "/game",
 		icon: Cube,
-		text: 'Game',
-		color: 'orange'
+		text: "Game",
+		color: "orange",
 	},
 	{
-		href: '/chat',
+		href: "/chat",
 		icon: Globe,
-		text: 'Chat',
-		color: 'purple'
+		text: "Chat",
+		color: "purple",
 	},
-]
+];
 </script>
 
 <!-- HTML -->
 
-{#if !$page.url.pathname.startsWith("/auth")}
-	<div class="layout">
-		<nav class="navbar">
-			<div class="top-content">
-				<a href="/">
-					<img class="logo" src={Logo} alt="42-logo">
-				</a>
-				{#each navitems as item}
-					<NavItem {...item}/>
-				{/each}
-			</div>
-			<NavItem href="/settings" icon={Menu} text="Settings" color="red"/>
-		</nav>
-		<main>
-			<slot/>
-		</main>
-	</div>
-{:else}
-	<slot/>
-{/if}
+<DeviceDetector showInDevice="desktop">
+	{#if !$page.url.pathname.startsWith("/auth")}
+		<div class="layout">
+			<nav class="navbar">
+				<div class="top-content">
+					<a href="/">
+						<img class="logo" src={Logo} alt="42-logo" />
+					</a>
+					{#each navitems as item}
+						<NavItem {...item} />
+					{/each}
+				</div>
+				<NavItem href="/settings" icon={Menu} text="Settings" color="red" />
+			</nav>
+			<main>
+				<slot />
+			</main>
+		</div>
+	{:else}
+		<slot />
+	{/if}
+</DeviceDetector>
 
+<!-- No filthy mobile users -->
+<DeviceDetector showInDevice="mobile">
+	<div style="background-color: #e20005; height: 100vh;">
+		<div class="fuck-off">
+			<Icon src={XCircle} size="8rem" />
+			<h1>FUCK OFF</h1>
+		</div>
+	</div>
+</DeviceDetector>
 
 <!-- Styles -->
-
 <style lang="scss">
+
+.fuck-off {
+	display: flex;
+	gap: 1rem;
+	justify-content: center; 
+	align-items: center; 
+	height: 100%; 
+	flex-direction: column;
+}
 
 .layout {
 	display: flex;
