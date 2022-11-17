@@ -63,7 +63,6 @@ export class MainGateway {
     const user = await this.prismaService.user.findFirst({
       where: { name: data.user.intraName },
       include: { channels: true }})
-    this.logger.log(user);
     return user.channels;
   }
 
@@ -99,18 +98,33 @@ export class MainGateway {
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
-    await this.prismaService.channel.create({ data: {
-      name: channelData["name"],
-      password: channelData["password"] || null,
-      users: {
-        connect: {
-          userName_channelName: {
-            userName: channelData["user"].intraName,
-            channelName: channelData["name"]
-    }}}}});
+    const channel = await this.prismaService.channel.upsert({
+      where: {
+        name: channelData["name"],
+      },
+      update: { //TODO: check password lol
+        users: {
+          create: {
+            role: Role.USER,
+            userName: channelData["user"].intraName 
+          }
+        }
+      },
+      create: { 
+          name: channelData["name"],
+          password: channelData["password"] || null,
+          users: {
+            create: {
+              role: Role.ADMIN,
+              userName: channelData["user"].intraName,
+            }
+        }
+      }
+    });
+
     socket.join(channelData["name"])
     this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
-
+    return channel
 	}
 
   @SubscribeMessage("enterChannel")
@@ -218,7 +232,7 @@ export class MainGateway {
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
 		
 		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken, state: data["state"] }; // <===== jwt
+		return { token: jwtToken, state: data["state"], displayName:userResponse["login"] }; // <===== jwt
 	}
 }
 

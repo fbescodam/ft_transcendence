@@ -4,10 +4,9 @@ import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
 import { onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
-import { authGuard } from "$lib/Guards/AuthGuard"
-import { page } from "$app/stores";
-import { user } from "$lib/Stores/User";
 import { initSocket } from "$lib/socketIO";
+import { user } from "$lib/Stores/User";
+import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 </script>
 
@@ -15,22 +14,21 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 	let showAddModal: boolean = false;
 	let io: any;
 	let messages: Array<any> = [];
-	let channels: any = []
 	let openChannel = "Global";
-	let currentUser = 'AdminUser'; //TODO: need to do auth huh
+	let currentUser = $user
 
 	onMount(() => {
 		io = initSocket()
 		updateMessages("Global");
 
-		io.on("sendMsg", (message: any) => { // Listen to the message event
-			messages = [...messages, { senderName: message.user, text: message.text}]
+		io.on("sendMsg", function (message: any) { // Listen to the message event
+			if (message.channel == openChannel)
+				messages = [...messages, { senderName: message.user, text: message.text}]
 		})
 
-		//TODO: admin is username 
 		io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
-			channels = answer;
-			io.emit('joinRooms', {channels:channels.map((el: any) => el.channelName)});
+			$channels = answer;
+			io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 		});
 
 	})
@@ -49,7 +47,7 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 			const text = event.target.value;
 			if (!text) return;
 			io.emit("sendMsg", {inChannel: openChannel, text: text});
-
+			
 			event.target.value = "";
 		}
 	}
@@ -66,27 +64,29 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 	<ChatAddModal bind:visible={showAddModal}/>
 	<Container>
 		<div class="channels">
-			{#each channels as channel}
-				<ChatItem text={channel.channelName}
-				icon={channel.channelName == "Global" ? Globe : Chat}
-				on:click={() => {openChannel = channel.channelName; updateMessages(channel.channelName)}} />
+			{#each $channels as channel}
+				<ChatItem text={channel["channelName"]}
+				icon={channel["channelName"] == "Global" ? Globe : Chat}
+				on:click={() => {openChannel = channel["channelName"]; updateMessages(channel["channelName"])}} />
 			{/each}
 			<hr />
 			<ChatItem text="Add" icon={Plus} on:click={() => { showAddModal = true; }} />
 		</div>
 	</Container>
+	<hr />
 	<Container style="flex: 1;">
 		<div class="chat">
 			<h1>{openChannel}</h1>
 			<div class="messages">
 				{#if messages.length == 0}
-					<article class="other">
+					<article id="other">
 						<span>no messages for this channel</span>
 					</article>
 				{:else}
 					{#each messages as message}
-						<article class={message.senderName == currentUser ? "user" : "other"}>
+						<article id={message.senderName == currentUser ? "user" : "other"}>
 							<span>{message.text}</span>
+							<span>{message.senderName}</span>
 						</article>
 					{/each}
 				{/if}
@@ -125,6 +125,8 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
+		max-height: 400px;
+    	overflow-y: auto;
 
 		& #user {
 			text-align: right;

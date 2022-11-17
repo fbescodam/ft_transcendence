@@ -7,7 +7,7 @@ import { authSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import { Socket } from "socket.io-client";
 import Button from "$lib/Components/Button/Button.svelte";
-import { state, jwtToken, loggedIn } from "$lib/Stores/User";
+import { state, loggedIn, user } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
@@ -31,6 +31,7 @@ onMount(() => {
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); // This is jwt, on profile we return to the /auth page
 			window.localStorage.setItem("jwt", answer.token);
+			$user = answer.displayName;
 			goto('http://localhost:5173', { replaceState: true })
 		});
 	}

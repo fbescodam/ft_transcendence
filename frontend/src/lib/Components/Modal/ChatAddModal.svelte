@@ -2,6 +2,10 @@
 <!-- Scripting -->
 
 <script lang="ts">
+import { initSocket } from "$lib/socketIO";
+import { channels } from "$lib/Stores/Channel";
+import type { Socket } from "socket.io-client";
+import { onMount } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
 
@@ -16,8 +20,13 @@ let channelNameInput: HTMLInputElement;
 let isPublicChannelInput: HTMLInputElement;
 let isPrivateChannelInput: HTMLInputElement;
 let channelPasswordInput: HTMLInputElement;
+let io: Socket;
 
 //= Methods =//
+
+onMount(() => {
+    io = initSocket();
+});
 
 function onCancel() {
     visible = false;
@@ -27,7 +36,10 @@ function onCancel() {
 function onSubmit(e: SubmitEvent) {
     e.preventDefault();
 
-    console.log(channelNameInput.value);
+    io.emit('createChannel', {name:channelNameInput.value, password:channelPasswordInput.value}, function (answer: any) {
+        $channels = [...$channels, answer.channelName]
+    });
+    visible = false;
 }
 
 </script>
