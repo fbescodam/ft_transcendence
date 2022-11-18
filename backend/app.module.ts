@@ -11,7 +11,7 @@ import { PrismaModule } from 'prisma/prisma.module';
 	imports: [
 		PrismaModule,
 		JwtModule.register({
-			secret: process.env.INTRA_SECRET,
+			secret: process.env.JWT_SECRET,
 		})
 	],
 	controllers: [AppController],
