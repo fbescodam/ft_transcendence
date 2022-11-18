@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
-import { prisma, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 import { Inject, Logger, UseGuards } from "@nestjs/common";
 import {
@@ -11,7 +11,6 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	ConnectedSocket,
-	WsResponse,
 } from "@nestjs/websockets"
 import * as fs from 'fs';
 import * as dotenv from 'dotenv'
@@ -187,6 +186,21 @@ export class MainGateway {
 	@SubscribeMessage("unFriendUser")
 	unFriendUser(@MessageBody() UserInfo: Object) {
 
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("changeDisplayName")
+	async changeDisplayName(@MessageBody() UserInfo: Object) {
+
+		await this.prismaService.user.update({
+			where: {
+				intraName: UserInfo["user"].intraName
+			},
+			data: {
+				name: UserInfo["newDisplayName"]
+			}
+		})
+		return {newName:UserInfo["newDisplayName"]};
 	}
 
 	/**
