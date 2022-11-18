@@ -1,8 +1,15 @@
 import { writable } from "svelte/store";
-import { persist, createSessionStorage } from "@macfja/svelte-persistent-store"
 import { generateRandomString } from "$lib/Utils/Basic";
+import { persist, createSessionStorage } from "@macfja/svelte-persistent-store"
 
-//TODO: store all user data in this bitch
-export let user = persist(writable("user"), createSessionStorage(), "displayname")
-export const loggedIn = writable(false)
+/*==========================================================================*/
+
+export const session = createSessionStorage<any>();
+
+/*==========================================================================*/
+
+export const JWT = persist<string | null>(writable<string | null>(null), session, "token");
+export const user = persist(writable<string | null>(null), session, "displayName");
 export const state = writable(generateRandomString(32))
+
+/*==========================================================================*/

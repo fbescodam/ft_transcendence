@@ -1,4 +1,5 @@
 import ioClient from "socket.io-client";
+import { JWT } from "./Stores/User";
 
 const ENDPOINT = "http://localhost:3000";
 
@@ -14,10 +15,10 @@ export function authSocket() {
  * Creates a new socket using the JWT in local storage.
  * @returns The new IOClient socket.
  */
-export function initSocket() {
+export function initSocket(JWT: string) {
 	return ioClient(ENDPOINT, {
 		auth: {
-			token: window.localStorage.getItem("jwt")
+			token: JWT
 		}
 	});
 };

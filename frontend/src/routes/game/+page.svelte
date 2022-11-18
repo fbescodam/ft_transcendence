@@ -1,9 +1,9 @@
 
 <!-- Scripting -->
 <script lang="ts">
+import { Modes } from "$lib/Modes";
 import Container from "$lib/Components/Container/Container.svelte";
 import TileItem from "$lib/Components/TileItem/TileItem.svelte";
-import { Modes } from "$lib/Modes";
 
 
 </script>

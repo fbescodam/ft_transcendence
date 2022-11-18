@@ -4,6 +4,7 @@
 <script lang="ts">
 import { initSocket } from "$lib/socketIO";
 import { channels } from "$lib/Stores/Channel";
+import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 import Button from "../Button/Button.svelte";
@@ -26,7 +27,7 @@ let io: Socket;
 //= Methods =//
 
 onMount(() => {
-    io = initSocket();
+    io = initSocket($JWT!);
 });
 
 function onCancel() {

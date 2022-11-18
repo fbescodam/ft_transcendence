@@ -6,6 +6,7 @@ import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import DeviceDetector from "svelte-device-detector";
+import AuthGuard from "$lib/Guards/AuthGuard.svelte";
 
 let navitems = [
 	{
@@ -32,6 +33,7 @@ let navitems = [
 <!-- HTML -->
 
 <DeviceDetector showInDevice="desktop">
+	<AuthGuard />
 	{#if !$page.url.pathname.startsWith("/auth")}
 		<div class="layout">
 			<nav class="navbar">
