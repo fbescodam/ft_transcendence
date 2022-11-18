@@ -56,7 +56,7 @@ function onClick() {
 
 <!-- HTML -->
 
-{#if !$JWT && !authCode }
+{#if !authCode }
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">
 		<div class="center">

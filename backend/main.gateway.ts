@@ -11,10 +11,13 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	ConnectedSocket,
-	WsResponse,
-} from "@nestjs/websockets";
+} from "@nestjs/websockets"
+import * as fs from 'fs';
+import * as dotenv from 'dotenv'
 
 /*==========================================================================*/
+
+dotenv.config();
 
 /** TODO: What is this GateWay? Some refs or docs please... */
 @WebSocketGateway({ cors: { origin: "*", credentials: false } })
@@ -33,59 +36,59 @@ export class MainGateway {
 	//= Methods =//
 	@UseGuards(JwtGuard)
 	OnGatewayConnection() {
-		
+
 	}
 
 	/**
 	 * Hanlder for messages that are being sent.
 	 * @param msg The message that was sent.
 	 */
-   @UseGuards(JwtGuard)
-   @SubscribeMessage('sendMsg')
-   async handleMessage(@MessageBody() msg: any): Promise<void> {
-     this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
-     this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
-     await this.prismaService.message.create({data: {
-       senderName: msg.user.intraName,
-       channelName: msg.inChannel,
-       text: msg.text
-     }});
-   }
- 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('sendMsg')
+	async handleMessage(@MessageBody() msg: any): Promise<void> {
+	 this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
+	 this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+	 await this.prismaService.message.create({data: {
+		senderName: msg.user.intraName,
+		channelName: msg.inChannel,
+		text: msg.text
+	 }});
+	}
+
 
 	/**
 	 * TODO: Figure out the correct types...
-	 * 
+	 *
 	 * Retrieves the channels for a given user.
 	 * @param userName The name of the user.
 	 * @returns All the channels that the user is subscribed to.
 	 */
-  @UseGuards(JwtGuard)
-  @SubscribeMessage('getChannelsForUser')
-  async getChannelsForUser(@MessageBody() data: any) {
-    const user = await this.prismaService.user.findFirst({
-      where: { name: data.user.intraName },
-      include: { channels: true }})
-    return user.channels;
-  }
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getChannelsForUser')
+	async getChannelsForUser(@MessageBody() data: any) {
+	const user = await this.prismaService.user.findFirst({
+		where: { name: data.user.intraName },
+		include: { channels: true }})
+	return user.channels;
+	}
 
 	/**
 	 * Retrieves the messages in a channel.
 	 * @param channelName The channel name
 	 * @returns All the messages in the channel.
 	 */
-   @UseGuards(JwtGuard)
-   @SubscribeMessage('getMessagesFromChannel')
-   async getMessagesFromChannel(@MessageBody() name: any) {
-     const channel = await this.prismaService.channel.findFirst({
-       where: {name: name.name },
-       include: { messages: true}
-     })
-     return channel.messages;
-   }
- 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getMessagesFromChannel')
+	async getMessagesFromChannel(@MessageBody() name: any) {
+	const channel = await this.prismaService.channel.findFirst({
+		where: {name: name.name },
+		include: { messages: true}
+	})
+	return channel.messages;
+}
 
-  //TODO: figure out why messages get sent to every socket
+
+	//TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
 	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
 		socket.join(roomInfo["channels"]);
@@ -98,49 +101,76 @@ export class MainGateway {
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
-  /**
-   * Creates a new channel.
-   * @param channelData The channel data. E.g: Name, public or private, password ...
-   * @param socket The web socket that is the client.
-   * @returns The newly created channel.
-   */
-  @UseGuards(JwtGuard)
+	/**
+	 * Creates a new channel.
+	 * @param channelData The channel data. E.g: Name, public or private, password ...
+	 * @param socket The web socket that is the client.
+	 * @returns The newly created channel.
+	 */
+	@UseGuards(JwtGuard)
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
-	//TODO: user should be notified if channel already exists
-    const channel = await this.prismaService.channel.upsert({
-      where: {
-        name: channelData["name"],
-      },
-      update: { //TODO: check password lol
-        users: {
-          create: {
-            role: Role.USER,
-            userName: channelData["user"].intraName 
-          }
-        }
-      },
-      create: { 
-          name: channelData["name"],
-          password: channelData["password"] || null,
-          users: {
-            create: {
-              role: Role.ADMIN,
-              userName: channelData["user"].intraName,
-            }
-        }
-      }
-    });
+		const channelExists = await this.prismaService.channel.findUnique({
+			where: {
+				name:channelData["name"]
+			}
+		});
 
-    socket.join(channelData["name"]) //TODO: for some reason this dont do shit
-    this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
-    return channel
+		if (channelExists)
+		{
+			this.logger.log(`channel named ${channelData["name"]} exists`)
+			return {error:"channel exists"}
+		}
+
+		const channel = await this.prismaService.channel.create({
+			data: {
+				name: channelData["name"],
+				password: channelData["password"] || null, //TODO: hash these mofos
+				users: {
+					create: {
+					role: Role.ADMIN,
+					userName: channelData["user"].intraName,
+					}
+				}
+			}
+		});
+
+		socket.join(channelData["name"]) //TODO: for some reason this dont do shit
+		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
+		return channel
 	}
 
-  	@SubscribeMessage("joinChannel")
-	public async joinChannel(@MessageBody() channelData: Object) {
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("joinChannel")
+	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
+		const channel = await this.prismaService.channel.findUnique({
+			where: {
+				name:channelData["name"]
+			}
+		});
 
+		if (!channel)
+			return {error:"channel does not exist"}
+		if (channel.password && channel.password != channelData["password"])
+			return {error:"wrong password"}
+
+		await this.prismaService.channel.update({
+			where: {
+				name: channelData["name"]
+			},
+			data: {
+				users: {
+					create: {
+						role: Role.USER,
+						userName: channelData["user"].intraName,
+					}
+				}
+			}
+		});
+
+		socket.join(channelData["name"])
+		return {name:channelData["name"]}
 	}
 
 	@SubscribeMessage("leaveChannel")
@@ -158,11 +188,38 @@ export class MainGateway {
 
 	}
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("changeDisplayName")
+	async changeDisplayName(@MessageBody() UserInfo: Object) {
+
+		await this.prismaService.user.update({
+			where: {
+				intraName: UserInfo["user"].intraName
+			},
+			data: {
+				name: UserInfo["newDisplayName"]
+			}
+		})
+		return {newName:UserInfo["newDisplayName"]};
+	}
+
+	@SubscribeMessage("verifyJWT") 
+	verifyJwt(@ConnectedSocket() socket: Socket) {
+		try {
+			JWT.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
+		}
+		catch (e) {
+			return {status:"sad"}
+		}
+		return {status:"ok"}
+	}
+
+
 	/**
 	 * Main authenticaton function to authenticate a user with the 42 OAuth webflow.
 	 * @param data Data.
 	 * @param socket The websocket.
-	 * @returns 
+	 * @returns
 	 */
 	@SubscribeMessage("authStart")
 	public async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
@@ -187,7 +244,7 @@ export class MainGateway {
 			this.logger.log(`Failed to authenticate: ${response.status} : ${response.statusText}`);
 			return { error: response.statusText }
 		}
-		
+
 		// Fetch all user data from /me
 		const authResponse = await response.json();
 		const responseUser = await fetch("https://api.intra.42.fr/v2/me", {
@@ -199,22 +256,39 @@ export class MainGateway {
 		});
 		const userResponse = await responseUser.json();
 
+		// Registration
+		// these things should only be done on first-time login
+		const userExists = await this.prismaService.user.count({
+			where: {
+				intraId: userResponse["id"]
+			}
+		});
+		const avatarFile = `avatars/${userResponse["id"]}`;
+		if (!userExists) {
+			const profilePic = await fetch(userResponse["image"]["versions"]["large"]);
+			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
+			await new Promise((resolve, reject) => {
+				profilePic.body.pipe(fileStream);
+				profilePic.body.on("error", reject);
+				fileStream.on("finish", resolve);
+			});
+		}
+
 		// Store user data with upsert, if user already exists this does nothing
 		const userData = await this.prismaService.user.upsert({
 			where: {
 				intraId: userResponse["id"]
 			},
-			update: {}, // Empty since if user exists already all this data should be there 
+			update: {}, // Empty since if user exists already all this data should be there
 			create:
 			{
 				name: userResponse["login"],
 				email: userResponse["email"],
 				intraId: userResponse["id"],
 				intraName: userResponse["login"],
-				avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+				avatar: avatarFile,
 				channels: {
-					create:
-					{
+					create: {
 						role: Role.USER,
 						channel: {
 							connect: {
@@ -228,7 +302,7 @@ export class MainGateway {
 
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
-		
+
 		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken, state: data["state"], displayName:userResponse["login"] }; // <===== jwt
 	}
