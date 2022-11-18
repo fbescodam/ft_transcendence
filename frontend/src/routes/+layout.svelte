@@ -34,6 +34,9 @@ let navitems = [
 
 <DeviceDetector showInDevice="desktop">
 	<AuthGuard />
+
+	<!-- Render layout -->
+	<!-- TODO: Maybe have a config file for this or so? -->
 	{#if !$page.url.pathname.startsWith("/auth")}
 		<div class="layout">
 			<nav class="navbar">

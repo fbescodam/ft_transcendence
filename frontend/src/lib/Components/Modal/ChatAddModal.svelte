@@ -19,23 +19,30 @@ export let visible: boolean = false;
 
 export let publicOrPrivate: boolean = false;
 let channelNameInput: HTMLInputElement;
+let channelPasswordInput: HTMLInputElement;
 let isPublicChannelInput: HTMLInputElement;
 let isPrivateChannelInput: HTMLInputElement;
-let channelPasswordInput: HTMLInputElement;
+
+let joinChannelNameInput: HTMLInputElement;
+let joinChannelPasswordInput: HTMLInputElement;
+
 let io: Socket;
 
 //= Methods =//
 
-onMount(() => {
-    io = initSocket($JWT!);
-});
+onMount(() => io = initSocket($JWT!));
 
+/** Handler for closing the modal. */
 function onCancel() {
     visible = false;
     channelNameInput.value = "";
 }
 
-function onSubmit(e: SubmitEvent) {
+/**
+ * Handler for creating a new channel.
+ * @param e The form submit event.
+ */
+function onChannelCreate(e: SubmitEvent) {
     e.preventDefault();
     let password = null
 
@@ -43,8 +50,18 @@ function onSubmit(e: SubmitEvent) {
         password = channelPasswordInput.value;    
 
     io.emit('createChannel', {name:channelNameInput.value, password:password}, function (answer: any) {
-        $channels = [...$channels, {channelName:answer.name}]
+        $channels = [...$channels, {channelName: answer.name}]
     });
+    visible = false;
+}
+
+/**
+ * Handler for joining a new channel.
+ * @param e The form submit event.
+ */
+function onChannelJoin(e: SubmitEvent) {
+    e.preventDefault();
+
     visible = false;
 }
 
@@ -52,50 +69,75 @@ function onSubmit(e: SubmitEvent) {
 
 <!-- HTML -->
 
-<Modal bind:visible={visible}>
-    <form on:submit={(e) => { onSubmit(e); }}>
-        <h1>Create Channel</h1>
-        <section class="form-body">
-            <!-- Data -->
-            <div class="form-content">
-
-                <!-- Channel Name -->
-                <label for="channel-name">
-                    <b>Channel:</b>
-                </label>
-                <input bind:this={channelNameInput} id="channel-name" type="text" required>
-                
-                <!-- Channel Type -->
-                <br/>
-                <section>
-                    <label for="public">
-                        <b>Public</b>
-                    </label>
-                    <input bind:this={isPublicChannelInput} type="radio" id="public" name="private" required bind:group={publicOrPrivate} value={false}>
+<Modal bind:visible={visible} style="display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-around; margin: 1rem 0;">
+        <form on:submit={(e) => { onChannelCreate(e); }}>
+            <h1>Create Channel</h1>
+            <section class="form-body">
+                <!-- Data -->
+                <div class="form-content">
     
-                    <label for="private">
-                        <b>Private</b>
+                    <!-- Channel Name -->
+                    <label for="channel-name">
+                        <b>Channel:</b>
                     </label>
-                    <input bind:this={isPrivateChannelInput} type="radio" id="private" name="private" required bind:group={publicOrPrivate} value={true}>
-                </section>
-
-                <!-- Channel Password -->
-                <br/>
-                {#if publicOrPrivate}
-                    <label for="password">
-                        <b>Password:</b>
-                    </label>
-                    <input bind:this={channelPasswordInput} type="password" id="password" name="password" required>
-                {/if}
-            </div>
+                    <input bind:this={channelNameInput} id="channel-name" type="text" required>
+                    
+                    <!-- Channel Type -->
+                    <br/>
+                    <section>
+                        <label for="public">
+                            <b>Public</b>
+                        </label>
+                        <input bind:this={isPublicChannelInput} type="radio" id="public" name="private" required bind:group={publicOrPrivate} value={false}>
+        
+                        <label for="private">
+                            <b>Private</b>
+                        </label>
+                        <input bind:this={isPrivateChannelInput} type="radio" id="private" name="private" required bind:group={publicOrPrivate} value={true}>
+                    </section>
+    
+                    <!-- Channel Password -->
+                    <br/>
+                    {#if publicOrPrivate}
+                        <label for="password">
+                            <b>Password:</b>
+                        </label>
+                        <input bind:this={channelPasswordInput} type="password" id="password" name="password" required>
+                    {/if}
+                </div>
+            </section>
 
             <!-- Actions -->
-            <div>
-                <Button on:click={onCancel}>Cancel</Button>
-                <Button type="submit">Add</Button>
-            </div>
-        </section>
-    </form>
+            <Button type="submit">Add</Button>
+        </form>
+
+        <hr />
+
+        <form on:submit={(e) => onChannelJoin(e)}>
+            <h1>Join Channel</h1>
+            <section class="form-body">
+                <!-- Data -->
+                <div class="form-content">
+    
+                    <!-- Channel Name -->
+                    <label for="join-channel-name">
+                        <b>Channel:</b>
+                    </label>
+                    <input bind:this={joinChannelNameInput} id="join-channel-name" type="text" required>
+                    
+                    <!-- Channel Password -->
+                    <br/>
+                    <label for="join-password">
+                        <b>Password:</b>
+                    </label>
+                    <input bind:this={joinChannelPasswordInput} type="password" id="join-password" name="password">
+                </div>
+            </section>
+            <Button type="submit">Join</Button>
+        </form>
+    </div>
+    <Button on:click={onCancel}>Cancel</Button>
 </Modal>
 
 <!-- Styling -->
