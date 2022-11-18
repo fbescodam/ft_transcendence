@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
-import { Role } from "@prisma/client";
+import { prisma, Role } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 import { Inject, Logger, UseGuards } from "@nestjs/common";
 import {
@@ -12,9 +12,8 @@ import {
 	WebSocketServer,
 	ConnectedSocket,
 	WsResponse,
-} from "@nestjs/websockets";
-import { each } from "svelte/internal";
-import { IoAdapter } from "@nestjs/platform-socket.io";
+} from "@nestjs/websockets"
+import fs from "fs";
 
 /*==========================================================================*/
 
@@ -35,7 +34,7 @@ export class MainGateway {
 	//= Methods =//
 	@UseGuards(JwtGuard)
 	OnGatewayConnection() {
-		
+
 	}
 
 	/**
@@ -53,11 +52,11 @@ export class MainGateway {
        text: msg.text
      }});
    }
- 
+
 
 	/**
 	 * TODO: Figure out the correct types...
-	 * 
+	 *
 	 * Retrieves the channels for a given user.
 	 * @param userName The name of the user.
 	 * @returns All the channels that the user is subscribed to.
@@ -85,7 +84,7 @@ export class MainGateway {
      })
      return channel.messages;
    }
- 
+
 
   //TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
@@ -119,11 +118,11 @@ export class MainGateway {
         users: {
           create: {
             role: Role.USER,
-            userName: channelData["user"].intraName 
+            userName: channelData["user"].intraName
           }
         }
       },
-      create: { 
+      create: {
           name: channelData["name"],
           password: channelData["password"] || null,
           users: {
@@ -164,7 +163,7 @@ export class MainGateway {
 	 * Main authenticaton function to authenticate a user with the 42 OAuth webflow.
 	 * @param data Data.
 	 * @param socket The websocket.
-	 * @returns 
+	 * @returns
 	 */
 	@SubscribeMessage("authStart")
 	public async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
@@ -189,7 +188,7 @@ export class MainGateway {
 			this.logger.log(`Failed to authenticate: ${response.status} : ${response.statusText}`);
 			return { error: response.statusText }
 		}
-		
+
 		// Fetch all user data from /me
 		const authResponse = await response.json();
 		const responseUser = await fetch("https://api.intra.42.fr/v2/me", {
@@ -201,19 +200,37 @@ export class MainGateway {
 		});
 		const userResponse = await responseUser.json();
 
+		// Registration
+		// these things should only be done on first-time login
+		const userExists = await this.prismaService.user.count({
+			where: {
+				intraId: userResponse["id"]
+			}
+		});
+		const avatarFile = `static/${userResponse["id"]}`;
+		if (!userExists) {
+			const profilePic = await fetch(userResponse["image"]["versions"]["large"]);
+			const fileStream = fs.createWriteStream(avatarFile);
+			await new Promise((resolve, reject) => {
+				profilePic.body.pipe(fileStream);
+				profilePic.body.on("error", reject);
+				fileStream.on("finish", resolve);
+			});
+		}
+
 		// Store user data with upsert, if user already exists this does nothing
 		const userData = await this.prismaService.user.upsert({
 			where: {
 				intraId: userResponse["id"]
 			},
-			update: {}, // Empty since if user exists already all this data should be there 
+			update: {}, // Empty since if user exists already all this data should be there
 			create:
 			{
 				name: userResponse["login"],
 				email: userResponse["email"],
 				intraId: userResponse["id"],
 				intraName: userResponse["login"],
-				avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+				avatar: avatarFile,
 				channels: {
 					create:
 					{
@@ -230,7 +247,7 @@ export class MainGateway {
 
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
-		
+
 		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken, state: data["state"], displayName:userResponse["login"] }; // <===== jwt
 	}
