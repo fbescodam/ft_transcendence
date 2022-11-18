@@ -13,8 +13,6 @@ import {
 	ConnectedSocket,
 	WsResponse,
 } from "@nestjs/websockets";
-import { each } from "svelte/internal";
-import { IoAdapter } from "@nestjs/platform-socket.io";
 
 /*==========================================================================*/
 
