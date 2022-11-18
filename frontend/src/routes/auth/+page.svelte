@@ -6,7 +6,7 @@ import { onMount } from "svelte";
 import { authSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import Button from "$lib/Components/Button/Button.svelte";
-import { state, loggedIn, user } from "$lib/Stores/User";
+import { state, JWT, user } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
@@ -30,6 +30,7 @@ onMount(() => {
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); // This is jwt, on profile we return to the /auth page
 			// TODO: use stores
+			// $JWT = answer.token;
 			window.localStorage.setItem("jwt", answer.token);
 			$user = answer.displayName;
 			goto('http://localhost:5173', { replaceState: true })
@@ -57,7 +58,7 @@ function onClick() {
 
 <!-- HTML -->
 
-{#if ! $loggedIn && !authCode }
+{#if !window.localStorage.getItem("jwt") && !authCode }
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">
 		<div class="center">

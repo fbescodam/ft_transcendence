@@ -1,4 +1,5 @@
 import ioClient from "socket.io-client";
+import { JWT } from "./Stores/User";
 
 const ENDPOINT = "http://localhost:3000";
 
