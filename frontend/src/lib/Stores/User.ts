@@ -8,8 +8,9 @@ export const session = createSessionStorage<any>();
 
 /*==========================================================================*/
 
+export const state = writable<string>(generateRandomString(32))
 export const JWT = persist<string | null>(writable<string | null>(null), session, "token");
-export const user = persist(writable<string | null>(null), session, "displayName");
-export const state = writable(generateRandomString(32))
+export const displayName = persist<string | null>(writable<string | null>(null), session, "displayName");
+export const avatar = persist<string | null>(writable<string | null>(null), session, "avatar");
 
 /*==========================================================================*/

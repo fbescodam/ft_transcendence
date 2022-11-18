@@ -48,7 +48,10 @@ let navitems = [
 						<NavItem {...item} />
 					{/each}
 				</div>
-				<NavItem href="/settings" icon={Menu} text="Settings" color="red" />
+				<div class="bottom-content">
+					<!-- <img width="64" height="64" src="https://cdn.download.ams.birds.cornell.edu/api/v1/asset/219858341/1800" alt="profile pic"/> -->
+					<NavItem href="/settings" icon={Menu} text="Settings" color="red" />
+				</div>
 			</nav>
 			<main>
 				<slot />
@@ -71,6 +74,18 @@ let navitems = [
 
 <!-- Styles -->
 <style lang="scss">
+
+.bottom-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+
+	& img {
+		border-radius: 8px;
+		object-fit: cover;
+	}
+}
 
 .fuck-off {
 	display: flex;

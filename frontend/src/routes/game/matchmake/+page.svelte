@@ -10,13 +10,32 @@ import { goto } from "$app/navigation";
 import { Modes } from "$lib/Modes";
 
 onMount(() => {
-    const selectedMode = $page.url.searchParams.get('mode');
+    const selectedModeParam = $page.url.searchParams.get('mode');
     const modeIds = Modes.map((val) => { return val.id; });
 
-    if (selectedMode == null || !modeIds.includes(parseInt(selectedMode)))
-        goto("/game");
-    
-    // TODO: Request backend to match user with a another user...
+    if (selectedModeParam != null) {
+        const selectedModeID = parseInt(selectedModeParam);
+        if (modeIds.includes(selectedModeID)) {
+            switch (selectedModeID) {
+                case 1: // Singleplayer
+                case 2: // Local Multiplayer
+                {
+                    console.log("Creating singleplayer lobby");
+                    break;
+                }
+                case 3: // Multiplayer
+                {
+                    console.log("Creating multiplayer lobby");
+                    break;
+                }
+                default:
+                    throw error(400, "Invalid game mode!");
+            }
+        }
+    }
+
+    // Invalid, go back!
+    goto("/game", { replaceState: true });
 });
 
 </script>

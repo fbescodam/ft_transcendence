@@ -6,7 +6,7 @@ import { onMount } from "svelte";
 import { authSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import Button from "$lib/Components/Button/Button.svelte";
-import { state, JWT, user } from "$lib/Stores/User";
+import { state, JWT, displayName, avatar } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
@@ -29,7 +29,8 @@ onMount(() => {
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			$JWT = answer.token;
-			$user = answer.displayName;
+			$displayName = answer.displayName;
+			$avatar = answer.avatar;
 			goto('http://localhost:5173', { replaceState: true })
 		});
 	}

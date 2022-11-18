@@ -6,6 +6,12 @@
 <!-- Scripting -->
 
 <script lang="ts">
+import Button from "$lib/Components/Button/Button.svelte";
+import Container from "$lib/Components/Container/Container.svelte";
+import { displayName, avatar } from "$lib/Stores/User";
+import { page } from "$app/stores";
+
+
 
 
 </script>
@@ -23,4 +29,9 @@
 	<meta name="description" content="Transendence home page" />
 </svelte:head>
 
-<h1>Home Page</h1>
+<Container>
+	<h1>Welcome {$displayName}</h1>
+	<section>
+		<img src="{$page.url.protocol}//{$page.url.hostname}:3000/{$avatar}" alt="Profile picture" />
+	</section>
+</Container>

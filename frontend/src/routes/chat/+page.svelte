@@ -5,7 +5,7 @@ import { onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import { initSocket } from "$lib/socketIO";
-import { user, JWT } from "$lib/Stores/User";
+import { displayName, JWT } from "$lib/Stores/User";
 import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 import TextInput from "$lib/Components/TextInput/TextInput.svelte";
@@ -16,14 +16,13 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	let io: any;
 	let messages: Array<any> = [];
 	let openChannel = "Global";
-	let currentUser = $user
+	let currentUser = $displayName
 
 	onMount(() => {
 		io = initSocket($JWT!)
 		updateMessages("Global");
 
 		io.on("sendMsg", function (message: any) { // Listen to the message event
-			console.log(message)
 			if (message.channel == openChannel)
 				messages = [...messages, { senderName: message.user, text: message.text}]
 		})
