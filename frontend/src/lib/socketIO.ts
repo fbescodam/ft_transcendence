@@ -1,3 +1,4 @@
+import { goto } from "$app/navigation";
 import ioClient from "socket.io-client";
 import { JWT } from "./Stores/User";
 
@@ -16,9 +17,17 @@ export function authSocket() {
  * @returns The new IOClient socket.
  */
 export function initSocket(JWT: string) {
-	return ioClient(ENDPOINT, {
+	const io = ioClient(ENDPOINT, {
 		auth: {
 			token: JWT
 		}
 	});
+	//TODO: connection errors
+	io.emit("verifyJWT", function(answer:any) {
+		if (answer.status != "ok")
+		{
+			goto("/auth", { replaceState: false });
+		}
+	});
+	return (io);
 };

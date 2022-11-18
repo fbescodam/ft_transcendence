@@ -203,6 +203,18 @@ export class MainGateway {
 		return {newName:UserInfo["newDisplayName"]};
 	}
 
+	@SubscribeMessage("verifyJWT") 
+	verifyJwt(@ConnectedSocket() socket: Socket) {
+		try {
+			JWT.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
+		}
+		catch (e) {
+			return {status:"sad"}
+		}
+		return {status:"ok"}
+	}
+
+
 	/**
 	 * Main authenticaton function to authenticate a user with the 42 OAuth webflow.
 	 * @param data Data.
