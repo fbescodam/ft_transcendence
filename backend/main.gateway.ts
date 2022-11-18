@@ -13,6 +13,8 @@ import {
 	ConnectedSocket,
 	WsResponse,
 } from "@nestjs/websockets";
+import { each } from "svelte/internal";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 
 /*==========================================================================*/
 
@@ -31,6 +33,10 @@ export class MainGateway {
 	private readonly logger = new Logger("sockets");
 
 	//= Methods =//
+	@UseGuards(JwtGuard)
+	OnGatewayConnection() {
+		
+	}
 
 	/**
 	 * Hanlder for messages that are being sent.
@@ -39,9 +45,7 @@ export class MainGateway {
    @UseGuards(JwtGuard)
    @SubscribeMessage('sendMsg')
    async handleMessage(@MessageBody() msg: any): Promise<void> {
-     //this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
-     //TODO: this ^ doesnt work. why?
-     this.server.emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
+     this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
      this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
      await this.prismaService.message.create({data: {
        senderName: msg.user.intraName,
@@ -86,8 +90,8 @@ export class MainGateway {
   //TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
 	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
-		socket.join(roomInfo);
-		this.logger.log(`joined ${roomInfo}`);
+		socket.join(roomInfo["channels"]);
+		this.logger.log(`joined ${roomInfo["channels"]}`);
 	}
 
 	@SubscribeMessage("leaveRoom")
@@ -131,13 +135,13 @@ export class MainGateway {
       }
     });
 
-    socket.join(channelData["name"])
+    socket.join(channelData["name"]) //TODO: for some reason this dont do shit
     this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
     return channel
 	}
 
-  @SubscribeMessage("enterChannel")
-	public async enterChannel(@MessageBody() channelData: Object) {
+  	@SubscribeMessage("joinChannel")
+	public async joinChannel(@MessageBody() channelData: Object) {
 
 	}
 
