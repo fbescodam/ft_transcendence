@@ -85,7 +85,7 @@ export class MainGateway {
    }
  
 
-  //TODO: figure out why messages get sent to every socket
+ 	 //TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
 	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
 		socket.join(roomInfo["channels"]);
@@ -108,29 +108,29 @@ export class MainGateway {
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
-		//TODO: user should be notified if channel already exists
-		const channel = await this.prismaService.channel.upsert({
-		where: {
-			name: channelData["name"],
-		},
-		update: { //TODO: check password lol
-			users: {
-			create: {
-				role: Role.USER,
-				userName: channelData["user"].intraName 
+		const channelExists = await this.prismaService.channel.findUnique({ 
+			where: {
+				name:channelData["name"]
 			}
-			}
-		},
-		create: { 
-			name: channelData["name"],
-			password: channelData["password"] || null,
-			users: {
-				create: {
-				role: Role.ADMIN,
-				userName: channelData["user"].intraName,
+		});
+
+		if (channelExists)
+		{
+			this.logger.log(`channel named ${channelData["name"]} exists`)
+			return {error:"channel exists"}
+		}
+
+		const channel = await this.prismaService.channel.create({
+			data: { 
+				name: channelData["name"],
+				password: channelData["password"] || null, //TODO: hash these mofos
+				users: {
+					create: {
+					role: Role.ADMIN,
+					userName: channelData["user"].intraName,
+					}
 				}
 			}
-		}
 		});
 
 		socket.join(channelData["name"]) //TODO: for some reason this dont do shit
@@ -138,9 +138,36 @@ export class MainGateway {
 		return channel
 	}
 
+	@UseGuards(JwtGuard)
   	@SubscribeMessage("joinChannel")
-	public async joinChannel(@MessageBody() channelData: Object) {
+	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
+		const channel = await this.prismaService.channel.findUnique({ 
+			where: {
+				name:channelData["name"]
+			}
+		});
 
+		if (!channel)
+			return {error:"channel does not exist"}
+		if (channel.password && channel.password != channelData["password"])
+			return {error:"wrong password"}
+
+		await this.prismaService.channel.update({
+			where: {
+				name: channelData["name"]
+			},
+			data: {
+				users: {
+					create: {
+						role: Role.USER,
+						userName: channelData["user"].intraName,
+					}
+				}
+			}
+		});
+
+		socket.join(channelData["name"])
+		return {name:channelData["name"]}
 	}
 
 	@SubscribeMessage("leaveChannel")
@@ -213,8 +240,7 @@ export class MainGateway {
 				intraName: userResponse["login"],
 				avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
 				channels: {
-					create:
-					{
+					create: {
 						role: Role.USER,
 						channel: {
 							connect: {
