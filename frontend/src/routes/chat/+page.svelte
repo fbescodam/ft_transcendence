@@ -135,7 +135,9 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 		flex-direction: column;
 		gap: 10px;
 		max-height: 400px;
-    	overflow-y: auto;
+		overflow-y: auto;
+		min-height: 400px;
+		padding: 0 10px;
 
 		& #user {
 			text-align: right;

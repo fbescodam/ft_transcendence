@@ -29,6 +29,7 @@ onMount(() => {
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
 			console.log(answer); // This is jwt, on profile we return to the /auth page
+			// TODO: use stores
 			window.localStorage.setItem("jwt", answer.token);
 			$user = answer.displayName;
 			goto('http://localhost:5173', { replaceState: true })

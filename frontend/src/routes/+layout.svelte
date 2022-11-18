@@ -6,7 +6,6 @@ import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import DeviceDetector from "svelte-device-detector";
-import { authGuard } from "$lib/Guards/AuthGuard"
 
 let navitems = [
 	{
