@@ -146,20 +146,6 @@ export class MainGateway {
 
 	}
 
-
-	// @SubscribeMessage("createUser")
-	// async createUser(@MessageBody() userData: any): Promise<void> {
-	//   await this.prismaService.user.create({data: {
-	//     name: userData.name,
-	//     password: userData.password,
-	//     channels: { create:
-	//       {
-	//         role: Role.USER,
-	//         channel: {connect: {name: "Global"}}
-	//       }
-	//   }}})
-	// }
-
 	@SubscribeMessage("sendFriendRequest")
 	sendFriendRequest(@MessageBody() UserInfo: Object) {
 
@@ -220,6 +206,7 @@ export class MainGateway {
 			create:
 			{
 				name: userResponse["login"],
+				email: userResponse["email"],
 				intraId: userResponse["id"],
 				intraName: userResponse["login"],
 				avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",

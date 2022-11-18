@@ -9,6 +9,7 @@ async function main() {
     intraName: "clafoutis",
     avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
     role: Role.ADMIN,
+    email: "totally an email",
     channels: { create: [
       {
         role: Role.ADMIN,

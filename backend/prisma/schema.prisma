@@ -15,6 +15,7 @@ model User {
 	intraId     Int             @unique
 	name        String         	@unique //TODO: user needs to pick username
 	intraName   String          @unique
+	email		String			@unique
 	role        Role            @default(USER)
 	joinedAt    DateTime        @default(now())
 	messages    Message[]
