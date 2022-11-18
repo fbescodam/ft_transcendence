@@ -16,6 +16,8 @@ onMount(() => {
 	const animate = () => {
 		gameState.animate();
 		score = gameState.score;
+		
+		
 		requestAnimationFrame(animate);
 	};
 
@@ -46,6 +48,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	<title>Game</title>
 	<meta name="description" content="Play a nice game of Pong!" />
 </svelte:head>
+
 <div class="center">
 	<Container>
 		<Container>
@@ -60,6 +63,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 </div>
 
 <!-- Styling -->
+
 <style lang="scss">
 
 canvas {

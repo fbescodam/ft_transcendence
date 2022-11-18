@@ -15,10 +15,10 @@ export function authSocket() {
  * Creates a new socket using the JWT in local storage.
  * @returns The new IOClient socket.
  */
-export function initSocket() {
+export function initSocket(JWT: string) {
 	return ioClient(ENDPOINT, {
 		auth: {
-			token: window.localStorage.getItem("jwt")
+			token: JWT
 		}
 	});
 };

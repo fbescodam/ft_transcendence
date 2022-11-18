@@ -1,7 +1,8 @@
 <script lang="ts">
+import { JWT } from "$lib/Stores/User";
 import { goto } from "$app/navigation";
 
-if (!window.localStorage.getItem("jwt")) {
+if ($JWT == null) {
 	goto("/auth", { replaceState: true });
 }
 

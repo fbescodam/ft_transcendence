@@ -28,10 +28,7 @@ onMount(() => {
 
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
-			console.log(answer); // This is jwt, on profile we return to the /auth page
-			// TODO: use stores
-			// $JWT = answer.token;
-			window.localStorage.setItem("jwt", answer.token);
+			$JWT = answer.token;
 			$user = answer.displayName;
 			goto('http://localhost:5173', { replaceState: true })
 		});
@@ -58,7 +55,7 @@ function onClick() {
 
 <!-- HTML -->
 
-{#if !window.localStorage.getItem("jwt") && !authCode }
+{#if !$JWT && !authCode }
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">
 		<div class="center">

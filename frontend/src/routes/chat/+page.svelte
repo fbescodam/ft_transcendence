@@ -5,7 +5,7 @@ import { onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import { initSocket } from "$lib/socketIO";
-import { user } from "$lib/Stores/User";
+import { user, JWT } from "$lib/Stores/User";
 import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 import TextInput from "$lib/Components/TextInput/TextInput.svelte";
@@ -19,7 +19,7 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	let currentUser = $user
 
 	onMount(() => {
-		io = initSocket()
+		io = initSocket($JWT!)
 		updateMessages("Global");
 
 		io.on("sendMsg", function (message: any) { // Listen to the message event
