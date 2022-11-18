@@ -36,9 +36,13 @@ function onCancel() {
 
 function onSubmit(e: SubmitEvent) {
     e.preventDefault();
+    let password = null
 
-    io.emit('createChannel', {name:channelNameInput.value, password:channelPasswordInput.value}, function (answer: any) {
-        $channels = [...$channels, answer.channelName]
+    if (channelPasswordInput)
+        password = channelPasswordInput.value;    
+
+    io.emit('createChannel', {name:channelNameInput.value, password:password}, function (answer: any) {
+        $channels = [...$channels, {channelName:answer.name}]
     });
     visible = false;
 }

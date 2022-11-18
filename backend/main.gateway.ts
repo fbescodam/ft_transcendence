@@ -106,6 +106,7 @@ export class MainGateway {
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
+	//TODO: user should be notified if channel already exists
     const channel = await this.prismaService.channel.upsert({
       where: {
         name: channelData["name"],
