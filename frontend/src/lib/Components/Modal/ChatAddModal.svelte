@@ -16,6 +16,7 @@ export let visible: boolean = false;
 
 //= Variables =//
 
+export let publicOrPrivate: boolean = false;
 let channelNameInput: HTMLInputElement;
 let isPublicChannelInput: HTMLInputElement;
 let isPrivateChannelInput: HTMLInputElement;
@@ -65,21 +66,23 @@ function onSubmit(e: SubmitEvent) {
                     <label for="public">
                         <b>Public</b>
                     </label>
-                    <input bind:this={isPublicChannelInput} type="radio" id="public" name="private" required>
+                    <input bind:this={isPublicChannelInput} type="radio" id="public" name="private" required bind:group={publicOrPrivate} value={false}>
     
                     <label for="private">
                         <b>Private</b>
                     </label>
-                    <input bind:this={isPrivateChannelInput} type="radio" id="private" name="private" required>
+                    <input bind:this={isPrivateChannelInput} type="radio" id="private" name="private" required bind:group={publicOrPrivate} value={true}>
                 </section>
 
                 <!-- Channel Password -->
                 <!-- TODO: Is is private then show, else hide. -->
                 <br/>
-                <label for="password">
-                    <b>Password:</b>
-                </label>
-                <input bind:this={channelPasswordInput} type="password" id="password" name="password" required>
+                {#if publicOrPrivate}
+                    <label for="password">
+                        <b>Password:</b>
+                    </label>
+                    <input bind:this={channelPasswordInput} type="password" id="password" name="password" required>
+                {/if}
             </div>
 
             <!-- Actions -->
