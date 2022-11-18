@@ -50,7 +50,10 @@ function onChannelCreate(e: SubmitEvent) {
         password = channelPasswordInput.value;    
 
     io.emit('createChannel', {name:channelNameInput.value, password:password}, function (answer: any) {
-        $channels = [...$channels, {channelName: answer.name}]
+        if (answer.error)
+            console.log(answer.error)
+        else
+            $channels = [...$channels, {channelName: answer.name}]
     });
     visible = false;
 }
@@ -61,6 +64,13 @@ function onChannelCreate(e: SubmitEvent) {
  */
 function onChannelJoin(e: SubmitEvent) {
     e.preventDefault();
+    
+    io.emit('joinChannel', {name:joinChannelNameInput.value, password:joinChannelPasswordInput.value}, function (answer: any) {
+        if (answer.error)
+            console.log(answer.error)
+        else
+            $channels = [...$channels, {channelName: answer.name}]
+    });
 
     visible = false;
 }
