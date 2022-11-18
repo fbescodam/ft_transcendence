@@ -5,7 +5,6 @@ import { page } from '$app/stores';
 import { onMount } from "svelte";
 import { authSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
-import { Socket } from "socket.io-client";
 import Button from "$lib/Components/Button/Button.svelte";
 import { state, loggedIn, user } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";

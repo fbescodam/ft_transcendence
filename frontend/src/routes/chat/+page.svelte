@@ -1,6 +1,6 @@
 <!-- Scripting -->
 <script context="module" lang="ts">
-import {  Globe, Chat, Plus, ClipboardCheck } from "svelte-hero-icons";
+import {  Globe, Chat, Plus } from "svelte-hero-icons";
 import { onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
@@ -8,6 +8,7 @@ import { initSocket } from "$lib/socketIO";
 import { user } from "$lib/Stores/User";
 import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
+import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 </script>
 
 <script lang="ts">
@@ -40,15 +41,19 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 
 	/**
 	 * When the user sends a message.
-	 * @param event The Input event.
+	 * @param data The even data.
 	 */
-	function onSend(event: any) {
+	function onSend(data: CustomEvent<KeyboardEvent>) {
+		const event = data.detail as KeyboardEvent;
+		const input = event.target as HTMLInputElement;
+
 		if (event.key === 'Enter') {
-			const text = event.target.value;
-			if (!text) return;
-			io.emit("sendMsg", {inChannel: openChannel, text: text});
-			
-			event.target.value = "";
+			if (!input.value) {
+				return;
+			}
+			console.log("Sending message:", input.value);
+			io.emit("sendMsg", {inChannel: openChannel, text: input.value});
+			input.value = "";
 		}
 	}
 </script>
@@ -61,7 +66,10 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 </svelte:head>
 
 <div class="page">
+	<!-- PopUps -->
 	<ChatAddModal bind:visible={showAddModal}/>
+
+	<!-- Channels -->
 	<Container>
 		<div class="channels">
 			{#each $channels as channel}
@@ -74,24 +82,24 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 		</div>
 	</Container>
 	<hr />
+
+	<!-- Chat messages -->
 	<Container style="flex: 1;">
 		<div class="chat">
 			<h1>{openChannel}</h1>
-			<div class="messages">
+			<section class="messages">
 				{#if messages.length == 0}
-					<article id="other">
-						<span>no messages for this channel</span>
-					</article>
+					<b> No messages...</b>
 				{:else}
 					{#each messages as message}
 						<article id={message.senderName == currentUser ? "user" : "other"}>
 							<span>{message.text}</span>
-							<span>{message.senderName}</span>
+							<b>{message.senderName}</b>
 						</article>
 					{/each}
 				{/if}
-			</div>
-			<input on:keydown={onSend}>
+			</section>
+			<TextInput on:key={onSend}/>
 		</div>
 	</Container>
 </div>
@@ -116,6 +124,7 @@ import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 .chat {
 	flex: 1;
 	display: flex;
+	gap: 20px;
 	padding: 1rem;
 	flex-direction: column;
 
