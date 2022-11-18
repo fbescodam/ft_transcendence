@@ -304,7 +304,7 @@ export class MainGateway {
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
 
 		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken, state: data["state"], displayName:userResponse["login"] }; // <===== jwt
+		return { token: jwtToken, state: data["state"], displayName: userData.name, avatar: userData.avatar }; // <===== jwt
 	}
 }
 
