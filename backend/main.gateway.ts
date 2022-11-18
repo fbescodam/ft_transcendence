@@ -13,8 +13,6 @@ import {
 	ConnectedSocket,
 	WsResponse,
 } from "@nestjs/websockets";
-import { each } from "svelte/internal";
-import { IoAdapter } from "@nestjs/platform-socket.io";
 
 /*==========================================================================*/
 
@@ -100,44 +98,44 @@ export class MainGateway {
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
-  /**
-   * Creates a new channel.
-   * @param channelData The channel data. E.g: Name, public or private, password ...
-   * @param socket The web socket that is the client.
-   * @returns The newly created channel.
-   */
-  @UseGuards(JwtGuard)
+	/**
+	 * Creates a new channel.
+	 * @param channelData The channel data. E.g: Name, public or private, password ...
+	 * @param socket The web socket that is the client.
+	 * @returns The newly created channel.
+	 */
+	@UseGuards(JwtGuard)
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
-	//TODO: user should be notified if channel already exists
-    const channel = await this.prismaService.channel.upsert({
-      where: {
-        name: channelData["name"],
-      },
-      update: { //TODO: check password lol
-        users: {
-          create: {
-            role: Role.USER,
-            userName: channelData["user"].intraName 
-          }
-        }
-      },
-      create: { 
-          name: channelData["name"],
-          password: channelData["password"] || null,
-          users: {
-            create: {
-              role: Role.ADMIN,
-              userName: channelData["user"].intraName,
-            }
-        }
-      }
-    });
+		//TODO: user should be notified if channel already exists
+		const channel = await this.prismaService.channel.upsert({
+		where: {
+			name: channelData["name"],
+		},
+		update: { //TODO: check password lol
+			users: {
+			create: {
+				role: Role.USER,
+				userName: channelData["user"].intraName 
+			}
+			}
+		},
+		create: { 
+			name: channelData["name"],
+			password: channelData["password"] || null,
+			users: {
+				create: {
+				role: Role.ADMIN,
+				userName: channelData["user"].intraName,
+				}
+			}
+		}
+		});
 
-    socket.join(channelData["name"]) //TODO: for some reason this dont do shit
-    this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
-    return channel
+		socket.join(channelData["name"]) //TODO: for some reason this dont do shit
+		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
+		return channel
 	}
 
   	@SubscribeMessage("joinChannel")
