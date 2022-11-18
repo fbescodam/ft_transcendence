@@ -10,6 +10,8 @@ import Container from "../Container/Container.svelte";
 
 /** Toggle the modal visiblity */
 export let visible: boolean = false;
+
+export let style: string = "";
 </script>
 
 <!-- HTML -->
@@ -18,7 +20,9 @@ export let visible: boolean = false;
     <div class="modal">
         <div class="content">
             <Container style="flex: 0;">
-                <slot/>
+                <div {style}>
+                    <slot/>
+                </div>
             </Container>
         </div>
     </div>
