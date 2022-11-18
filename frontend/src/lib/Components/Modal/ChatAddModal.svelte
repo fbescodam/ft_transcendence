@@ -54,7 +54,7 @@ function onSubmit(e: SubmitEvent) {
 
 <Modal bind:visible={visible}>
     <form on:submit={(e) => { onSubmit(e); }}>
-        <h1>Add Channel</h1>
+        <h1>Create Channel</h1>
         <section class="form-body">
             <!-- Data -->
             <div class="form-content">
@@ -80,7 +80,6 @@ function onSubmit(e: SubmitEvent) {
                 </section>
 
                 <!-- Channel Password -->
-                <!-- TODO: Is is private then show, else hide. -->
                 <br/>
                 {#if publicOrPrivate}
                     <label for="password">

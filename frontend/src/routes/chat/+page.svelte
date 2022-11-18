@@ -23,6 +23,7 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 		updateMessages("Global");
 
 		io.on("sendMsg", function (message: any) { // Listen to the message event
+			console.log(message)
 			if (message.channel == openChannel)
 				messages = [...messages, { senderName: message.user, text: message.text}]
 		})
