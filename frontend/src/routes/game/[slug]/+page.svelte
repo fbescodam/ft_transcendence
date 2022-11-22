@@ -35,7 +35,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	if (event.code === "KeyS")
 		gameState.paddleP1.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y + 45 };
 	if (event.code === "ArrowUp")
-		gameState.paddleP2.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y - 45 };
+		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y - 45 };
 	if (event.code === "ArrowDown")
 		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y + 45 };
 };
