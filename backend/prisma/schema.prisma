@@ -13,7 +13,7 @@ generator client {
 model User {
 	id          Int             @id @default(autoincrement())
 	intraId     Int             @unique
-	name        String         	@unique //TODO: user needs to pick username
+	name        String         	@unique
 	intraName   String          @unique
 	email		String			@unique
 	role        Role            @default(USER)

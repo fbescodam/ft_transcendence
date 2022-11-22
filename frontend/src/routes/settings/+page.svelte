@@ -8,9 +8,32 @@
 <script lang="ts">
 import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
+import { initSocket } from "$lib/socketIO";
+import { displayName, JWT } from "$lib/Stores/User";
+import type { Socket } from "socket.io-client";
+import { onMount } from "svelte";
 
+let newUsername: HTMLInputElement;
 
+let io: Socket;
 
+onMount(() => io = initSocket($JWT!));
+
+function changeUsername(e: SubmitEvent) {
+	e.preventDefault()
+	
+	if (newUsername.value)
+	{
+		io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
+			console.log(answer);
+			if ("error" in answer)
+				return console.log("error: %s", answer.error);
+			$displayName = newUsername.value;
+			newUsername.value = '';
+		})
+	}
+
+}
 
 
 
@@ -49,23 +72,15 @@ import Container from "$lib/Components/Container/Container.svelte";
 
 <div class="page">
 	<Container style="flex: 1;">
-		<form method="POST">
+		<form on:submit={(e) => { changeUsername(e); }}>
 			<fieldset>
 				<legend>User Data</legend>
 				<div>
 					<label>Username:</label>
-					<input type="text" />
+					<input type="text" bind:this={newUsername} placeholder={$displayName}/>
 				</div>
-
-				<div>
-					<label htmlFor="gender">Gender:</label>
-					<select>
-						<option>Male</option>
-						<option>Female</option>
-					</select>
-				</div>
-
-				<Button type="submit">Save</Button>
+				<br/>
+				<Button type="submit">Change username</Button>
 			</fieldset>
 		</form>
 

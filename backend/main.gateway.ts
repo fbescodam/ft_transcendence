@@ -19,7 +19,6 @@ import * as dotenv from 'dotenv'
 
 dotenv.config();
 
-/** TODO: What is this GateWay? Some refs or docs please... */
 @WebSocketGateway({ cors: { origin: "*", credentials: false } })
 export class MainGateway {
 
@@ -191,6 +190,15 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changeDisplayName")
 	async changeDisplayName(@MessageBody() UserInfo: Object) {
+		//TODO: NEW JWTTOKEN
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				name: UserInfo["user"].name
+			}
+		})
+
+		// if (user)
+		// 	return {error:"Username already in use"}
 
 		await this.prismaService.user.update({
 			where: {
@@ -200,6 +208,9 @@ export class MainGateway {
 				name: UserInfo["newDisplayName"]
 			}
 		})
+
+		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
+
 		return {newName:UserInfo["newDisplayName"]};
 	}
 
