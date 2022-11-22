@@ -20,8 +20,8 @@ model User {
 	joinedAt    DateTime        @default(now())
 	messages    Message[]
 	channels    UserInChannel[]
-	games       Game[]
 	avatar      String
+	games       Game[]
 
 	//----- subject to removal -----//
 	// friends             Int[]	//TODO: better way for this?

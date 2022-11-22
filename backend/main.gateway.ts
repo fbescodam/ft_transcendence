@@ -65,10 +65,14 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getChannelsForUser')
 	async getChannelsForUser(@MessageBody() data: any) {
-	const user = await this.prismaService.user.findFirst({
-		where: { name: data.user.intraName },
-		include: { channels: true }})
-	return user.channels;
+		const user = await this.prismaService.user.findFirst({
+			where: { 
+				name: data.user.intraName },
+			include: { 
+				channels: true
+			}
+		});
+		return user.channels;
 	}
 
 	/**
@@ -139,6 +143,13 @@ export class MainGateway {
 		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
 		return channel
 	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("createDirectChannel")
+	public async createDirectChannel() {
+		
+	}
+
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("joinChannel")
