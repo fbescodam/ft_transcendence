@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { toFileStream, toString } from 'qrcode';
+import { toDataURL } from 'qrcode';
 import { authenticator } from 'otplib';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
@@ -17,7 +17,7 @@ export class TwoFactorAuthenticationService {
     const secret = authenticator.generateSecret();
     const otpauthUrl = authenticator.keyuri(user.intraName, "ft_transcendance", secret);
     
-    const penis = await this.prismaService.user.update({
+    const newUser = await this.prismaService.user.update({
       where: {
         intraName: user.intraName
       },
@@ -27,14 +27,25 @@ export class TwoFactorAuthenticationService {
     })
 
     return {
-      user,
+      newUser,
       secret,
       otpauthUrl
     }
   }
 
-  public async pipeQrCodeStream(otpauthUrl: string) { //TODO: this is kinda cringe
-    return toString(otpauthUrl);
+  public async pipeQrCodeStream(otpauthUrl: string) {
+    var opts = {
+      errorCorrectionLevel: 'H',
+      type: 'image/jpeg',
+      quality: 0.3,
+      margin: 1,
+      color: {
+        dark:"#010599FF",
+        light:"#FFBF60FF"
+      } //Change these values to change the look of the qrcode
+    }
+    
+    return toDataURL(otpauthUrl, opts);
   }
 
   public isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, user: User) {

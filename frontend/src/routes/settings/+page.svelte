@@ -15,9 +15,10 @@ import { onMount } from "svelte";
 
 let newUsername: HTMLInputElement;
 let tfaCode: HTMLInputElement;
+let authCode: HTMLInputElement;
 
 let io: Socket;
-let qrcode: String;
+let qrcode: string;
 
 onMount(() => io = initSocket($JWT!));
 
@@ -41,23 +42,42 @@ function logOut() {
 	$JWT = null;
 }
 
-function testTfa(e: SubmitEvent) {
+//this is how you get a qrcode as svg
+function getQrCode(e: SubmitEvent) {
 	e.preventDefault()
 
-	io.emit('tfaAuth', {}, function(e:any) {
+	io.emit('getQrCode', {}, function(e:any) {
 		console.log(e)
-		qrcode = e
+		$JWT = e["token"]
+		qrcode = e["qrcode"]
 	})
 }
 
+//this is how you check a code
+function checkCode(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('checkCode', {tfaCode: authCode.value}, function(answer: any) {
+		console.log(answer);
+	})
+}
+
+function disabletfa(e: SubmitEvent) {
+	e.preventDefault()
+
+}
+
+//this is how you enable 2fa
 function enableTfa(e: SubmitEvent) {
 	e.preventDefault()
 
-	io.emit('enableTfaAuth', {tfaCode: tfaCode.value}, function(e:any) {
-		console.log('tfa enabled')
+	io.emit('enableTfaAuth', {tfaCode: tfaCode.value}, function(answer:any) {
+		if ("error" in answer)
+			return console.log("error: %s", answer.error);
+		$JWT = answer["token"]
+		console.log(answer)
 	})
 }
-
 
 </script>
 
@@ -106,7 +126,7 @@ function enableTfa(e: SubmitEvent) {
 			</fieldset>
 		</form>
 
-		<form method="POST">
+		<form on:submit={(e) => { checkCode(e)}}>
 			<fieldset>
 				<legend>Authentication</legend>
 
@@ -119,6 +139,7 @@ function enableTfa(e: SubmitEvent) {
 						inputMode="numeric"
 						pattern="[0-9]*"
 						autoComplete="one-time-code"
+						bind:this={authCode}
 					/>
 				</div>
 
@@ -132,9 +153,9 @@ function enableTfa(e: SubmitEvent) {
 			</fieldset>
 		</form>
 
-		<form on:submit={(e) => { testTfa(e); }}>
+		<form on:submit={(e) => { getQrCode(e); }}>
 			<fieldset>
-				<Button type="submit">testTfa</Button>
+				<Button type="submit">getQrCode</Button>
 			</fieldset>
 		</form>
 
@@ -148,6 +169,8 @@ function enableTfa(e: SubmitEvent) {
 				<Button type="submit">enableTfa</Button>
 			</fieldset>
 		</form>
+
+		<img id="qr" src={qrcode}/>
 
 	</Container>
 </div>

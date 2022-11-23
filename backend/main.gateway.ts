@@ -277,28 +277,53 @@ export class MainGateway {
 		return {status:"ok"}
 	}
 
+	/**
+	 * sets a 2fa secret for user and returns a qrcode to scan with an authenticator app
+	 * @param data empty object
+	 * @returns new jtwToken and qrcode as an svg element (<svg ....>)
+	 */
 	@UseGuards(JwtGuard)
-	@SubscribeMessage("tfaAuth")
+	@SubscribeMessage("getQrCode")
 	public async tfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const { otpauthUrl, user } = await this.tfaService.generateTwoFactorAuthenticationSecret(data["user"]);
+		const { otpauthUrl, newUser } = await this.tfaService.generateTwoFactorAuthenticationSecret(data["user"]);
 
-		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+
+		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
 		socket.handshake.auth = { token: jwtToken }
 
+		this.logger.log(jwtToken)
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
-		return ret
+		return {token: jwtToken, qrcode:ret}
 	}
 
+	//TODO: 2fa flow. user logs in -> check if 2fa is enabled -> log user in or redirect them to 2fa flow
+
+	/**
+	 * checks wether or not a submitted 2fa code is valid
+	 * @param data contains tfa code
+	 * @returns valid or invalid
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("checkCode")
+	public async checkCode(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		if (!valid)
+			return {error:"invalid 2fa"}
+		return {valid:"2fa code is valid"}
+	}
+
+	/**
+	 * enables 2fa authentication for user (flips a boolen in db)
+	 * @param data contains tfa code
+	 * @returns new jwttoken
+	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("enableTfaAuth")
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-
-		this.logger.log(data["user"])
-
 		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
-
 		if (!valid)
 			return {error:"invalid 2fa"}
+
 		const user = await this.prismaService.user.update({
 			where: {
 				intraName: data["user"].intraName
@@ -307,10 +332,36 @@ export class MainGateway {
 				tfaEnabled: true
 			}
 		})
-
-
+		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
 		socket.handshake.auth = { token: jwtToken }
+		return {token: jwtToken}
+	}
+
+	/**
+	 * disables 2fa authentication for user (flips a boolen in db)
+	 * @param data contains tfa code
+	 * @returns new jwttoken
+	*/
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("disableTfaAuth")
+	public async disableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		if (!valid)
+			return {error:"invalid 2fa"}
+		
+		const user = await this.prismaService.user.update({
+			where: {
+				intraName: data["user"].intraName
+			},
+			data: {
+				tfaEnabled: false
+			}
+		})
+		this.logger.log(`tfa disabled for ${user.intraName}`)
+		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+		socket.handshake.auth = { token: jwtToken }
+		return {token: jwtToken}
 	}
 
 
