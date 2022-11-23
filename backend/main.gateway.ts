@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
-import { Role } from "@prisma/client";
+import { ChannelType, Role } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 import { Inject, Logger, UseGuards } from "@nestjs/common";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@nestjs/websockets"
 import * as fs from 'fs';
 import * as dotenv from 'dotenv'
+import { TwoFactorAuthenticationService } from "auth/2fa.service";
 
 /*==========================================================================*/
 
@@ -26,6 +27,9 @@ export class MainGateway {
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
+	@Inject(TwoFactorAuthenticationService)
+	private readonly tfaService: TwoFactorAuthenticationService;
+	
 
 	@WebSocketServer()
 	server;
@@ -146,8 +150,45 @@ export class MainGateway {
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("createDirectChannel")
-	public async createDirectChannel() {
+	public async createDirectChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 		
+		const newChannelName = channelData["user1"].name + "-" + channelData["user2"].name
+		const channelExists = await this.prismaService.channel.findUnique({
+			where: {
+				name:newChannelName
+			}
+		});
+
+		if (channelExists)
+		{
+			this.logger.log(`direct channel named ${channelData["name"]} exists`)
+			return {error:"direct channel exists"}
+		}
+
+		//TODO: verify users exist
+		const channel = await this.prismaService.channel.create({
+			data: {
+				name: newChannelName,
+				type: ChannelType.DIRECT,
+				password: null,
+				users: {
+					create: [
+					{
+						userName: channelData["user1"].name,
+						role: Role.ADMIN
+					},
+					{
+						userName: channelData["user2"].name,
+						role: Role.ADMIN
+					}
+					]
+				}
+			}
+		});
+
+		socket.join(newChannelName)
+		this.logger.log(`direct messages between ${channelData["user1"].name} and ${channelData["user2"].name} established`)
+		return channel
 	}
 
 
@@ -234,6 +275,42 @@ export class MainGateway {
 			return {status:"sad"}
 		}
 		return {status:"ok"}
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("tfaAuth")
+	public async tfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+		const { otpauthUrl, user } = await this.tfaService.generateTwoFactorAuthenticationSecret(data["user"]);
+
+		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+		socket.handshake.auth = { token: jwtToken }
+
+		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
+		return ret
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("enableTfaAuth")
+	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+
+		this.logger.log(data["user"])
+
+		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+
+		if (!valid)
+			return {error:"invalid 2fa"}
+		const user = await this.prismaService.user.update({
+			where: {
+				intraName: data["user"].intraName
+			},
+			data: {
+				tfaEnabled: true
+			}
+		})
+
+
+		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+		socket.handshake.auth = { token: jwtToken }
 	}
 
 

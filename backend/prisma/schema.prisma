@@ -23,6 +23,9 @@ model User {
 	avatar      String
 	games       Game[]
 
+	tfaEnabled	Boolean			@default(false)
+	tfaSecret	String?
+
 	//----- subject to removal -----//
 	// friends             Int[]	//TODO: better way for this?
 	// pendingFriends      Int[]

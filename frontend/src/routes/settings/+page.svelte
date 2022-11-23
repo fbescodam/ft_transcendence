@@ -14,8 +14,10 @@ import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 
 let newUsername: HTMLInputElement;
+let tfaCode: HTMLInputElement;
 
 let io: Socket;
+let qrcode: String;
 
 onMount(() => io = initSocket($JWT!));
 
@@ -35,6 +37,26 @@ function changeUsername(e: SubmitEvent) {
 
 }
 
+function logOut() {
+	$JWT = null;
+}
+
+function testTfa(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('tfaAuth', {}, function(e:any) {
+		console.log(e)
+		qrcode = e
+	})
+}
+
+function enableTfa(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('enableTfaAuth', {tfaCode: tfaCode.value}, function(e:any) {
+		console.log('tfa enabled')
+	})
+}
 
 
 </script>
@@ -103,5 +125,29 @@ function changeUsername(e: SubmitEvent) {
 				<Button type="submit">Submit</Button>
 			</fieldset>
 		</form>
+
+		<form>
+			<fieldset>
+				<Button type="submit" on:click={logOut}>Log out</Button>
+			</fieldset>
+		</form>
+
+		<form on:submit={(e) => { testTfa(e); }}>
+			<fieldset>
+				<Button type="submit">testTfa</Button>
+			</fieldset>
+		</form>
+
+		<form on:submit={(e) => { enableTfa(e); }}>
+			<fieldset>
+				<div>
+					<label>2faCode:</label>
+					<input type="text" bind:this={tfaCode}/>
+				</div>
+				<br/>
+				<Button type="submit">enableTfa</Button>
+			</fieldset>
+		</form>
+
 	</Container>
 </div>
