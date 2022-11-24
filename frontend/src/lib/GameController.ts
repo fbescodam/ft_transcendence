@@ -17,18 +17,18 @@ class GameController {
 
 	private _movePaddleP1 = () => {
 		let dy: SimpleDirection = 0;
-		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
+		if (this._keysPressed["w"] && !this._keysPressed["s"])
 			dy = -1;
-		if (this._keysPressed["ArrowDown"] && !this._keysPressed["ArrowUp"])
+		if (this._keysPressed["s"] && !this._keysPressed["w"])
 			dy = 1;
 		this._gameState.player1.paddle.dy = dy;
 	}
 
 	private _movePaddleP2 = () => {
 		let dy: SimpleDirection = 0;
-		if (this._keysPressed["w"] && !this._keysPressed["s"])
+		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
 			dy = -1;
-		if (this._keysPressed["s"] && !this._keysPressed["w"])
+		if (this._keysPressed["ArrowDown"] && !this._keysPressed["ArrowUp"])
 			dy = 1;
 		this._gameState.player2.paddle.dy = dy;
 	}
