@@ -2,6 +2,7 @@
 import type { GameMode } from "./Modes";
 export type Vec2 = { x: number, y: number }
 export type SimpleDirection = 1 | 0 | -1;
+export type ComplexDirection = number;
 export type Dimensions = { w: number, h: number };
 
 /**
@@ -43,8 +44,9 @@ abstract class GameObject {
 class Ball extends GameObject {
 	private _spawnPos: Vec2;
 	private _spawnSpeed: number;
-	dx: SimpleDirection = 0;
-	dy: SimpleDirection = 0;
+	dx: ComplexDirection = 0;
+	dy: ComplexDirection = 0;
+	dir: number = 0;
 	speed: number;
 
 	constructor(pos: Vec2, speed: number = 4, size: Dimensions = { w: 16, h: 16 }) {
@@ -58,16 +60,16 @@ class Ball extends GameObject {
 	//= Public =//
 
 	public move() {
-		this.pos.x += this.dx * this.speed;
-		this.pos.y += this.dy * this.speed;
+		this.pos.x += this.dx;
+		this.pos.y += this.dy;
 	}
 
 	public reset() {
 		this.pos.x = this._spawnPos.x;
 		this.pos.y = this._spawnPos.y;
 		this.speed = this._spawnSpeed;
-		this.dx = Math.random() > 0.5 ? -1: 1;
-		this.dy = Math.random() > 0.5 ? -1: 1;
+		this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
+		this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
 	}
 
 	public override render(ctx: CanvasRenderingContext2D) {
@@ -87,14 +89,16 @@ class Ball extends GameObject {
 class Paddle extends GameObject {
 	private _minY: number;
 	private _maxY: number;
+	private _position: "left" | "right";
 	dy: SimpleDirection = 0;
 	speed: number;
 
-	constructor(position: "left" | "right", gameSize: Dimensions, speed: number = 16, size: Dimensions = { w: 8, h: 128 }) {
+	constructor(position: "left" | "right", gameSize: Dimensions, speed: number = 16, size: Dimensions = { w: 8, h: 180 }) {
 		const pos: Vec2 = { x: (position == "left" ? 16 : gameSize.w - 16) - size.w * 0.5, y: gameSize.h * 0.5 - 100 * 0.5 };
 		super(pos, size);
 		this.dy = 0;
 		this.speed = speed;
+		this._position = position;
 
 		const paddleOffScreenMax = size.h * 0.5;
 		this._minY = -paddleOffScreenMax;
@@ -102,6 +106,10 @@ class Paddle extends GameObject {
 	}
 
 	//= Public =//
+
+	public getPosition() {
+		return this._position;
+	}
 
 	public move() {
 		let newPos = this.pos.y + this.dy * this.speed;
@@ -214,15 +222,41 @@ class GameStateMachine {
 		this.player1 = new PlayerState("Player 1", "", "left", this._gameSize);
 		this.player2 = new PlayerState("Player 2", "", "right", this._gameSize);
 
-		// start "physics" loop
+		// Start "physics" loop
 		setInterval(() => this._update(), 1000 / this._tickRate);
+	}
+
+	private _handleBallInterception(paddle: Paddle) {
+		this.ball.speed *= 1.075; // Speed up with every ball interception by a baddle
+		// this.ball.dx *= -1; // Make the ball go the other direction (on the x axis)
+
+		// Calculate the new direction of the ball
+		const k = 0.5;
+		this.ball.dir = Math.atan2(this.ball.dx, this.ball.dy);
+		const paddle_vy = paddle.speed * paddle.dy;
+		const ball_vy = Math.cos(this.ball.dir) * this.ball.speed + k * paddle_vy;
+		const ball_vx = -Math.sin(this.ball.dir) * this.ball.speed;
+		this.ball.dir = Math.atan2(ball_vx, ball_vy);
+		this.ball.dx = ball_vx;
+		this.ball.dy = ball_vy;
+
+		// Older version of the above
+		// this.ball.dy *= -1 + (paddle.dy != 0 ? paddle.dy * 1.5 : 1); // Invert the y direction of the ball, influenced by the paddle's movement
+
+		// Another older version of the above
+		// const offset = (this.ball.pos.x + this.ball.size.w - paddle.pos.x) / (paddle.size.w + this.ball.size.w);
+		// const phi = 0.25 * Math.PI * (2 * offset - 1);
+		// this.ball.dy = Math.sin(phi);
+
+		if (paddle.getPosition() == "left")
+			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
+		else
+			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
 	}
 
 	private _update() {
 		if (this.paused)
 			return;
-
-		let ballIntercepted = false;
 
 		// Did ball hit either left or right wall?
 		const p1Win = this.ball.pos.x > this._gameSize.w;
@@ -240,13 +274,11 @@ class GameStateMachine {
 		}
 		// Check baddle intersection on left
 		else if (GameObject.intersects(this.ball, this.player1.paddle)) {
-			ballIntercepted = true;
-			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
+			this._handleBallInterception(this.player1.paddle);
 		}
 		// Check baddle intersection on right
 		else if (GameObject.intersects(this.ball, this.player2.paddle)) {
-			ballIntercepted = true;
-			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
+			this._handleBallInterception(this.player2.paddle);
 		}
 		// Ball hit top or bottom wall
 		else if (this.ball.pos.y + this.ball.dy > this._gameSize.h - this.ball.size.h ||
@@ -254,14 +286,7 @@ class GameStateMachine {
 			this.ball.dy *= -1;
 		}
 
-		// Handle ball interceptions
-		if (ballIntercepted) {
-			this.ball.speed *= 1.075; // Speed up with every ball interception by a baddle
-			this.ball.dx *= -1;
-			this.ball.dy *= 1;
-		}
-
-		// update positions
+		// Update positions
 		this.ball.move();
 		this.player1.paddle.move();
 		this.player2.paddle.move();
