@@ -1,5 +1,5 @@
 
-import type GameTicker from "./GameTicker";
+import type GameTicker from "./Ticker";
 import type { GameMode } from "./Modes";
 export type Vec2 = { x: number, y: number }
 export type SimpleDirection = 1 | 0 | -1;

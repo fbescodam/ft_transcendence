@@ -1,6 +1,6 @@
-import type { SimpleDirection } from "./GameState";
-import type GameTicker from "./GameTicker";
-import type GameStateMachine from "./GameState";
+import type { SimpleDirection } from "./StateMachine";
+import type GameTicker from "./Ticker";
+import type GameStateMachine from "./StateMachine";
 import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
 
 class GameController {

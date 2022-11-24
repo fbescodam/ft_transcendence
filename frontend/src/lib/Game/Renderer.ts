@@ -1,5 +1,5 @@
-import type { ScoreUpdatedEvent } from "./GameState";
-import type GameStateMachine from "./GameState";
+import type { ScoreUpdatedEvent } from "./StateMachine";
+import type GameStateMachine from "./StateMachine";
 
 class GameRenderer {
 	private _gameState: GameStateMachine;

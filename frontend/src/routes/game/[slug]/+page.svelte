@@ -2,12 +2,12 @@
 
 <script lang="ts">
 import { onMount, onDestroy } from "svelte";
-import GameTicker from "$lib/GameTicker";
-import GameStateMachine from "$lib/GameState";
-import GameRenderer from "$lib/GameRenderer";
-import GameController from "$lib/GameController";
+import GameTicker from "$lib/Game/Ticker";
+import GameStateMachine from "$lib/Game/StateMachine";
+import GameRenderer from "$lib/Game/Renderer";
+import GameController from "$lib/Game/Controller";
 import Container from "$lib/Components/Container/Container.svelte";
-import { LOCAL_MULTIPL_MODE_ID } from "$lib/Modes";
+import { LOCAL_MULTIPL_MODE_ID } from "$lib/Game/Modes";
 
 let canvas: HTMLCanvasElement;
 let gameTicker: GameTicker;
