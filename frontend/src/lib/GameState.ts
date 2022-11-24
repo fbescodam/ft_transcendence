@@ -215,7 +215,7 @@ class GameStateMachine {
 				GameObject.intersects(this.ball, this.player2.paddle)) {
 			this.ball.dx *= -1;
 			this.ball.dy *= 1;
-			this.ball.speed *= 1.05; // Speed up with every intersect
+			this.ball.speed *= 1.075; // Speed up with every intersect
 		}
 		// Ball hit top or bottom wall
 		else if (this.ball.pos.y + this.ball.dy > this._gameSize.h - this.ball.size.h ||
