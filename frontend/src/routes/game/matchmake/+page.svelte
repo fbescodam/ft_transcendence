@@ -7,7 +7,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 import { onMount } from "svelte";
 import { error } from "@sveltejs/kit";
 import { goto } from "$app/navigation";
-import { Modes } from "$lib/Modes";
+import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Modes";
 
 onMount(() => {
     const selectedModeParam = $page.url.searchParams.get('mode');
@@ -15,27 +15,23 @@ onMount(() => {
 
     if (selectedModeParam != null) {
         const selectedModeID = parseInt(selectedModeParam);
-        if (modeIds.includes(selectedModeID)) {
-            switch (selectedModeID) {
-                case 0: // Singleplayer
-                case 1: // Local Multiplayer
-                {
-                    console.log("Creating singleplayer lobby");
-                    break;
-                }
-                case 2: // Multiplayer
-                {
-                    console.log("Creating multiplayer lobby");
-                    break;
-                }
-                default:
-                    throw error(400, "Invalid game mode!");
+        switch (selectedModeID) {
+            case SINGLEPL_MODE_ID: // Singleplayer
+            case LOCAL_MULTIPL_MODE_ID: // Local Multiplayer
+            {
+                console.log("Creating singleplayer lobby");
+                break;
             }
+            case ONLINE_MULTIPL_MODE_ID: // Multiplayer
+            {
+                console.log("Creating multiplayer lobby");
+                break;
+            }
+            default:
+                console.warn("Invalid mode ID in matchmake", selectedModeID);
+                goto("/game", { replaceState: true });
         }
     }
-
-    // Invalid, go back!
-    goto("/game", { replaceState: true });
 });
 
 </script>
