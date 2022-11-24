@@ -85,6 +85,8 @@ class Ball extends GameObject {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Paddle extends GameObject {
+	private _minY: number;
+	private _maxY: number;
 	dy: SimpleDirection = 0;
 	speed: number;
 
@@ -93,12 +95,21 @@ class Paddle extends GameObject {
 		super(pos, size);
 		this.dy = 0;
 		this.speed = speed;
+
+		const paddleOffScreenMax = size.h * 0.5;
+		this._minY = -paddleOffScreenMax;
+		this._maxY = gameSize.h - this.size.h + paddleOffScreenMax;
 	}
 
 	//= Public =//
 
 	public move() {
-		this.pos.y += this.dy * this.speed;
+		let newPos = this.pos.y + this.dy * this.speed;
+		if (newPos < this._minY)
+			newPos = this._minY;
+		else if (newPos > this._maxY)
+			newPos = this._maxY;
+		this.pos.y = newPos;
 	}
 
 	public override render(ctx: CanvasRenderingContext2D): void {
