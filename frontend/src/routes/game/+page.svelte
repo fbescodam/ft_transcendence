@@ -1,7 +1,7 @@
 
 <!-- Scripting -->
 <script lang="ts">
-import { Modes } from "$lib/Modes";
+import { Modes } from "$lib/Game/Modes";
 import Container from "$lib/Components/Container/Container.svelte";
 import TileItem from "$lib/Components/TileItem/TileItem.svelte";
 
