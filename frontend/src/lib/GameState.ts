@@ -264,14 +264,14 @@ class GameStateMachine {
 		const p2Win = this.ball.pos.x < 0;
 		if (p1Win || p2Win) {
 			// If p1 won, add to p1 score
-			if (p1Win)
+			if (p1Win) {
 				this.player1.score++;
-			else
+				this.player1.paddle.decreaseSize(16);
+			}
+			else {
 				this.player2.score++;
-
-			// Decrease the size of the paddles
-			this.player1.paddle.decreaseSize(10);
-			this.player2.paddle.decreaseSize(10);
+				this.player2.paddle.decreaseSize(16);
+			}
 
 			this.ball.reset();
 
