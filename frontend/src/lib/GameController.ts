@@ -24,24 +24,23 @@ class GameController {
 		this._gameState.player1.paddle.dy = dy;
 	}
 
-	public _movePaddleP2 = () => {
-		// Only in local multiplayer mode
-		if (this._gameState.getGameMode() != LOCAL_MULTIPL_MODE_ID)
-			return;
-
+	private _movePaddleP2 = () => {
 		let dy: SimpleDirection = 0;
-		if (this._keysPressed["KeyW"] && !this._keysPressed["KeyS"])
+		if (this._keysPressed["w"] && !this._keysPressed["s"])
 			dy = -1;
-		if (this._keysPressed["KeyS"] && !this._keysPressed["KeyW"])
+		if (this._keysPressed["s"] && !this._keysPressed["w"])
 			dy = 1;
 		this._gameState.player2.paddle.dy = dy;
 	}
 
-	public _update = () => {
+	private _update = () => {
 		if (this._gameState.paused)
 			return;
 
+		// In all game modes
 		this._movePaddleP1();
+
+		// Only in local multiplayer mode
 		if (this._gameState.getGameMode() == LOCAL_MULTIPL_MODE_ID)
 			this._movePaddleP2();
 	};
