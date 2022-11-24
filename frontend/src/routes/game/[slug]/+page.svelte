@@ -42,6 +42,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 <svelte:head>
 	<title>Game</title>
 	<meta name="description" content="Play a nice game of Pong!" />
+	<link href="https://fonts.cdnfonts.com/css/common-pixel" rel="stylesheet">
 </svelte:head>
 
 <svelte:window on:keyup={keyUpHandler} on:keydown={keyDownHandler} />
@@ -83,9 +84,10 @@ canvas {
 	align-items: center;
 	overflow: hidden;
 	justify-content: space-between;
+	font-family: 'Common Pixel', sans-serif;
 
 	& b {
-		font-size: x-large;
+		font-size: xx-large;
 	}
 
 	& img {
