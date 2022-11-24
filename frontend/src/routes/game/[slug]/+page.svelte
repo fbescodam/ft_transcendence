@@ -1,8 +1,7 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { onMount } from "svelte";
-import type { Vec2 } from "$lib/Types";
+import { onMount, onDestroy } from "svelte";
 import GameStateMachine from "$lib/GameState";
 import GameRenderer from "$lib/GameRenderer";
 import GameController from "$lib/GameController";
@@ -13,13 +12,19 @@ let canvas: HTMLCanvasElement;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
-let score: Vec2 = { x: 0, y: 0 };
-let isPaused: boolean = false;
+let scores: HTMLElement;
 
 onMount(() => {
+	console.log("onMount called");
 	gameState = new GameStateMachine(canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
 	gameController = new GameController(gameState);
-	gameRenderer = new GameRenderer(canvas, gameState);
+	gameRenderer = new GameRenderer(canvas, gameState, scores);
+});
+
+onDestroy(() => {
+	console.log("onDestroy called");
+	window.location.reload();
+	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
 });
 
 const keyUpHandler = (event: KeyboardEvent) => {
@@ -30,9 +35,8 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	// console.log(event);
 	gameController.setKeyPressed(event.key);
 
-	if (event.code === "Escape") {
+	if (event.code === "Escape")
 		gameController.togglePause();
-	}
 };
 
 </script>
@@ -52,7 +56,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 		<Container>
 			<div class="score">
 				<img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03BQBHFG-12acdf20ecc8-512" alt="P1"/>
-				<b>{score.x} : {score.y}</b>
+				<b bind:this={scores} >0 : 0</b>
 				<img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03VCRL8328-f8fc04f7f629-512" alt="P2"/>
 			</div>
 		</Container>

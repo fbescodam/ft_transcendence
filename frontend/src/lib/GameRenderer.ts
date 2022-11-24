@@ -1,17 +1,27 @@
+import type { ScoreUpdatedEvent } from "./GameState";
 import type GameStateMachine from "./GameState";
 
 class GameRenderer {
 	private _gameState: GameStateMachine;
 	private _canvas: HTMLCanvasElement;
 	private _ctx: CanvasRenderingContext2D;
+	private _scores: HTMLElement;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
+		this._scores = scores;
+
+		document.addEventListener("scoreUpdated", this._updateScores);
 
 		requestAnimationFrame(this._renderFrame);
 	}
+
+	private _updateScores = (ev: CustomEventInit) => {
+		this._scores.innerText = `${ev.detail.p1} : ${ev.detail.p2}`;
+	};
+
 
 	private _renderFrame = () => {
 		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);

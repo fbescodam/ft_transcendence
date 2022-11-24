@@ -165,6 +165,30 @@ class PlayerState {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class GameEvent {
+	private _dispatched: boolean = false;
+	private _event: CustomEvent;
+
+	constructor(type: string, detail: object) {
+		this._event = new CustomEvent(type, { detail: detail });
+	}
+
+	public dispatch() {
+		if (this._dispatched)
+			throw new Error("GameEvent already dispatched");
+		this._dispatched = true;
+		document.dispatchEvent(this._event);
+	}
+}
+
+export class ScoreUpdatedEvent extends GameEvent {
+	constructor(p1: number, p2: number) {
+		super("scoreUpdated", { p1, p2 });
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Handles the state of the game such as rendering, input control, ...
  *
@@ -209,8 +233,10 @@ class GameStateMachine {
 				this.player1.score++;
 			else
 				this.player2.score++;
-
 			this.ball.reset();
+
+			// Dispatch score updated event
+			new ScoreUpdatedEvent(this.player1.score, this.player2.score).dispatch();
 		}
 		// Check baddle intersection on left
 		else if (GameObject.intersects(this.ball, this.player1.paddle)) {
