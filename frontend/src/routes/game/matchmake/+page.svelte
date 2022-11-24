@@ -17,13 +17,13 @@ onMount(() => {
         const selectedModeID = parseInt(selectedModeParam);
         if (modeIds.includes(selectedModeID)) {
             switch (selectedModeID) {
-                case 1: // Singleplayer
-                case 2: // Local Multiplayer
+                case 0: // Singleplayer
+                case 1: // Local Multiplayer
                 {
                     console.log("Creating singleplayer lobby");
                     break;
                 }
-                case 3: // Multiplayer
+                case 2: // Multiplayer
                 {
                     console.log("Creating multiplayer lobby");
                     break;
@@ -57,8 +57,8 @@ onMount(() => {
 <style lang="scss">
 .center {
     display: flex;
-	justify-content: center; 
-	align-items: center; 
+	justify-content: center;
+	align-items: center;
 	flex-direction: column;
     height: 100%;
 }
@@ -79,7 +79,7 @@ onMount(() => {
         animation-duration: 1000ms;
         animation-iteration-count: infinite;
         animation-timing-function: linear;
-    
+
         @keyframes spin {
             to {
                 transform:rotate(0deg);
