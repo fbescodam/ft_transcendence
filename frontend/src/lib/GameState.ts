@@ -227,7 +227,7 @@ class GameStateMachine {
 	}
 
 	private _handleBallInterception(paddle: Paddle) {
-		this.ball.speed *= 1.075; // Speed up with every ball interception by a baddle
+		this.ball.speed *= 1.075; // Speed up with every ball interception by a paddle
 		// this.ball.dx *= -1; // Make the ball go the other direction (on the x axis)
 
 		// Calculate the new direction of the ball
@@ -272,11 +272,11 @@ class GameStateMachine {
 			// Dispatch score updated event
 			new ScoreUpdatedEvent(this.player1.score, this.player2.score).dispatch();
 		}
-		// Check baddle intersection on left
+		// Check paddle intersection on left
 		else if (GameObject.intersects(this.ball, this.player1.paddle)) {
 			this._handleBallInterception(this.player1.paddle);
 		}
-		// Check baddle intersection on right
+		// Check paddle intersection on right
 		else if (GameObject.intersects(this.ball, this.player2.paddle)) {
 			this._handleBallInterception(this.player2.paddle);
 		}
