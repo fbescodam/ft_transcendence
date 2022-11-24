@@ -29,7 +29,7 @@ abstract class GameObject {
 	 * @param objB Object B.
 	 * @returns True if they intersect, else false.
 	 */
-	public static intersects(objA: GameObject, objB: GameObject) {
+	public static intersects = (objA: GameObject, objB: GameObject) => {
 		return(
 			objA.pos.x < objB.pos.x + objB.size.w &&
 			objA.pos.x + objA.size.w > objB.pos.x &&
@@ -58,12 +58,12 @@ class Ball extends GameObject {
 
 	//= Public =//
 
-	public move() {
+	public move = () => {
 		this.pos.x += this.dx;
 		this.pos.y += this.dy;
 	}
 
-	public reset() {
+	public reset = () => {
 		this.pos.x = this._spawnPos.x;
 		this.pos.y = this._spawnPos.y;
 		this.speed = this._spawnSpeed;
@@ -71,7 +71,7 @@ class Ball extends GameObject {
 		this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
 	}
 
-	public override render(ctx: CanvasRenderingContext2D) {
+	public override render = (ctx: CanvasRenderingContext2D) => {
 		ctx.save();
 		ctx.beginPath();
 		{
@@ -106,11 +106,11 @@ class Paddle extends GameObject {
 
 	//= Public =//
 
-	public getPosition() {
+	public getPosition = () => {
 		return this._position;
 	}
 
-	public move() {
+	public move = () => {
 		let newPos = this.pos.y + this.dy * this.speed;
 		if (newPos < this._minY)
 			newPos = this._minY;
@@ -119,7 +119,7 @@ class Paddle extends GameObject {
 		this.pos.y = newPos;
 	}
 
-	public override render(ctx: CanvasRenderingContext2D): void {
+	public override render = (ctx: CanvasRenderingContext2D) => {
 		let radius = 16;
 		if (this.size.w < 2 * radius) radius = this.size.w / 2;
 		if (this.size.h < 2 * radius) radius = this.size.h / 2;
@@ -151,23 +151,6 @@ class PlayerState {
 		// initialize paddle
 		this.paddle = new Paddle(position, gameSize);
 	}
-
-	//= Public =//
-
-	// TODO: make own
-	// public render(ctx: CanvasRenderingContext2D) {
-	// 	ctx.save();
-	// 	ctx.beginPath();
-	// 	{
-	// 		ctx.fillStyle = "#fff";
-	// 		ctx.font = "48px sans-serif";
-	// 		ctx.textAlign = "center";
-	// 		ctx.fillText(`${this.p1}`, 100, 50);
-	// 		ctx.fillText(`${this.p2}`, 700, 50);
-	// 	}
-	// 	ctx.closePath();
-	// 	ctx.restore();
-	// }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +163,7 @@ class GameEvent {
 		this._event = new CustomEvent(type, { detail: detail });
 	}
 
-	public dispatch() {
+	public dispatch = () => {
 		if (this._dispatched)
 			throw new Error("GameEvent already dispatched");
 		this._dispatched = true;
@@ -225,7 +208,7 @@ class GameStateMachine {
 		setInterval(() => this._update(), 1000 / this._tickRate);
 	}
 
-	private _handleBallInterception(paddle: Paddle) {
+	private _handleBallInterception = (paddle: Paddle) => {
 		this.ball.speed *= 1.075; // Speed up with every ball interception by a paddle
 		// this.ball.dx *= -1; // Make the ball go the other direction (on the x axis)
 
@@ -245,7 +228,7 @@ class GameStateMachine {
 			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
 	}
 
-	private _update() {
+	private _update = () => {
 		if (this.paused)
 			return;
 
@@ -285,7 +268,7 @@ class GameStateMachine {
 
 	//= Public =//
 
-	public getGameMode() {
+	public getGameMode = () => {
 		return this._gameMode;
 	}
 }
