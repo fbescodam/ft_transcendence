@@ -15,6 +15,8 @@ class GameRenderer {
 
 	private _renderFrame = () => {
 		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+		this._ctx.fillStyle = "black";
+		this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
 
 		// render game objects
 		this._gameState.ball.render(this._ctx);
