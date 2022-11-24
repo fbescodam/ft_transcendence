@@ -28,6 +28,14 @@ class GameRenderer {
 			this._ctx.fillRect(this._canvas.width * 0.5 - grid * 0.5, i, grid, grid);
 		}
 
+		// paused text
+		if (this._gameState.paused) {
+			this._ctx.fillStyle = "#fff";
+			this._ctx.font = "48px 'Common Pixel'";
+			this._ctx.textAlign = "center";
+			this._ctx.fillText("GAME PAUSED", this._canvas.width * 0.5, this._canvas.height * 0.5);
+		}
+
 		requestAnimationFrame(this._renderFrame);
 	};
 };
