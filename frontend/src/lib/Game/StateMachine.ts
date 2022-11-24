@@ -239,7 +239,7 @@ class GameStateMachine {
 		// Constant k defines how much the ball will be deflected by the paddle's vy
 		const k = 0.25;
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
-		const paddle_vy = paddle.speed * 0.5 * paddle.dy;
+		const paddle_vy = paddle.speed * 0.9 * paddle.dy;
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
 		this.ball.dx = ball_vx;
