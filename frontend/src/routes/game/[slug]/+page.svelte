@@ -4,40 +4,35 @@
 import { onMount } from "svelte";
 import type { Vec2 } from "$lib/Types";
 import GameStateMachine from "$lib/GameState";
+import GameRenderer from "$lib/GameRenderer";
+import GameController from "$lib/GameController";
 import Container from "$lib/Components/Container/Container.svelte";
+import { LOCAL_MULTIPL_MODE_ID } from "$lib/Modes";
 
 let canvas: HTMLCanvasElement;
+let gameController: GameController;
+let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
 let score: Vec2 = { x: 0, y: 0 };
+let isPaused: boolean = false;
 
 onMount(() => {
-	gameState = new GameStateMachine(canvas);
-
-	const animate = () => {
-		gameState.animate();
-		score = gameState.score;
-		
-		
-		requestAnimationFrame(animate);
-	};
-
-	// TODO: Display a countdown to indicate when match is starting.
-	setTimeout(() => {
-		animate();
-	}, 3000);
+	gameState = new GameStateMachine(canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
+	gameController = new GameController(gameState);
+	gameRenderer = new GameRenderer(canvas, gameState);
 });
 
+const keyUpHandler = (event: KeyboardEvent) => {
+	gameController.setKeyNotPressed(event.key);
+};
+
 const keyDownHandler = (event: KeyboardEvent) => {
-	console.log(event.code);
-	
-	if (event.code === "KeyW")
-		gameState.paddleP1.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y - 45 };
-	if (event.code === "KeyS")
-		gameState.paddleP1.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y + 45 };
-	if (event.code === "ArrowUp")
-		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y - 45 };
-	if (event.code === "ArrowDown")
-		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y + 45 };
+	// console.log(event);
+	gameController.setKeyPressed(event.key);
+
+	if (event.code === "Escape") {
+		gameController.togglePause();
+	}
 };
 
 </script>
@@ -49,6 +44,8 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	<meta name="description" content="Play a nice game of Pong!" />
 </svelte:head>
 
+<svelte:window on:keyup={keyUpHandler} on:keydown={keyDownHandler} />
+
 <div class="center">
 	<Container>
 		<Container>
@@ -58,7 +55,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 				<img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03VCRL8328-f8fc04f7f629-512" alt="P2"/>
 			</div>
 		</Container>
-		<canvas bind:this={canvas} width="1080" height="720" tabindex="0" on:keyup={keyDownHandler}/>
+		<canvas bind:this={canvas} width="1080" height="720" tabindex="0" />
 	</Container>
 </div>
 
