@@ -1,18 +1,17 @@
 import type { SimpleDirection } from "./GameState";
+import type GameTicker from "./GameTicker";
 import type GameStateMachine from "./GameState";
 import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
 
 class GameController {
 	private _gameState: GameStateMachine;
 	private _keysPressed: { [key: string]: boolean } = {};
-	private _tickRate: number;
 
-	constructor(gameState: GameStateMachine, tickRate: number = 60) {
+	constructor(gameTicker: GameTicker, gameState: GameStateMachine, tickRate: number = 60) {
 		this._gameState = gameState;
-		this._tickRate = tickRate;
 
-		// start "controller" loop
-		setInterval(() => this._update(), 1000 / this._tickRate);
+		// run controller update every tick
+		gameTicker.add(this._update);
 	}
 
 	private _movePaddleP1 = () => {
@@ -33,7 +32,7 @@ class GameController {
 		this._gameState.player2.paddle.dy = dy;
 	}
 
-	private _update = () => {
+	public _update = () => {
 		if (this._gameState.paused)
 			return;
 

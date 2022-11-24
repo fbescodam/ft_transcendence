@@ -2,6 +2,7 @@
 
 <script lang="ts">
 import { onMount, onDestroy } from "svelte";
+import GameTicker from "$lib/GameTicker";
 import GameStateMachine from "$lib/GameState";
 import GameRenderer from "$lib/GameRenderer";
 import GameController from "$lib/GameController";
@@ -9,6 +10,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID } from "$lib/Modes";
 
 let canvas: HTMLCanvasElement;
+let gameTicker: GameTicker;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
@@ -16,8 +18,9 @@ let scores: HTMLElement;
 
 onMount(() => {
 	console.log("onMount called");
-	gameState = new GameStateMachine(canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
-	gameController = new GameController(gameState);
+	gameTicker = new GameTicker();
+	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
+	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores);
 });
 

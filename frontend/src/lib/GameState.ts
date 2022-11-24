@@ -1,4 +1,5 @@
 
+import type GameTicker from "./GameTicker";
 import type { GameMode } from "./Modes";
 export type Vec2 = { x: number, y: number }
 export type SimpleDirection = 1 | 0 | -1;
@@ -215,24 +216,22 @@ export class ScoreUpdatedEvent extends GameEvent {
 class GameStateMachine {
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
-	private _tickRate: number;
 
 	player1: PlayerState;
 	player2: PlayerState;
 	ball: Ball;
 	paused: boolean = false;
 
-	constructor(gameWidth: number, gameHeight: number, gameMode: GameMode, tickRate: number = 60) {
+	constructor(gameTicker: GameTicker, gameWidth: number, gameHeight: number, gameMode: GameMode) {
 		this._gameSize = { w: gameWidth, h: gameHeight };
 		this._gameMode = gameMode;
-		this._tickRate = tickRate;
 
 		this.ball = new Ball({ x: gameWidth * 0.5, y: gameHeight * 0.5 });
 		this.player1 = new PlayerState("Player 1", "", "left", this._gameSize);
 		this.player2 = new PlayerState("Player 2", "", "right", this._gameSize);
 
-		// Start "physics" loop
-		setInterval(() => this._update(), 1000 / this._tickRate);
+		// Run the game state machine every tick
+		gameTicker.add(this._update);
 	}
 
 	private _handleBallInterception = (paddle: Paddle) => {
