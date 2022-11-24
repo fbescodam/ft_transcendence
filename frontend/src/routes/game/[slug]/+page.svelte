@@ -65,7 +65,8 @@ const keyDownHandler = (event: KeyboardEvent) => {
 <style lang="scss">
 
 canvas {
-	margin-top: 8px;
+	display: block;
+	margin-top: 1rem;
 
 	border-radius: 8px;
 	outline: none;
