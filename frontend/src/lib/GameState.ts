@@ -46,7 +46,6 @@ class Ball extends GameObject {
 	private _spawnSpeed: number;
 	dx: ComplexDirection = 0;
 	dy: ComplexDirection = 0;
-	dir: number = 0;
 	speed: number;
 
 	constructor(pos: Vec2, speed: number = 4, size: Dimensions = { w: 16, h: 16 }) {
@@ -231,22 +230,14 @@ class GameStateMachine {
 		// this.ball.dx *= -1; // Make the ball go the other direction (on the x axis)
 
 		// Calculate the new direction of the ball
-		const k = 0.5;
-		this.ball.dir = Math.atan2(this.ball.dx, this.ball.dy);
+		// Constant k defines how much the ball will be deflected by the paddle's vy
+		const k = 0.25;
+		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
 		const paddle_vy = paddle.speed * paddle.dy;
-		const ball_vy = Math.cos(this.ball.dir) * this.ball.speed + k * paddle_vy;
-		const ball_vx = -Math.sin(this.ball.dir) * this.ball.speed;
-		this.ball.dir = Math.atan2(ball_vx, ball_vy);
+		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
+		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
 		this.ball.dx = ball_vx;
 		this.ball.dy = ball_vy;
-
-		// Older version of the above
-		// this.ball.dy *= -1 + (paddle.dy != 0 ? paddle.dy * 1.5 : 1); // Invert the y direction of the ball, influenced by the paddle's movement
-
-		// Another older version of the above
-		// const offset = (this.ball.pos.x + this.ball.size.w - paddle.pos.x) / (paddle.size.w + this.ball.size.w);
-		// const phi = 0.25 * Math.PI * (2 * offset - 1);
-		// this.ball.dy = Math.sin(phi);
 
 		if (paddle.getPosition() == "left")
 			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
