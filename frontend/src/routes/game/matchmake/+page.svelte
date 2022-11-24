@@ -11,7 +11,6 @@ import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID 
 
 onMount(() => {
     const selectedModeParam = $page.url.searchParams.get('mode');
-    const modeIds = Modes.map((val) => { return val.id; });
 
     if (selectedModeParam != null) {
         const selectedModeID = parseInt(selectedModeParam);
