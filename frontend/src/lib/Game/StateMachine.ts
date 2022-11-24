@@ -67,6 +67,8 @@ class Ball extends GameObject {
 		this.speed = this._spawnSpeed;
 		this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
 		this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
+
+		// TODO: dispatch event here
 	}
 
 	public override render = (ctx: CanvasRenderingContext2D) => {
@@ -121,6 +123,8 @@ class Paddle extends GameObject {
 		else if (newPos > this._maxY)
 			newPos = this._maxY;
 		this.pos.y = newPos;
+
+		// TODO: dispatch event here
 	}
 
 	public setHeight = (newHeight: number) => {
@@ -134,6 +138,8 @@ class Paddle extends GameObject {
 			const newYBottom = this.pos.y + newHeight;
 			const diff = oldYBottom - newYBottom;
 			this.pos.y += diff * 0.5;
+
+			// TODO: dispatch event here
 		}
 	}
 
@@ -249,6 +255,8 @@ class GameStateMachine {
 			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
 		else
 			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
+
+		// TODO: dispatch event here
 	}
 
 	private _update = () => {
@@ -286,6 +294,8 @@ class GameStateMachine {
 		else if (this.ball.pos.y + this.ball.dy > this._gameSize.h - this.ball.size.h ||
 					this.ball.pos.y + this.ball.dy < 0) {
 			this.ball.dy *= -1;
+
+			// TODO: dispatch event here
 		}
 
 		// Update positions
