@@ -24,7 +24,7 @@ class GameRenderer {
 		// middle line
 		const grid = 7;
 		for (let i = grid; i < this._canvas.height - grid; i += grid * 2) {
-			this._ctx.fillStyle = "#fff"
+			this._ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
 			this._ctx.fillRect(this._canvas.width * 0.5 - grid * 0.5, i, grid, grid);
 		}
 
