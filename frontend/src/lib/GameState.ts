@@ -86,8 +86,9 @@ class Ball extends GameObject {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Paddle extends GameObject {
-	private _minY: number;
-	private _maxY: number;
+	private _moveAxisSize: number;
+	private _minY: number = 0;
+	private _maxY: number = 0;
 	private _position: "left" | "right";
 	dy: SimpleDirection = 0;
 	speed: number;
@@ -98,10 +99,15 @@ class Paddle extends GameObject {
 		this.dy = 0;
 		this.speed = speed;
 		this._position = position;
+		this._moveAxisSize = gameSize.h;
 
-		const paddleOffScreenMax = size.h * 0.5;
+		this._updateMaxOffscreen();
+	}
+
+	private _updateMaxOffscreen = () => {
+		const paddleOffScreenMax = this.size.h * 0.5;
 		this._minY = -paddleOffScreenMax;
-		this._maxY = gameSize.h - this.size.h + paddleOffScreenMax;
+		this._maxY = this._moveAxisSize - this.size.h + paddleOffScreenMax;
 	}
 
 	//= Public =//
@@ -117,6 +123,27 @@ class Paddle extends GameObject {
 		else if (newPos > this._maxY)
 			newPos = this._maxY;
 		this.pos.y = newPos;
+	}
+
+	public setHeight = (newHeight: number) => {
+		if (newHeight != this.size.h) {
+			const oldHeight = this.size.h;
+			this.size.h = newHeight;
+			this._updateMaxOffscreen();
+
+			// update position to keep the paddle in the same place
+			const oldYBottom = this.pos.y + oldHeight;
+			const newYBottom = this.pos.y + newHeight;
+			const diff = oldYBottom - newYBottom;
+			this.pos.y += diff * 0.5;
+		}
+	}
+
+	public decreaseSize = (amount: number) => {
+		const newSize = this.size.h - amount;
+		if (newSize < 40) // minimum height of 40 pixels
+			return;
+		this.setHeight(newSize);
 	}
 
 	public override render = (ctx: CanvasRenderingContext2D) => {
@@ -241,6 +268,11 @@ class GameStateMachine {
 				this.player1.score++;
 			else
 				this.player2.score++;
+
+			// Decrease the size of the paddles
+			this.player1.paddle.decreaseSize(10);
+			this.player2.paddle.decreaseSize(10);
+
 			this.ball.reset();
 
 			// Dispatch score updated event
