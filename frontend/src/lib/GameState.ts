@@ -198,7 +198,9 @@ class GameStateMachine {
 		if (this.paused)
 			return;
 
-		// Did ball hit either wall?
+		let ballIntercepted = false;
+
+		// Did ball hit either left or right wall?
 		const p1Win = this.ball.pos.x > this._gameSize.w;
 		const p2Win = this.ball.pos.x < 0;
 		if (p1Win || p2Win) {
@@ -210,17 +212,27 @@ class GameStateMachine {
 
 			this.ball.reset();
 		}
-		// Check baddle intersection
-		else if (GameObject.intersects(this.ball, this.player1.paddle) ||
-				GameObject.intersects(this.ball, this.player2.paddle)) {
-			this.ball.dx *= -1;
-			this.ball.dy *= 1;
-			this.ball.speed *= 1.075; // Speed up with every intersect
+		// Check baddle intersection on left
+		else if (GameObject.intersects(this.ball, this.player1.paddle)) {
+			ballIntercepted = true;
+			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
+		}
+		// Check baddle intersection on right
+		else if (GameObject.intersects(this.ball, this.player2.paddle)) {
+			ballIntercepted = true;
+			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
 		}
 		// Ball hit top or bottom wall
 		else if (this.ball.pos.y + this.ball.dy > this._gameSize.h - this.ball.size.h ||
 					this.ball.pos.y + this.ball.dy < 0) {
 			this.ball.dy *= -1;
+		}
+
+		// Handle ball interceptions
+		if (ballIntercepted) {
+			this.ball.speed *= 1.075; // Speed up with every ball interception by a baddle
+			this.ball.dx *= -1;
+			this.ball.dy *= 1;
 		}
 
 		// update positions
