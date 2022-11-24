@@ -1,10 +1,7 @@
 
+import type { Vec2, Dimensions, SimpleDirection, ComplexDirection } from "../Types";
 import type GameTicker from "./Ticker";
 import type { GameMode } from "./Modes";
-export type Vec2 = { x: number, y: number }
-export type SimpleDirection = 1 | 0 | -1;
-export type ComplexDirection = number;
-export type Dimensions = { w: number, h: number };
 
 /**
  * A base class for drawable 2d objects.

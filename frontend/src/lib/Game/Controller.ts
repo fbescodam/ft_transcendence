@@ -1,4 +1,4 @@
-import type { SimpleDirection } from "./StateMachine";
+import type { SimpleDirection } from "../Types";
 import type GameTicker from "./Ticker";
 import type GameStateMachine from "./StateMachine";
 import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
