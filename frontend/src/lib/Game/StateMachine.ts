@@ -107,7 +107,7 @@ export class Ball extends GameObject {
 	 * @returns The y value at the given x position, or Infinity if the calculation is too complex or impossible.
 	 */
 	public intersectsAtY = (x: number): number => {
-		const maxIterations = 128;
+		const maxIterations = 64;
 		const tempBall = new Ball({ x: this.pos.x, y: this.pos.y }, this.speed, this.size);
 		tempBall.dx = this.dx;
 		tempBall.dy = this.dy;
@@ -175,6 +175,10 @@ export class Paddle extends GameObject {
 
 	public getMaxMoveSpeed = () => {
 		return this._maxMove;
+	}
+
+	public limitMoveSpeed = () => {
+		this._maxMove *= 0.5;
 	}
 
 	public setMoveDirection = (dir: Direction) => {

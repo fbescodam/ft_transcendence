@@ -11,26 +11,32 @@ class GameAI {
 	private _randomDirection: Direction = 0;
 	private _lastRandomDirectionChange: number = new Date().getTime();
 	private _paddle: Paddle;
+	private _followBall: boolean = true;
 
 	constructor(gameTicker: GameTicker, gameState: GameStateMachine, paddle: Paddle, tickRate: number = 60) {
 		this._gameState = gameState;
 		this._paddle = paddle;
+		this._paddle.limitMoveSpeed();
 
 		// run controller update every tick
 		gameTicker.add(this._think);
 	}
 
-	private _randomBehaviour = (followBall: boolean = true) => {
+	private _rethinkIfItsTime = (followBallOverride: boolean = false) => {
 		const now = new Date().getTime();
 		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
 			this._lastRandomDirectionChange = now;
+			this._followBall = Math.random() > 0.5;
 			const rand = getRandomArbitrary(1, this._paddle.getMaxMoveSpeed() * 0.5);
-			if (followBall)
+			if (followBallOverride || this._followBall)
 				this._randomDirection = (this._paddle.pos.y + this._paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
 			else
 				this._randomDirection = (Math.random() > 0.5 ? -rand : rand);
 		}
-		console.log(this._randomDirection);
+	}
+
+	private _randomBehaviour = (followBallOverride: boolean = false) => {
+		this._rethinkIfItsTime(followBallOverride);
 		this._paddle.setMoveDirection(this._randomDirection);
 	}
 
@@ -51,12 +57,13 @@ class GameAI {
 					possibleY < this._paddle.pos.y + this._paddle.size.h - paddleOffset)
 				this._randomBehaviour(false);
 
-			// Move the paddle towards the ball
-			else
-				this._paddle.setMoveDirection(possibleY - this._paddle.pos.y - paddleOffset);
+			// Move the paddle towards the ball (randomDirection should not be here but we add some randomness to it)
+			else {
+				this._paddle.setMoveDirection(possibleY + this._randomDirection * 2 - this._paddle.pos.y - paddleOffset + this._randomDirection);
+			}
 		}
 		else {
-			this._randomBehaviour();
+			this._randomBehaviour(false);
 		}
 	};
 }
