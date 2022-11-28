@@ -1,4 +1,4 @@
-import type { Vec2, Dimensions, SimpleDirection, ComplexDirection } from "../Types";
+import type { Vec2, Dimensions, Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type { GameMode } from "./Modes";
 
@@ -79,11 +79,11 @@ abstract class GameObject {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class Ball extends GameObject {
+export class Ball extends GameObject {
 	private _spawnPos: Vec2;
 	private _spawnSpeed: number;
-	dx: ComplexDirection = 0;
-	dy: ComplexDirection = 0;
+	dx: Direction = 0;
+	dy: Direction = 0;
 	speed: number;
 
 	constructor(pos: Vec2, speed: number = 4, size: Dimensions = { w: 16, h: 16 }) {
@@ -143,19 +143,18 @@ class Ball extends GameObject {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class Paddle extends GameObject {
+export class Paddle extends GameObject {
 	private _moveAxisSize: number;
 	private _minY: number = 0;
 	private _maxY: number = 0;
+	private _maxMove: number = 16; // Max pixels to move per frame, in either direction
 	private _position: "left" | "right";
-	dy: SimpleDirection = 0;
-	speed: number;
+	private _dy: Direction = 0;
 
-	constructor(position: "left" | "right", gameSize: Dimensions, speed: number = 16, size: Dimensions = { w: 8, h: 180 }) {
+	constructor(position: "left" | "right", gameSize: Dimensions, size: Dimensions = { w: 8, h: 180 }) {
 		const pos: Vec2 = { x: (position == "left" ? 16 : gameSize.w - 16) - size.w * 0.5, y: gameSize.h * 0.5 - 100 * 0.5 };
 		super(pos, size);
-		this.dy = 0;
-		this.speed = speed;
+		this._dy = 0;
 		this._position = position;
 		this._moveAxisSize = gameSize.h;
 
@@ -174,8 +173,22 @@ class Paddle extends GameObject {
 		return this._position;
 	}
 
+	public getMaxMoveSpeed = () => {
+		return this._maxMove;
+	}
+
+	public setMoveDirection = (dir: Direction) => {
+		if (Math.abs(dir) > this._maxMove)
+			dir = (dir < 0 ? -this._maxMove: this._maxMove);
+		this._dy = dir;
+	}
+
+	public getMoveDirection = () => {
+		return this._dy;
+	}
+
 	public move = () => {
-		let newPos = this.pos.y + this.dy * this.speed;
+		let newPos = this.pos.y + this._dy;
 		if (newPos < this._minY)
 			newPos = this._minY;
 		else if (newPos > this._maxY)
@@ -303,7 +316,7 @@ class GameStateMachine {
 		// Constant k defines how much the ball will be deflected by the paddle's vy
 		const k = 0.25;
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
-		const paddle_vy = paddle.speed * 0.9 * paddle.dy;
+		const paddle_vy = 0.9 * paddle.getMoveDirection();
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
 		this.ball.dx = ball_vx;

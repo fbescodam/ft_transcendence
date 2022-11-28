@@ -1,4 +1,4 @@
-import type { SimpleDirection } from "../Types";
+import type { Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type GameStateMachine from "./StateMachine";
 import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
@@ -15,21 +15,23 @@ class GameController {
 	}
 
 	private _movePaddleP1 = () => {
-		let dy: SimpleDirection = 0;
+		const maxSpeed = this._gameState.player1.paddle.getMaxMoveSpeed();
+		let dy: Direction = 0;
 		if (this._keysPressed["w"] && !this._keysPressed["s"])
-			dy = -1;
+			dy = -maxSpeed;
 		if (this._keysPressed["s"] && !this._keysPressed["w"])
-			dy = 1;
-		this._gameState.player1.paddle.dy = dy;
+			dy = maxSpeed;
+		this._gameState.player1.paddle.setMoveDirection(dy);
 	}
 
 	private _movePaddleP2 = () => {
-		let dy: SimpleDirection = 0;
+		const maxSpeed = this._gameState.player2.paddle.getMaxMoveSpeed();
+		let dy: Direction = 0;
 		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
-			dy = -1;
+			dy = -maxSpeed;
 		if (this._keysPressed["ArrowDown"] && !this._keysPressed["ArrowUp"])
-			dy = 1;
-		this._gameState.player2.paddle.dy = dy;
+			dy = maxSpeed;
+		this._gameState.player2.paddle.setMoveDirection(dy);
 	}
 
 	public _update = () => {
