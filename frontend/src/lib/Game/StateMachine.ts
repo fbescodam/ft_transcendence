@@ -347,7 +347,6 @@ class GameStateMachine {
 
 	private _handleBallInterception = (paddle: Paddle) => {
 		this.ball.speed *= 1.1; // Speed up with every ball interception by a paddle
-		// this.ball.dx *= -1; // Make the ball go the other direction (on the x axis)
 
 		// Calculate the new direction of the ball
 		// Constant k defines how much the ball will be deflected by the paddle's vy
@@ -356,9 +355,10 @@ class GameStateMachine {
 		const paddle_vy = this.ball.speed + 0.5 * paddle.getMoveDirection();
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
-		this.ball.dx = ball_vx;
+		this.ball.dx = ball_vx + (ball_vx < 0 ? -1 : 1); // Ternary to make sure the ball is not going straight up or down
 		this.ball.dy = ball_vy;
 
+		// Move the ball to the game side of the paddle to prevent clipping
 		if (paddle.getPosition() == "left")
 			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
 		else
