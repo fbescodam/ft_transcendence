@@ -20,13 +20,17 @@ class GameAI {
 		gameTicker.add(this._think);
 	}
 
-	private _randomBehaviour = () => {
+	private _randomBehaviour = (followBall: boolean = true) => {
 		const now = new Date().getTime();
 		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
 			this._lastRandomDirectionChange = now;
 			const rand = getRandomArbitrary(1, this._paddle.getMaxMoveSpeed() * 0.5);
-			this._randomDirection = (this._paddle.pos.y + this._paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
+			if (followBall)
+				this._randomDirection = (this._paddle.pos.y + this._paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
+			else
+				this._randomDirection = (Math.random() > 0.5 ? -rand : rand);
 		}
+		console.log(this._randomDirection);
 		this._paddle.setMoveDirection(this._randomDirection);
 	}
 
@@ -45,7 +49,7 @@ class GameAI {
 			// Paddle is in the right position, keep it still
 			if (possibleY > this._paddle.pos.y + paddleOffset &&
 					possibleY < this._paddle.pos.y + this._paddle.size.h - paddleOffset)
-				this._randomBehaviour();
+				this._randomBehaviour(false);
 
 			// Move the paddle towards the ball
 			else
