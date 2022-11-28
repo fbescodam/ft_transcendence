@@ -286,6 +286,36 @@ export class ScoreUpdatedEvent extends GameEvent {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+export class PausedReason {
+	private static _reasons = [
+		"The game is not paused",
+		"You've paused the game",
+		"Your opponent has paused the game",
+		"Game paused by server",
+		"Connection lost. Reconnecting...",
+		"Connection lost"
+	];
+
+	public static readonly NOT_PAUSED: number = 0;
+	public static readonly PAUSED_BY_PLAYER: number = 1;
+	public static readonly PAUSED_BY_OPPONENT: number = 2;
+	public static readonly PAUSED_BY_SERVER: number = 3;
+	public static readonly CONNECTION_LOST_RECON: number = 4;
+	public static readonly CONNECTION_LOST_FINAL: number = 5;
+
+	public static getReason = (reason: number) => {
+		if (reason < 0 || reason > this.maxReasonNumber())
+			throw new Error("Invalid paused reason");
+		return PausedReason._reasons[reason];
+	}
+
+	public static maxReasonNumber = () => {
+		return PausedReason._reasons.length - 1;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Handles the state of the game such as rendering, input control, ...
  *
@@ -296,11 +326,11 @@ class GameStateMachine {
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
 	private _gameSoundEngine: GameSoundEngine;
+	private _paused: number = 0;
 
 	player1: PlayerState;
 	player2: PlayerState;
 	ball: Ball;
-	paused: boolean = false;
 
 	constructor(gameTicker: GameTicker, gameWidth: number, gameHeight: number, gameMode: GameMode) {
 		this._gameSize = { w: gameWidth, h: gameHeight };
@@ -341,7 +371,7 @@ class GameStateMachine {
 	}
 
 	private _update = () => {
-		if (this.paused)
+		if (this.isPausedBool())
 			return;
 
 		// Did ball hit either left or right wall?
@@ -392,6 +422,32 @@ class GameStateMachine {
 
 	public getGameMode = () => {
 		return this._gameMode;
+	}
+
+	public pauseGame = (reason: number): boolean => {
+		if (this._paused > PausedReason.NOT_PAUSED)
+			return false;
+
+		if (reason < 0 || reason > PausedReason.maxReasonNumber())
+			throw new Error("Invalid paused reason");
+		this._paused = reason;
+		return true;
+	}
+
+	public unPauseGame = (): boolean => {
+		if (this._paused == PausedReason.PAUSED_BY_PLAYER) {
+			this._paused = PausedReason.NOT_PAUSED;
+			return true;
+		}
+		return false;
+	}
+
+	public isPaused = (): number => {
+		return this._paused;
+	}
+
+	public isPausedBool = (): boolean => {
+		return this._paused > PausedReason.NOT_PAUSED;
 	}
 }
 

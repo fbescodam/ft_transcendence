@@ -42,7 +42,7 @@ class GameAI {
 
 	// AI is always player 2
 	private _think = () => {
-		if (this._gameState.paused)
+		if (this._gameState.isPausedBool())
 			return;
 
 		// Calculate where the ball will likely go

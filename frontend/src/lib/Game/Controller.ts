@@ -2,6 +2,7 @@ import type { Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type GameStateMachine from "./StateMachine";
 import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
+import { PausedReason } from "./StateMachine";
 
 class GameController {
 	private _gameState: GameStateMachine;
@@ -35,7 +36,7 @@ class GameController {
 	}
 
 	public _update = () => {
-		if (this._gameState.paused)
+		if (this._gameState.isPausedBool())
 			return;
 
 		// In all game modes
@@ -57,15 +58,18 @@ class GameController {
 	};
 
 	public pause = () => {
-		this._gameState.paused = true;
+		this._gameState.pauseGame(PausedReason.PAUSED_BY_PLAYER);
 	}
 
 	public resume = () => {
-		this._gameState.paused = false;
+		this._gameState.unPauseGame();
 	}
 
 	public togglePause = () => {
-		this._gameState.paused = !this._gameState.paused;
+		if (this._gameState.isPaused())
+			this.resume();
+		else
+			this.pause();
 	}
 }
 
