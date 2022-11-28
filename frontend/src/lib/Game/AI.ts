@@ -6,12 +6,15 @@ import type { Direction } from "$lib/Types";
 import { getRandomArbitrary } from "$lib/Utils/Basic";
 
 class GameAI {
+	// AI knowledge
 	private _gameState: GameStateMachine;
+	private _paddle: Paddle;
+
+	// AI brains
+	private _followBall: boolean = true;
 	private _rethinkAfter = 320;
 	private _randomDirection: Direction = 0;
 	private _lastRandomDirectionChange: number = new Date().getTime();
-	private _paddle: Paddle;
-	private _followBall: boolean = true;
 
 	constructor(gameTicker: GameTicker, gameState: GameStateMachine, paddle: Paddle, tickRate: number = 60) {
 		this._gameState = gameState;
@@ -22,27 +25,41 @@ class GameAI {
 		gameTicker.add(this._think);
 	}
 
+	/**
+	 * Check if it's time to make another decision of where to move the paddle to, and if so, make a decision.
+	 * @param followBallOverride If set, this will override the current followBall setting
+	 */
 	private _rethinkIfItsTime = (followBallOverride: boolean = false) => {
 		const now = new Date().getTime();
 		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
 			this._lastRandomDirectionChange = now;
-			this._followBall = Math.random() > 0.5;
-			const rand = getRandomArbitrary(1, this._paddle.getMaxMoveSpeed() * 0.5);
+			this._followBall = Math.random() > 0.5; // 50% chance that the AI decides to follow the ball around
+			const rand = getRandomArbitrary(1, this._paddle.getMaxMoveSpeed() * 0.5); // Decide on a random speed to move the paddle at
+
+			// If the AI is supposed to follow the ball, move the paddle in the same direction as the ball
 			if (followBallOverride || this._followBall)
 				this._randomDirection = (this._paddle.pos.y + this._paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
+
+			// Else, move the paddle in a random direction with the random speed calculated earlier
 			else
 				this._randomDirection = (Math.random() > 0.5 ? -rand : rand);
 		}
 	}
 
+	/**
+	 * This function is ran when the AI does not know where the ball will go currently, or is quite sure it's gonna intercept it.
+	 * @param followBallOverride If set, this will override the current followBall setting
+	 */
 	private _randomBehaviour = (followBallOverride: boolean = false) => {
 		this._rethinkIfItsTime(followBallOverride);
 		this._paddle.setMoveDirection(this._randomDirection);
 	}
 
-	// AI is always player 2
+	/**
+	 * Ticker function - this function is run every game tick.
+	 */
 	private _think = () => {
-		if (this._gameState.paused)
+		if (this._gameState.isPausedBool())
 			return;
 
 		// Calculate where the ball will likely go

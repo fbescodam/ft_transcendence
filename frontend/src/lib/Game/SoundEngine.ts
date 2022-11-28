@@ -9,6 +9,9 @@ class GameSoundEngine {
 		this._gainNode.connect(this._context.destination);
 	}
 
+	/**
+	 * Play a beeping 8-bit sound
+	 */
 	public playBeep = () => {
 		const osc = this._context.createOscillator();
 		osc.type = "square";
@@ -18,6 +21,9 @@ class GameSoundEngine {
 		osc.stop(this._context.currentTime + 0.09);
 	}
 
+	/**
+	 * Play a booping 8-bit sound
+	 */
 	public playBoop = () => {
 		const osc = this._context.createOscillator();
 		osc.type = "square";
