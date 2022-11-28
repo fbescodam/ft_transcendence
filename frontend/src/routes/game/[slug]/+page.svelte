@@ -1,43 +1,50 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { onMount } from "svelte";
-import type { Vec2 } from "$lib/Types";
-import GameStateMachine from "$lib/GameState";
+import { onMount, onDestroy } from "svelte";
+import GameTicker from "$lib/Game/Ticker";
+import GameStateMachine from "$lib/Game/StateMachine";
+import GameRenderer from "$lib/Game/Renderer";
+import GameController from "$lib/Game/Controller";
+import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
+import { LOCAL_MULTIPL_MODE_ID } from "$lib/Game/Modes";
 
 let canvas: HTMLCanvasElement;
+let gameTicker: GameTicker;
+let gameController: GameController;
+let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
-let score: Vec2 = { x: 0, y: 0 };
+let gameAI: GameAI;
+let scores: HTMLElement;
 
 onMount(() => {
-	gameState = new GameStateMachine(canvas);
-
-	const animate = () => {
-		gameState.animate();
-		score = gameState.score;
-		
-		
-		requestAnimationFrame(animate);
-	};
-
-	// TODO: Display a countdown to indicate when match is starting.
-	setTimeout(() => {
-		animate();
-	}, 3000);
+	console.log("onMount called");
+	gameTicker = new GameTicker();
+	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
+	gameController = new GameController(gameTicker, gameState);
+	gameRenderer = new GameRenderer(canvas, gameState, scores);
+	if (gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID) {
+		gameAI = new GameAI(gameTicker, gameState, gameState.player2.paddle);
+	}
 });
 
+onDestroy(() => {
+	console.log("onDestroy called");
+	window.location.reload();
+	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
+});
+
+const keyUpHandler = (event: KeyboardEvent) => {
+	gameController.setKeyNotPressed(event.key);
+};
+
 const keyDownHandler = (event: KeyboardEvent) => {
-	console.log(event.code);
-	
-	if (event.code === "KeyW")
-		gameState.paddleP1.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y - 45 };
-	if (event.code === "KeyS")
-		gameState.paddleP1.pos = { x: gameState.paddleP1.pos.x, y: gameState.paddleP1.pos.y + 45 };
-	if (event.code === "ArrowUp")
-		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y - 45 };
-	if (event.code === "ArrowDown")
-		gameState.paddleP2.pos = { x: gameState.paddleP2.pos.x, y: gameState.paddleP2.pos.y + 45 };
+	// console.log(event);
+	gameController.setKeyPressed(event.key);
+
+	if (event.code === "Escape")
+		gameController.togglePause();
 };
 
 </script>
@@ -47,18 +54,21 @@ const keyDownHandler = (event: KeyboardEvent) => {
 <svelte:head>
 	<title>Game</title>
 	<meta name="description" content="Play a nice game of Pong!" />
+	<link href="https://fonts.cdnfonts.com/css/common-pixel" rel="stylesheet">
 </svelte:head>
+
+<svelte:window on:keyup={keyUpHandler} on:keydown={keyDownHandler} />
 
 <div class="center">
 	<Container>
 		<Container>
 			<div class="score">
 				<img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03BQBHFG-12acdf20ecc8-512" alt="P1"/>
-				<b>{score.x} : {score.y}</b>
+				<b bind:this={scores} >0 : 0</b>
 				<img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03VCRL8328-f8fc04f7f629-512" alt="P2"/>
 			</div>
 		</Container>
-		<canvas bind:this={canvas} width="1080" height="720" tabindex="0" on:keyup={keyDownHandler}/>
+		<canvas bind:this={canvas} width="1080" height="720" tabindex="0" />
 	</Container>
 </div>
 
@@ -67,7 +77,8 @@ const keyDownHandler = (event: KeyboardEvent) => {
 <style lang="scss">
 
 canvas {
-	margin-top: 8px;
+	display: block;
+	margin-top: 1rem;
 
 	border-radius: 8px;
 	outline: none;
@@ -86,9 +97,10 @@ canvas {
 	align-items: center;
 	overflow: hidden;
 	justify-content: space-between;
+	font-family: 'Common Pixel', sans-serif;
 
 	& b {
-		font-size: x-large;
+		font-size: xx-large;
 	}
 
 	& img {

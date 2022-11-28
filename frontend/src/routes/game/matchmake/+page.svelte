@@ -7,35 +7,30 @@ import Container from "$lib/Components/Container/Container.svelte";
 import { onMount } from "svelte";
 import { error } from "@sveltejs/kit";
 import { goto } from "$app/navigation";
-import { Modes } from "$lib/Modes";
+import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Modes";
 
 onMount(() => {
     const selectedModeParam = $page.url.searchParams.get('mode');
-    const modeIds = Modes.map((val) => { return val.id; });
 
     if (selectedModeParam != null) {
         const selectedModeID = parseInt(selectedModeParam);
-        if (modeIds.includes(selectedModeID)) {
-            switch (selectedModeID) {
-                case 1: // Singleplayer
-                case 2: // Local Multiplayer
-                {
-                    console.log("Creating singleplayer lobby");
-                    break;
-                }
-                case 3: // Multiplayer
-                {
-                    console.log("Creating multiplayer lobby");
-                    break;
-                }
-                default:
-                    throw error(400, "Invalid game mode!");
+        switch (selectedModeID) {
+            case SINGLEPL_MODE_ID: // Singleplayer
+            case LOCAL_MULTIPL_MODE_ID: // Local Multiplayer
+            {
+                console.log("Creating singleplayer lobby");
+                break;
             }
+            case ONLINE_MULTIPL_MODE_ID: // Multiplayer
+            {
+                console.log("Creating multiplayer lobby");
+                break;
+            }
+            default:
+                console.warn("Invalid mode ID in matchmake", selectedModeID);
+                goto("/game", { replaceState: true });
         }
     }
-
-    // Invalid, go back!
-    goto("/game", { replaceState: true });
 });
 
 </script>
@@ -57,8 +52,8 @@ onMount(() => {
 <style lang="scss">
 .center {
     display: flex;
-	justify-content: center; 
-	align-items: center; 
+	justify-content: center;
+	align-items: center;
 	flex-direction: column;
     height: 100%;
 }
@@ -79,7 +74,7 @@ onMount(() => {
         animation-duration: 1000ms;
         animation-iteration-count: infinite;
         animation-timing-function: linear;
-    
+
         @keyframes spin {
             to {
                 transform:rotate(0deg);

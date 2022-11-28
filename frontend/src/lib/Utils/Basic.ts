@@ -1,8 +1,8 @@
 
 /**
  * Creates a random string
- * @param len 
- * @returns 
+ * @param len The length of the string to generate
+ * @returns The random string
  */
 export function generateRandomString(len: number) {
 	const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -13,4 +13,14 @@ export function generateRandomString(len: number) {
 	}
 
 	return result;
+}
+
+/**
+ * Generate a random number between two values
+ * @param min The minimum value
+ * @param max The maximum value
+ * @returns A randm number between min and max
+ */
+export function getRandomArbitrary(min: number, max: number) {
+	return Math.random() * (max - min) + min;
 }
