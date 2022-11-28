@@ -6,6 +6,7 @@ import GameTicker from "$lib/Game/Ticker";
 import GameStateMachine from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
+import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID } from "$lib/Game/Modes";
 
@@ -14,6 +15,7 @@ let gameTicker: GameTicker;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
+let gameAI: GameAI;
 let scores: HTMLElement;
 
 onMount(() => {
@@ -22,6 +24,7 @@ onMount(() => {
 	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores);
+	gameAI = new GameAI(gameTicker, gameState);
 });
 
 onDestroy(() => {

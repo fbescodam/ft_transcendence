@@ -1,4 +1,3 @@
-
 import type { Vec2, Dimensions, SimpleDirection, ComplexDirection } from "../Types";
 import type GameTicker from "./Ticker";
 import type { GameMode } from "./Modes";
@@ -22,7 +21,7 @@ abstract class GameObject {
 	abstract render(ctx: CanvasRenderingContext2D): void;
 
 	/**
-	 * Check if these two objects intersecting
+	 * Check if two objects are intersecting
 	 * @param objA Object A.
 	 * @param objB Object B.
 	 * @returns True if they intersect, else false.
@@ -33,6 +32,47 @@ abstract class GameObject {
 			objA.pos.x + objA.size.w > objB.pos.x &&
 			objA.pos.y < objB.pos.y + objB.size.h &&
 			objA.size.h + objA.pos.y > objB.pos.y
+		)
+	}
+
+	/**
+	 * Check if an object contains a point on the map.
+	 * @param obj Object.
+	 * @param point Point.
+	 * @returns True if they intersect, else false.
+	 */
+	public static contains = (obj: GameObject, point: Vec2) => {
+		return(
+			obj.pos.x < point.x &&
+			obj.pos.x + obj.size.w > point.x &&
+			obj.pos.y < point.y &&
+			obj.size.h + obj.pos.y > point.y
+		)
+	}
+
+	/**
+	 * Check if an object is at the given x position.
+	 * @param obj Object.
+	 * @param x X position.
+	 * @returns True if they intersect, else false.
+	 */
+	public static atX = (obj: GameObject, x: number) => {
+		return(
+			obj.pos.x < x &&
+			obj.pos.x + obj.size.w > x
+		)
+	}
+
+	/**
+	 * Check if an object is at the given y position.
+	 * @param obj Object.
+	 * @param y Y position.
+	 * @returns True if they intersect, else false.
+	 */
+	public static atY = (obj: GameObject, y: number) => {
+		return(
+			obj.pos.y < y &&
+			obj.size.h + obj.pos.y > y
 		)
 	}
 }
@@ -60,6 +100,24 @@ class Ball extends GameObject {
 		this.pos.x += this.dx;
 		this.pos.y += this.dy;
 	}
+
+	/**
+	 * Calculate the intersection point of the ball and a x-coordinate (useful for paddle).
+	 * @param x The x position to calculate the y value for.
+	 * @returns The y value at the given x position, or Infinity if the calculation is too complex or impossible.
+	 */
+	public intersectsAtY = (x: number): number => {
+		const maxIterations = 128;
+		const tempBall = new Ball({ x: this.pos.x, y: this.pos.y }, this.speed, this.size);
+		tempBall.dx = this.dx;
+		tempBall.dy = this.dy;
+		for (let i = 0; i < maxIterations; i++) {
+			if (GameObject.atX(tempBall, x))
+				return tempBall.pos.y;
+			tempBall.move();
+		}
+		return Infinity;
+	};
 
 	public reset = () => {
 		this.pos.x = this._spawnPos.x;
