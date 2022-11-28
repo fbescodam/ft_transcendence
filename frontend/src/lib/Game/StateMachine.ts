@@ -1,6 +1,7 @@
 import type { Vec2, Dimensions, Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type { GameMode } from "./Modes";
+import GameSoundEngine from "./SoundEngine";
 
 /**
  * A base class for drawable 2d objects.
@@ -294,6 +295,7 @@ export class ScoreUpdatedEvent extends GameEvent {
 class GameStateMachine {
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
+	private _gameSoundEngine: GameSoundEngine;
 
 	player1: PlayerState;
 	player2: PlayerState;
@@ -303,6 +305,7 @@ class GameStateMachine {
 	constructor(gameTicker: GameTicker, gameWidth: number, gameHeight: number, gameMode: GameMode) {
 		this._gameSize = { w: gameWidth, h: gameHeight };
 		this._gameMode = gameMode;
+		this._gameSoundEngine = new GameSoundEngine();
 
 		this.ball = new Ball({ x: gameWidth * 0.5, y: gameHeight * 0.5 });
 		this.player1 = new PlayerState("Player 1", "", "left", this._gameSize);
@@ -330,6 +333,9 @@ class GameStateMachine {
 			this.ball.pos.x = this.player1.paddle.pos.x + this.player1.paddle.size.w;
 		else
 			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
+
+		// Play a beeping sound
+		this._gameSoundEngine.playBeep();
 
 		// TODO: dispatch event here
 	}
@@ -369,6 +375,9 @@ class GameStateMachine {
 		else if (this.ball.pos.y + this.ball.dy > this._gameSize.h - this.ball.size.h ||
 					this.ball.pos.y + this.ball.dy < 0) {
 			this.ball.dy *= -1;
+
+			// Play a beeping sound
+			this._gameSoundEngine.playBoop();
 
 			// TODO: dispatch event here
 		}
