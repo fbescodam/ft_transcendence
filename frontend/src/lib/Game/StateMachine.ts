@@ -86,7 +86,7 @@ export class Ball extends GameObject {
 	dy: Direction = 0;
 	speed: number;
 
-	constructor(pos: Vec2, speed: number = 4, size: Dimensions = { w: 16, h: 16 }) {
+	constructor(pos: Vec2, speed: number = 5, size: Dimensions = { w: 16, h: 16 }) {
 		super(pos, size);
 		this._spawnPos = { x: pos.x, y: pos.y };
 		this._spawnSpeed = speed;
@@ -320,9 +320,9 @@ class GameStateMachine {
 		// Constant k defines how much the ball will be deflected by the paddle's vy
 		const k = 0.25;
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
-		const paddle_vy = 0.9 * paddle.getMoveDirection();
+		const paddle_vy = this.ball.speed + 0.9 * paddle.getMoveDirection();
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
-		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
+		let ball_vx = -Math.sin(ball_dir) * 1.1 * this.ball.speed;
 		this.ball.dx = ball_vx;
 		this.ball.dy = ball_vy;
 
