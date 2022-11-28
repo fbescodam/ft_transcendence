@@ -15,6 +15,9 @@ class GameController {
 		gameTicker.add(this._update);
 	}
 
+	/**
+	 * Move the paddle of player 1
+	 */
 	private _movePaddleP1 = () => {
 		const maxSpeed = this._gameState.player1.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
@@ -25,6 +28,9 @@ class GameController {
 		this._gameState.player1.paddle.setMoveDirection(dy);
 	}
 
+	/**
+	 * Move the paddle of player 2 - this is only used in local multiplayer mode
+	 */
 	private _movePaddleP2 = () => {
 		const maxSpeed = this._gameState.player2.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
@@ -35,6 +41,9 @@ class GameController {
 		this._gameState.player2.paddle.setMoveDirection(dy);
 	}
 
+	/**
+	 * Ticker function - this function is run every game tick.
+	 */
 	public _update = () => {
 		if (this._gameState.isPausedBool())
 			return;
@@ -48,23 +57,41 @@ class GameController {
 	};
 
 	//= Public =//
+
+	/**
+	 * Run this function when a key is pressed using the onkeydown event.
+	 * @param key The key that was pressed (event.key)
+	 */
 	public setKeyPressed = (key: string) => {
 		this._keysPressed[key] = true;
 	};
 
+	/**
+	 * Run this function when a key is no longer being pressed using the onkeyup event.
+	 * @param key The key that was released (event.key)
+	 */
 	public setKeyNotPressed = (key: string) => {
 		if (key in this._keysPressed)
 			delete this._keysPressed[key];
 	};
 
+	/**
+	 * Pause the game from the current player's perspective.
+	*/
 	public pause = () => {
 		this._gameState.pauseGame(PausedReason.PAUSED_BY_PLAYER);
 	}
 
+	/**
+	 * Resume the game from the current player's perspective.
+	 */
 	public resume = () => {
 		this._gameState.unPauseGame();
 	}
 
+	/**
+	 * Toggle the paused state of the game from the current player's perspective.
+	 */
 	public togglePause = () => {
 		if (this._gameState.isPaused())
 			this.resume();

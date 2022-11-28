@@ -97,6 +97,9 @@ export class Ball extends GameObject {
 
 	//= Public =//
 
+	/**
+	 * Move the ball at the speed set in dx and dy.
+	 */
 	public move = () => {
 		this.pos.x += this.dx;
 		this.pos.y += this.dy;
@@ -120,6 +123,10 @@ export class Ball extends GameObject {
 		return Infinity;
 	};
 
+	/**
+	 * Reset the ball to its original position and speed.
+	 * Chooses a random direction to throw the ball in.
+	*/
 	public reset = () => {
 		this.pos.x = this._spawnPos.x;
 		this.pos.y = this._spawnPos.y;
@@ -130,6 +137,10 @@ export class Ball extends GameObject {
 		// TODO: dispatch event here
 	}
 
+	/**
+	 * Render the ball.
+	 * @param ctx The canvas rendering context object.
+	 */
 	public override render = (ctx: CanvasRenderingContext2D) => {
 		ctx.save();
 		ctx.beginPath();
@@ -162,6 +173,9 @@ export class Paddle extends GameObject {
 		this._updateMaxOffscreen();
 	}
 
+	/**
+	 * Update the limits of the paddle's off-screen movement based on its current size.
+	 */
 	private _updateMaxOffscreen = () => {
 		const paddleOffScreenMax = this.size.h * 0.5;
 		this._minY = -paddleOffScreenMax;
@@ -170,28 +184,51 @@ export class Paddle extends GameObject {
 
 	//= Public =//
 
+	/**
+	 * Get the position of the paddle.
+	 * @returns A string representing the paddle's position: either "left" or "right".
+	 */
 	public getPosition = () => {
 		return this._position;
 	}
 
+	/**
+	 * Get the maximum amount of pixels the paddle can move per frame.
+	 * @returns The paddle's maximum volicity over the y axis.
+	 */
 	public getMaxMoveSpeed = () => {
 		return this._maxMove;
 	}
 
+	/**
+	 * Reduce the maximum speed of the paddle by 50%.
+	 * Used to limit the AI's paddle speed.
+	 */
 	public limitMoveSpeed = () => {
 		this._maxMove *= 0.5;
 	}
 
+	/**
+	 * Set the direction to move the paddle in. This speed cannot exceed the paddle's maximum move speed (see getMaxMoveSpeed).
+	 * @param dir The amount of pixels to move the paddle, every frame.
+	 */
 	public setMoveDirection = (dir: Direction) => {
 		if (Math.abs(dir) > this._maxMove)
 			dir = (dir < 0 ? -this._maxMove: this._maxMove);
 		this._dy = dir;
 	}
 
+	/**
+	 * Get the paddle's current moving direction.
+	 * @returns The current velocity of the paddle over the y-axis.
+	 */
 	public getMoveDirection = () => {
 		return this._dy;
 	}
 
+	/**
+	 * Move the paddle. This function is supposed to be called every frame.
+	 */
 	public move = () => {
 		let newPos = this.pos.y + this._dy;
 		if (newPos < this._minY)
@@ -203,6 +240,11 @@ export class Paddle extends GameObject {
 		// TODO: dispatch event here
 	}
 
+	/**
+	 * Set the height of the paddle. This will also update the paddle's maximum off-screen movement.
+	 * Only making the paddle smaller was tested, but it might work for making it bigger too.
+	 * @param newHeight The new height of the paddle.
+	 */
 	public setHeight = (newHeight: number) => {
 		if (newHeight != this.size.h) {
 			const oldHeight = this.size.h;
@@ -219,13 +261,23 @@ export class Paddle extends GameObject {
 		}
 	}
 
-	public decreaseSize = (amount: number) => {
+	/**
+	 * Decrease the size of the paddle by a given amount. Limited to 40 pixels.
+	 * @param amount The amount of pixels to increase the paddle's height by.
+	 * @returns The new height of the paddle in pixels
+	 */
+	public decreaseSize = (amount: number): number => {
 		const newSize = this.size.h - amount;
 		if (newSize < 40) // minimum height of 40 pixels
-			return;
+			return newSize;
 		this.setHeight(newSize);
+		return newSize;
 	}
 
+	/**
+	 * Render the paddle. This function is supposed to be called every frame.
+	 * @param ctx The canvas rendering context object.
+	 */
 	public override render = (ctx: CanvasRenderingContext2D) => {
 		let radius = 16;
 		if (this.size.w < 2 * radius) radius = this.size.w / 2;
@@ -255,7 +307,7 @@ class PlayerState {
 		this.name = name;
 		this.avatar = avatar;
 
-		// initialize paddle
+		// Initialize paddle
 		this.paddle = new Paddle(position, gameSize);
 	}
 }
@@ -270,6 +322,9 @@ class GameEvent {
 		this._event = new CustomEvent(type, { detail: detail });
 	}
 
+	/**
+	 * Dispatch the event to the HTML document.
+	 */
 	public dispatch = () => {
 		if (this._dispatched)
 			throw new Error("GameEvent already dispatched");
@@ -303,12 +358,21 @@ export class PausedReason {
 	public static readonly CONNECTION_LOST_RECON: number = 4;
 	public static readonly CONNECTION_LOST_FINAL: number = 5;
 
+	/**
+	 * Get the reason for the game being paused.
+	 * @param reason The reason for the pause.
+	 * @returns The string describing the reason the game is paused.
+	 */
 	public static getReason = (reason: number) => {
 		if (reason < 0 || reason > this.maxReasonNumber())
 			throw new Error("Invalid paused reason");
 		return PausedReason._reasons[reason];
 	}
 
+	/**
+	 * Get the maximum supported reason for the game being paused.
+	 * @returns The maximum reason number.
+	 */
 	public static maxReasonNumber = () => {
 		return PausedReason._reasons.length - 1;
 	}
@@ -345,6 +409,10 @@ class GameStateMachine {
 		gameTicker.add(this._update);
 	}
 
+	/**
+	 * Function to call when the ball was intercepted by a player's paddle.
+	 * @param paddle The paddle that intercepted the ball.
+	 */
 	private _handleBallInterception = (paddle: Paddle) => {
 		this.ball.speed *= 1.1; // Speed up with every ball interception by a paddle
 
@@ -370,6 +438,9 @@ class GameStateMachine {
 		// TODO: dispatch event here
 	}
 
+	/**
+	 * Ticker function - this function is called every game tick.
+	 */
 	private _update = () => {
 		if (this.isPausedBool())
 			return;
@@ -420,10 +491,19 @@ class GameStateMachine {
 
 	//= Public =//
 
+	/**
+	 * Get the game mode of the current game.
+	 * @returns The current game mode.
+	 */
 	public getGameMode = () => {
 		return this._gameMode;
 	}
 
+	/**
+	 * Pause the game.
+	 * @param reason The reason for the pause. See PausedReason for more info.
+	 * @returns True if the game is now paused, false if it was already paused.
+	 */
 	public pauseGame = (reason: number): boolean => {
 		if (this._paused > PausedReason.NOT_PAUSED)
 			return false;
@@ -434,6 +514,10 @@ class GameStateMachine {
 		return true;
 	}
 
+	/**
+	 * Unpause the game.
+	 * @returns True if the game was unpaused, false if remains paused.
+	 */
 	public unPauseGame = (): boolean => {
 		if (this._paused == PausedReason.PAUSED_BY_PLAYER) {
 			this._paused = PausedReason.NOT_PAUSED;
@@ -442,10 +526,18 @@ class GameStateMachine {
 		return false;
 	}
 
+	/**
+	 * Check if the game is paused.
+	 * @returns The reason for the game being paused (see PausedReason for more info).
+	 */
 	public isPaused = (): number => {
 		return this._paused;
 	}
 
+	/**
+	 * Check if the game is paused.
+	 * @returns True if the game is paused, false otherwise.
+	 */
 	public isPausedBool = (): boolean => {
 		return this._paused > PausedReason.NOT_PAUSED;
 	}
