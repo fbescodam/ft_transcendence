@@ -24,7 +24,9 @@ onMount(() => {
 	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores);
-	gameAI = new GameAI(gameTicker, gameState);
+	if (gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID) {
+		gameAI = new GameAI(gameTicker, gameState, gameState.player2.paddle);
+	}
 });
 
 onDestroy(() => {
