@@ -6,12 +6,14 @@ import { AppController } from './app.controller';
 import { PrismaModule } from 'prisma/prisma.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
 
 /*==========================================================================*/
 
 @Module({
 	imports: [
 		PrismaModule,
+		TwoFactorAuthenticationModule,
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,
 		}),

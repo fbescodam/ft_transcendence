@@ -14,8 +14,11 @@ import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 
 let newUsername: HTMLInputElement;
+let tfaCode: HTMLInputElement;
+let authCode: HTMLInputElement;
 
 let io: Socket;
+let qrcode: string;
 
 onMount(() => io = initSocket($JWT!));
 
@@ -35,7 +38,46 @@ function changeUsername(e: SubmitEvent) {
 
 }
 
+function logOut() {
+	$JWT = null;
+}
 
+//this is how you get a qrcode as svg
+function getQrCode(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('getQrCode', {}, function(e:any) {
+		console.log(e)
+		$JWT = e["token"]
+		qrcode = e["qrcode"]
+	})
+}
+
+//this is how you check a code
+function checkCode(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('checkCode', {tfaCode: authCode.value}, function(answer: any) {
+		console.log(answer);
+	})
+}
+
+function disabletfa(e: SubmitEvent) {
+	e.preventDefault()
+
+}
+
+//this is how you enable 2fa
+function enableTfa(e: SubmitEvent) {
+	e.preventDefault()
+
+	io.emit('enableTfaAuth', {tfaCode: tfaCode.value}, function(answer:any) {
+		if ("error" in answer)
+			return console.log("error: %s", answer.error);
+		$JWT = answer["token"]
+		console.log(answer)
+	})
+}
 
 </script>
 
@@ -84,7 +126,7 @@ function changeUsername(e: SubmitEvent) {
 			</fieldset>
 		</form>
 
-		<form method="POST">
+		<form on:submit={(e) => { checkCode(e)}}>
 			<fieldset>
 				<legend>Authentication</legend>
 
@@ -97,11 +139,38 @@ function changeUsername(e: SubmitEvent) {
 						inputMode="numeric"
 						pattern="[0-9]*"
 						autoComplete="one-time-code"
+						bind:this={authCode}
 					/>
 				</div>
 
 				<Button type="submit">Submit</Button>
 			</fieldset>
 		</form>
+
+		<form>
+			<fieldset>
+				<Button type="submit" on:click={logOut}>Log out</Button>
+			</fieldset>
+		</form>
+
+		<form on:submit={(e) => { getQrCode(e); }}>
+			<fieldset>
+				<Button type="submit">getQrCode</Button>
+			</fieldset>
+		</form>
+
+		<form on:submit={(e) => { enableTfa(e); }}>
+			<fieldset>
+				<div>
+					<label>2faCode:</label>
+					<input type="text" bind:this={tfaCode}/>
+				</div>
+				<br/>
+				<Button type="submit">enableTfa</Button>
+			</fieldset>
+		</form>
+
+		<img id="qr" src={qrcode}/>
+
 	</Container>
 </div>

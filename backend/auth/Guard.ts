@@ -27,10 +27,9 @@ export class JwtGuard implements CanActivate {
 		try {
 			const client = context.switchToWs().getClient<Socket>();
 			const jwtPayload = JWT.verify(client.handshake.auth.token, process.env.JWT_SECRET);
-			
 			const user = this.validateUser(jwtPayload);
+
 			context.switchToWs().getData().user = user;
-			
 			return Boolean(user);
 		} catch (err) {
 			this.logger.log(err.message)
