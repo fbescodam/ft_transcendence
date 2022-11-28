@@ -10,6 +10,9 @@ generator client {
 	provider = "prisma-client-js"
 }
 
+
+// models
+
 model User {
 	id          Int             @id @default(autoincrement())
 	intraId     Int             @unique
@@ -71,6 +74,26 @@ model Game {
 	victorScore Int
 	loserScore  Int
 	winnerId    Int
+	gameEvents  GameEvent[]
+
+	status      GameStatus @default(WAITING)
+}
+
+model GameEvent {
+	id          Int      @id @default(autoincrement())
+	time        DateTime
+	gameState   Json
+	game        Game     @relation(fields: [gameId], references: [id])
+	gameId      Int
+}
+
+
+// enums
+
+enum GameStatus {
+	WAITING
+	ONGOING
+	ENDE
 }
 
 enum Role {
