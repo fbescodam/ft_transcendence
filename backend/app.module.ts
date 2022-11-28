@@ -7,6 +7,7 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
+import { GameGateway } from 'game/game.gateway';
 
 /*==========================================================================*/
 
@@ -22,7 +23,7 @@ import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
 		}),
 	],
 	controllers: [AppController],
-	providers: [AppService, MainGateway],
+	providers: [AppService, MainGateway, GameGateway],
 })
 
 /*==========================================================================*/
