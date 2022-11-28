@@ -24,7 +24,9 @@ model User {
 	messages    Message[]
 	channels    UserInChannel[]
 	avatar      String
+
 	games       Game[]
+	queuing		QueuedUser?
 
 	tfaEnabled	Boolean			@default(false)
 	tfaSecret	String?
@@ -71,11 +73,12 @@ model Game {
 	id          Int      @id @default(autoincrement())
 	createdAt   DateTime @default(now())
 	players     User[]
-	victorScore Int
-	loserScore  Int
-	winnerId    Int
-	gameEvents  GameEvent[]
+	victorScore Int?
+	loserScore  Int?
+	winnerId    Int?
 
+	roomId		String
+	gameEvents  GameEvent[]
 	status      GameStatus @default(WAITING)
 }
 
@@ -84,7 +87,16 @@ model GameEvent {
 	time        DateTime
 	gameState   Json
 	game        Game     @relation(fields: [gameId], references: [id])
-	gameId      Int
+	gameId      Int		
+}
+
+model QueuedUser {
+	id			Int			@id @default(autoincrement())
+	user  		User		@relation(fields: [userName], references: [intraName])
+ 	userName	String		@unique 
+
+	socketId	String
+	joinedQueue	DateTime	@default(now())
 }
 
 
@@ -93,7 +105,7 @@ model GameEvent {
 enum GameStatus {
 	WAITING
 	ONGOING
-	ENDE
+	ENDED
 }
 
 enum Role {

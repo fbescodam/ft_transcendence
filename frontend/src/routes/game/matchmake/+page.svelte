@@ -24,6 +24,7 @@ onMount(() => {
             case ONLINE_MULTIPL_MODE_ID: // Multiplayer
             {
                 console.log("Creating multiplayer lobby");
+                //TODO: socket emit 'joinQueue'
                 break;
             }
             default:

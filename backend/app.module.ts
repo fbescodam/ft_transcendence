@@ -8,6 +8,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
 import { GameGateway } from 'game/game.gateway';
+import { GameService } from 'game/game.service';
 
 /*==========================================================================*/
 
@@ -23,7 +24,7 @@ import { GameGateway } from 'game/game.gateway';
 		}),
 	],
 	controllers: [AppController],
-	providers: [AppService, MainGateway, GameGateway],
+	providers: [AppService, GameService, MainGateway, GameGateway],
 })
 
 /*==========================================================================*/
