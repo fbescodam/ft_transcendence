@@ -14,7 +14,7 @@ class GameSoundEngine {
 	 */
 	public playBeep = () => {
 		const osc = this._context.createOscillator();
-		osc.type = "square";
+		osc.type = "sine";
 		osc.frequency.value = 800;
 		osc.connect(this._gainNode);
 		osc.start();
@@ -26,7 +26,7 @@ class GameSoundEngine {
 	 */
 	public playBoop = () => {
 		const osc = this._context.createOscillator();
-		osc.type = "square";
+		osc.type = "sine";
 		osc.frequency.value = 400;
 		osc.connect(this._gainNode);
 		osc.start();
