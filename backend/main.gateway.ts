@@ -308,6 +308,7 @@ export class MainGateway {
 
 
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
+		await this.cacheManager.del(socket.handshake.auth.token)
 		socket.handshake.auth.token = { token: jwtToken }
 
 		this.logger.log(jwtToken)
@@ -352,6 +353,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+		await this.cacheManager.del(socket.handshake.auth.token)
 		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}
@@ -374,6 +376,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa disabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+		await this.cacheManager.del(socket.handshake.auth.token)
 		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}

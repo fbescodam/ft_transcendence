@@ -46,7 +46,7 @@ export class JwtGuard implements CanActivate {
 				throw new Error("you dont exist")
 
 			context.switchToWs().getData().user = user;
-			await this.cacheManager.set(client.handshake.auth.token, JSON.stringify(user), 0); //0 means forever, yes that is stupid
+			await this.cacheManager.set(client.handshake.auth.token, JSON.stringify(user), 1000); //1000s
 			return Boolean(user);
 		} catch (err) {
 			this.logger.log(err.message)
