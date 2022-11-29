@@ -3,11 +3,12 @@ import { toDataURL } from 'qrcode';
 import { authenticator } from 'otplib';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
+import { create } from 'ts-node';
 
 @Injectable()
 export class TwoFactorAuthenticationService {
   
-  @Inject(PrismaService)
+  	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
 
 	private readonly logger = new Logger("tfaAuth");
@@ -22,7 +23,11 @@ export class TwoFactorAuthenticationService {
 		intraName: user.intraName
 	  },
 	  data: {
-		tfaSecret: secret 
+		tfaSecret: {
+			create: {
+				string: secret
+			}
+		}
 	  }
 	})
 
@@ -48,9 +53,13 @@ export class TwoFactorAuthenticationService {
 	return toDataURL(otpauthUrl, opts);
   }
 
-  public isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, user: User) {
+  public async isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, user: User) {
 	
-	this.logger.log(`\ntfaCode: ${twoFactorAuthenticationCode}\nsecret: ${user.tfaSecret}`)
-	return authenticator.verify({token: twoFactorAuthenticationCode, secret: user.tfaSecret})
+	const userTfaSecret = await this.prismaService.user.findFirst({
+		where: {intraName:user.intraName},
+		select: {tfaSecret: true}
+	});
+	this.logger.log(`\ntfaCode: ${twoFactorAuthenticationCode}\nsecret: ${userTfaSecret.tfaSecret.string}`)
+	return authenticator.verify({token: twoFactorAuthenticationCode, secret: userTfaSecret.tfaSecret.string})
   }
 }

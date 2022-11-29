@@ -4,59 +4,74 @@ datasource db {
 	//url      = "postgresql://user:password@ft_transcendence.database:5432/test?schema=public"
 	//url = env("DATABASE_URL")
 }
+
 //psql -h localhost -p 5432 -U user -d test
 
 generator client {
 	provider = "prisma-client-js"
 }
 
-
 // models
 
 model User {
-
 	//==================userdata====================//
 
-	id          Int             @id @default(autoincrement())
-	intraId     Int             @unique
-	name        String         	@unique
-	intraName   String          @unique
-	email		String			@unique
-	role        Role            @default(USER)
-	joinedAt    DateTime        @default(now())
-	avatar      String
+	id        Int      @id @default(autoincrement())
+	intraId   Int      @unique
+	name      String   @unique
+	intraName String   @unique
+	email     String   @unique
+	role      Role     @default(USER)
+	joinedAt  DateTime @default(now())
+	avatar    String
 
 	//==================channels====================//
 
-	messages    Message[]
-	channels    UserInChannel[]
+	messages Message[]
+	channels UserInChannel[]
 
 	//==================games====================//
 
-	games       Game[]
+	games  Game[]
+	wins   Int    @default(0)
+	losses Int    @default(0)
 
 	//==================twofactorauth====================//
 
-	tfaEnabled	Boolean			@default(false)
-	tfaSecret	String?
+	tfaEnabled Boolean @default(false)
+	tfaSecret  TfaSecret?
 
 	//==================friends====================//
-	
-	friends				User[]	@relation("friends")
-	friendStore			User[]	@relation("friends") //This field is just for storing the many-to-many. ignore
 
-	blocked				User[]	@relation("blocked")
-	blockedStore		User[]	@relation("blocked") //This field is just for storing the many-to-many. ignore
+	friends     User[] @relation("friends")
+	friendStore User[] @relation("friends") //This field is just for storing the many-to-many. ignore
+
+	blocked      User[] @relation("blocked")
+	blockedStore User[] @relation("blocked") //This field is just for storing the many-to-many. ignore
+}
+
+model TfaSecret { //this gets automatically excluded from queries which is necessary
+	id      	Int     @id @default(autoincrement())
+	string  	String
+	user		User	@relation(fields: [userId], references: [id])
+	userId		Int		@unique
 }
 
 model Channel {
-	id        Int           @id @default(autoincrement())
-	createdAt DateTime      @default(now())
-	name      String        @unique
-	type      ChannelType   @default(STANDARD)
-	password  String?
+	id        Int             @id @default(autoincrement())
+	createdAt DateTime        @default(now())
+	name      String          @unique
+	type      ChannelType     @default(STANDARD)
+	password  ChannelPassword?
 	users     UserInChannel[]
 	messages  Message[]
+}
+
+model ChannelPassword { //this gets automatically excluded from queries which is necessary
+	id      	Int      @id @default(autoincrement())
+	string  	String
+	channel		Channel	@relation(fields: [channelId], references: [id])
+	channelId	Int		@unique
 }
 
 model UserInChannel {
@@ -65,19 +80,19 @@ model UserInChannel {
 	channel     Channel @relation(fields: [channelName], references: [name])
 	channelName String
 
-	role        Role
-	joinedOn    DateTime @default(now())
+	role     Role
+	joinedOn DateTime @default(now())
 
 	@@id([userName, channelName])
 }
 
 model Message {
-	id          Int       @id @default(autoincrement())
-	sentAt      DateTime  @default(now())
+	id          Int      @id @default(autoincrement())
+	sentAt      DateTime @default(now())
 	text        String
-	sender      User?     @relation(fields: [senderName], references: [name])
+	sender      User?    @relation(fields: [senderName], references: [name])
 	senderName  String?
-	channel     Channel?  @relation(fields: [channelName], references: [name])
+	channel     Channel? @relation(fields: [channelName], references: [name])
 	channelName String?
 }
 
@@ -89,19 +104,18 @@ model Game {
 	loserScore  Int?
 	winnerId    Int?
 
-	roomId		String
-	gameEvents  GameEvent[]
-	status      GameStatus @default(WAITING)
+	roomId     String
+	gameEvents GameEvent[]
+	status     GameStatus  @default(WAITING)
 }
 
 model GameEvent {
-	id          Int      @id @default(autoincrement())
-	time        DateTime
-	gameState   Json
-	game        Game     @relation(fields: [gameId], references: [id])
-	gameId      Int
+	id        Int      @id @default(autoincrement())
+	time      DateTime
+	gameState Json
+	game      Game     @relation(fields: [gameId], references: [id])
+	gameId    Int
 }
-
 
 // enums
 
