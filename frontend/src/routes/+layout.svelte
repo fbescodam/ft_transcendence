@@ -28,6 +28,7 @@ let navitems = [
 		color: "purple",
 	},
 ];
+
 </script>
 
 <!-- HTML -->
