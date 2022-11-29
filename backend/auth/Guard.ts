@@ -1,15 +1,19 @@
 import { Socket } from 'socket.io';
 import * as JWT from "jsonwebtoken"
-import { Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Inject, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { PrismaService } from 'prisma/prisma.service';
 
 
 /*==========================================================================*/
 
 @Injectable()
 export class JwtGuard implements CanActivate {
+	
+	@Inject(PrismaService)
+	private readonly prismaService: PrismaService;
+	
 	constructor() { }
 	
 	//= Properties =//
@@ -27,7 +31,7 @@ export class JwtGuard implements CanActivate {
 		try {
 			const client = context.switchToWs().getClient<Socket>();
 			const jwtPayload = JWT.verify(client.handshake.auth.token, process.env.JWT_SECRET);
-			const user = this.validateUser(jwtPayload);
+			const user = await this.validateUser(jwtPayload);
 
 			context.switchToWs().getData().user = user;
 			return Boolean(user);
@@ -42,8 +46,15 @@ export class JwtGuard implements CanActivate {
 	 * @param payload 
 	 * @returns 
 	 */
-	public validateUser(payload: string | JWT.JwtPayload) {
-		return payload;
+	public async validateUser(payload: Object | JWT.JwtPayload) {
+		
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				intraName: payload["intraName"]
+			}
+		})
+
+		return user
 	}
 }
 

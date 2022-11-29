@@ -220,16 +220,6 @@ export class MainGateway {
 
 	}
 
-	@SubscribeMessage("sendFriendRequest")
-	sendFriendRequest(@MessageBody() UserInfo: Object) {
-
-	}
-
-	@SubscribeMessage("unFriendUser")
-	unFriendUser(@MessageBody() UserInfo: Object) {
-
-	}
-
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changeDisplayName")
 	async changeDisplayName(@MessageBody() UserInfo: Object) {
