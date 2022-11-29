@@ -88,14 +88,16 @@ class GameController {
 	 * Pause the game from the current player's perspective.
 	*/
 	public pause = () => {
-		this._gameState.pauseGame(PausedReason.PAUSED_BY_PLAYER);
+		if (!this._gameState.isPaused())
+			this._gameState.pauseGame(PausedReason.PAUSED_BY_PLAYER);
 	}
 
 	/**
 	 * Resume the game from the current player's perspective.
 	 */
 	public resume = () => {
-		this._gameState.unPauseGame();
+		if (this._gameState.getPausedReason() == PausedReason.PAUSED_BY_PLAYER)
+			this._gameState.unPauseGame();
 	}
 
 	/**
