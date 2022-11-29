@@ -19,13 +19,13 @@ import ProfilePic from "$lib/Components/Profile/ProfilePic.svelte";
 import ProfileStats from "$lib/Components/Profile/ProfileStats.svelte";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
-import type { Player } from "$lib/Types";
+import type { User } from "$lib/Types";
 import { goto } from "$app/navigation";
 import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
 import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 
 let socket: Socket;
-let player: Player | null = null;
+let user: User | null = null;
 
 onMount(() => {
 	socket = initSocket($JWT!);
@@ -37,14 +37,14 @@ onMount(() => {
 			return;
 		}
 
-		player = data;
+		user = data;
 	});
 });
 
 const getRandomEmoji = () => {
 	const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🤡','😉'];
 	return emojis[~~(Math.random() * emojis.length)]
-} 
+}
 
 </script>
 
@@ -55,7 +55,7 @@ const getRandomEmoji = () => {
 	<meta name="description" content="View your profile page" />
 </svelte:head>
 
-{#if player}
+{#if user}
 	<div>
 		{#if $page.params.slug === $displayName}
 			<Container style="flex: 1; height: 95%;">
@@ -65,8 +65,8 @@ const getRandomEmoji = () => {
 		{/if}
 		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
-				<ProfilePic avatar={player.avatar} width={128} height={128}/>
-				<ProfileStats name={player.name} wins={620} loss={6} games={player.games.length} />
+				<ProfilePic avatar={user.avatar} width={128} height={128}/>
+				<ProfileStats name={user.name} wins={620} loss={6} games={user.games.length} />
 			</div>
 		</Container>
 		<hr />
@@ -75,8 +75,8 @@ const getRandomEmoji = () => {
 				<summary>
 					<span>Matches</span>
 				</summary>
-				{#if player.games.length > 0}
-					{#each player.games as game}
+				{#if user.games.length > 0}
+					{#each user.games as game}
 						<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
 					{/each}
 				{:else}
@@ -90,9 +90,9 @@ const getRandomEmoji = () => {
 				<summary>
 					<span>Friends</span>
 				</summary>
-				{#if player.friends.length > 0}
+				{#if user.friends.length > 0}
 					<div class="friends-list">
-						{#each player.friends as friend}
+						{#each user.friends as friend}
 							<ProfileFriend user={friend} />
 						{/each}
 					</div>
@@ -140,7 +140,7 @@ const getRandomEmoji = () => {
 		flex-direction: column;
 		gap: 8px;
 	}
-	
+
 	.friends-list {
 		display: flex;
 		flex-direction: column;
@@ -159,4 +159,3 @@ const getRandomEmoji = () => {
 }
 
 </style>
-	
