@@ -46,6 +46,27 @@ export class MainGateway {
 
 	}
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("getUserData")
+	public async getUserData(@MessageBody() data: object) {
+		this.logger.log(`getting user data for ${data["penis"]}`);
+		const user = await this.prismaService.user.findFirst({
+			where: { 
+				name: data["penis"]
+			},
+			select: {
+				name: true,
+				intraName: true,
+				avatar: true,
+				games: true,
+			}
+		});
+
+		if (!user)
+			return { error: "no user found" };
+		return user;
+	}
+
 	/**
 	 * Hanlder for messages that are being sent.
 	 * @param msg The message that was sent.

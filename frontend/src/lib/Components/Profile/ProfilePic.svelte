@@ -3,14 +3,13 @@
  See README in the root project for more information.
 ------------------------------------------------------------------------------>
 
-
 <!-- Scripting -->
 
 <script lang="ts">
 import { page } from "$app/stores";
 
 
-export let userID: string | null;
+export let avatar: string | null;
 export let width: number = 64;
 export let height: number = 64;
 
@@ -20,7 +19,7 @@ export let height: number = 64;
 
 <div style="width: {width}px; height: {height}px;">
     <!-- Picture -->
-    <img alt="profile-pic" width="{width}" height="{height}" src="{$page.url.protocol}//{$page.url.hostname}:3000/{userID}"/>
+    <img alt="profile-pic" width="{width}" height="{height}" src="{$page.url.protocol}//{$page.url.hostname}:3000/{avatar}"/>
 </div>
 
 <!-- Styling -->

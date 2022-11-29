@@ -11,24 +11,33 @@
 // }) -->
 
 <script lang="ts">
-import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
-import { displayName, avatar, JWT } from "$lib/Stores/User";
+import { displayName, JWT } from "$lib/Stores/User";
 import { page } from "$app/stores";
 import { onMount } from "svelte";
 import ProfilePic from "$lib/Components/Profile/ProfilePic.svelte";
 import ProfileStats from "$lib/Components/Profile/ProfileStats.svelte";
-import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
-import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
+import type { Player } from "$lib/Types";
+import { goto } from "$app/navigation";
+import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
+import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 
 let socket: Socket;
+let player: Player | null = null;
 
 onMount(() => {
 	socket = initSocket($JWT!);
-	socket.emit("user", {user: $page.params.slug}, (answer: any) => {
-		
+	console.log($page.params.slug)
+	socket.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
+		if ("error" in data) {
+			// Disgusting hack because I can't read.
+			goto("/profile", { replaceState: true });
+			return;
+		}
+
+		player = data;
 	});
 });
 
@@ -46,60 +55,59 @@ const getRandomEmoji = () => {
 	<meta name="description" content="View your profile page" />
 </svelte:head>
 
-<div>
-	{#if $page.params.slug === $displayName}
-		<Container style="flex: 1; height: 95%;">
-			<h1>Welcome back {$displayName} {getRandomEmoji()}</h1>
+{#if player}
+	<div>
+		{#if $page.params.slug === $displayName}
+			<Container style="flex: 1; height: 95%;">
+				<h1>Welcome back {$displayName} {getRandomEmoji()}</h1>
+			</Container>
+			<hr />
+		{/if}
+		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
+			<div class="profile-stats">
+				<ProfilePic avatar={player.avatar} width={128} height={128}/>
+				<ProfileStats name={player.name} wins={620} loss={6} games={player.games.length} />
+			</div>
 		</Container>
 		<hr />
-	{/if}
-	<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
-		<div class="profile-stats">
-			<ProfilePic userID={$avatar} width={128} height={128}/>
-			<ProfileStats />
-		</div>
-	</Container>
-	<hr />
-	<div class="content">
-		<details>
-			<summary>
-				<span>Matches</span>
-			</summary>
-			<div class="match-history">
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-				<MatchScore p1UserID={$avatar} p2UserID={$avatar} score={{p1: 9, p2: 0}}/>
-			</div>
-		</details>
+		<div class="content">
+			<details>
+				<summary>
+					<span>Matches</span>
+				</summary>
+				{#if player.games.length > 0}
+					{#each player.games as game}
+						<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
+					{/each}
+				{:else}
+					<Container>
+						<p>No matches found.</p>
+					</Container>
+				{/if}
+			</details>
 
-		<details>
-			<summary>
-				<span>Friends</span>
-			</summary>
-			<div class="friends-list">
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-				<ProfileFriend userID={$avatar} />
-			</div>
-		</details>
+			<details>
+				<summary>
+					<span>Friends</span>
+				</summary>
+				{#if player.friends.length > 0}
+					<div class="friends-list">
+						{#each player.friends as friend}
+							<ProfileFriend user={friend} />
+						{/each}
+					</div>
+				{:else}
+					<Container>
+						<p>User has no friends, big sad.</p>
+					</Container>
+				{/if}
+			</details>
+		</div>
 	</div>
-</div>
+{:else}
+<h1>Loading ...</h1>
+{/if}
+
 
 <!-- Styling -->
 
@@ -108,8 +116,8 @@ const getRandomEmoji = () => {
 .profile-stats {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: stretch;
-	justify-content: center;
+	align-items: center;
+    justify-content: center;
 	gap: 15px;
 }
 

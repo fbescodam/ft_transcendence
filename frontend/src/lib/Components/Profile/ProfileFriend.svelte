@@ -11,19 +11,21 @@ import Button from "../Button/Button.svelte";
 import ProfilePic from "./ProfilePic.svelte";
 import { ChatAlt2, EmojiHappy, EmojiSad, Icon, X } from "svelte-hero-icons";
 import Container from "../Container/Container.svelte";
+import type { Player } from "$lib/Types";
 
 // TODO: Actually do the thing
 
-export let userID: string | null;
+export let user: Player;
 </script>
 
 <!-- HTML -->
 
 <Container>
-	<b>User</b>
+	<!-- svelte-ignore a11y-missing-attribute -->
+	<a alt="profile" src="/profile/{user.name}">{user.name}</a>
 	<div class="content">
 		<div class="user-info">
-			<ProfilePic height={50} width={50} userID={userID}/>
+			<ProfilePic height={50} width={50} avatar={user.avatar}/>
 		</div>
 		<menu>
 			<Button on:click={() => { }}>
