@@ -26,7 +26,6 @@ model User {
 	avatar      String
 
 	games       Game[]
-	queuing		QueuedUser?
 
 	tfaEnabled	Boolean			@default(false)
 	tfaSecret	String?
@@ -87,16 +86,7 @@ model GameEvent {
 	time        DateTime
 	gameState   Json
 	game        Game     @relation(fields: [gameId], references: [id])
-	gameId      Int		
-}
-
-model QueuedUser {
-	id			Int			@id @default(autoincrement())
-	user  		User		@relation(fields: [userName], references: [intraName])
- 	userName	String		@unique 
-
-	socketId	String
-	joinedQueue	DateTime	@default(now())
+	gameId      Int
 }
 
 

@@ -5,8 +5,31 @@ import { GameGateway } from './game.gateway';
 
 /*==========================================================================*/
 
+interface QueuedUser {
+	intraName: string;
+	socketId: string;
+}
+
+/*==========================================================================*/
+
 @Injectable()
 export class GameService {
+	private _matchmakingQueue: QueuedUser[] = [];
+
+	constructor() {
+		setInterval(this._checkQueue, 5000);
+	}
+
+	private async _checkQueue() {
+		if (this._matchmakingQueue.length >= 2) {
+			//if more than 2 users are in queue: createGame -> leave queue -> startGame
+			this.leaveQueue(this._matchmakingQueue[0].intraName);
+			this.leaveQueue(this._matchmakingQueue[1].intraName);
+			const game = await this.createGame(this._matchmakingQueue[0].intraName, this._matchmakingQueue[1].intraName);
+			await this.startGame(game, this._matchmakingQueue[0], this._matchmakingQueue[1]);
+			//TODO: game loop somewhere
+		}
+	}
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
@@ -19,20 +42,15 @@ export class GameService {
 	 * @param id The socket id of the user to add to the queue
 	 * @returns Returns true if the user was added to the queue, false on error
 	 */
-	async joinQueue(intraName: string, id: string): Promise<boolean> {
-		try {
-			await this.prismaService.queuedUser.create({
-				data: {
-					userName: intraName,
-					socketId: id
-				}
-			});
-			return true;
-		}
-		catch (e) {
-			console.trace(e);
+	joinQueue(intraName: string, id: string): boolean {
+		if (this.findInQueue(intraName))
 			return false;
-		}
+		this._matchmakingQueue.push({ intraName, socketId: id });
+		return true;
+	}
+
+	findInQueue(intraName: string): QueuedUser | undefined {
+		return this._matchmakingQueue.find((user) => user.intraName === intraName);
 	}
 
 	/**
@@ -40,17 +58,13 @@ export class GameService {
 	 * @param intraName The intra name of the user to remove from the queue
 	 * @returns Returns true if the user was removed from the queue, false on error
 	 */
-	async leaveQueue(intraName: string): Promise<boolean> {
-		try {
-			await this.prismaService.queuedUser.delete({
-				where: { userName: intraName }
-			})
+	leaveQueue(intraName: string): boolean {
+		const user: QueuedUser = this.findInQueue(intraName);
+		if (user) {
+			this._matchmakingQueue.splice(this._matchmakingQueue.indexOf(user), 1);
 			return true;
 		}
-		catch (e) {
-			console.trace(e);
-			return false;
-		}
+		return false;
 	}
 
 	/**
@@ -79,10 +93,10 @@ export class GameService {
 	/**
 	 * Connect two players to the same game and start the game.
 	 * @param game The game to start
-	 * @param user1 The intra name of the first player
-	 * @param user2 The intra name of the second player
+	 * @param user1 The first player
+	 * @param user2 The second player
 	 */
-	async startGame(game: Game, user1, user2) {
+	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
 		this.gameGateway.server.to(user1.socketId).to(user2.socketId).emit('gameStart', {
 			gameId: game.id,
 			player1: user1.intraName,
