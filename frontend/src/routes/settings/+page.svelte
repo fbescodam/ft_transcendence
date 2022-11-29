@@ -36,11 +36,16 @@ onMount(() => {
 function changeUsername(e: SubmitEvent) {
 	e.preventDefault()
 
+	console.log("penis");
 	io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
 		console.log(answer);
 		if ("error" in answer)
+		{
+			newUsername.setCustomValidity(answer.error);
 			return console.log("error: %s", answer.error);
+		}
 		$displayName = newUsername.value;
+		$JWT = answer["token"]
 		newUsername.value = '';
 	})
 }

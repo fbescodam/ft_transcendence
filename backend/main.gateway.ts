@@ -55,7 +55,7 @@ export class MainGateway {
 		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
 		await this.prismaService.message.create({
 			data: {
-				senderName: msg.user.intraName,
+				senderName: msg.user.name,
 				channelName: msg.inChannel,
 				text: msg.text
 			}
@@ -74,7 +74,7 @@ export class MainGateway {
 	@SubscribeMessage('getChannelsForUser')
 	async getChannelsForUser(@MessageBody() data: any) {
 		const user = await this.prismaService.user.findFirst({
-			where: { name: data.user.intraName },
+			where: { intraName: data.user.intraName },
 			include: { channels: true }
 		});
 		return user.channels;
@@ -222,23 +222,33 @@ export class MainGateway {
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changeDisplayName")
-	async changeDisplayName(@MessageBody() UserInfo: Object) {
-		//TODO: NEW JWTTOKEN
+	async changeDisplayName(@MessageBody() UserInfo: Object, @ConnectedSocket() socket: Socket) {
 		const user = await this.prismaService.user.findFirst({
-			where: { name: UserInfo["user"].name }
+			where: { name: UserInfo["newDisplayName"] }
 		})
 
-		// if (user)
-		// 	return {error:"Username already in use"}
+		if (user)
+			return {error:"Username already in use"}
 
-		await this.prismaService.user.update({
+		const newUser = await this.prismaService.user.update({
 			where: { intraName: UserInfo["user"].intraName },
 			data: { name: UserInfo["newDisplayName"] }
 		})
 
+		await this.prismaService.message.updateMany({
+			where: {
+				senderName: UserInfo["user"].name
+			},
+			data: {
+				senderName: newUser.name
+			}
+		})
+
 		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
 
-		return { newName: UserInfo["newDisplayName"] };
+		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
+		socket.handshake.auth = { token: jwtToken }
+		return { token: jwtToken, newName: UserInfo["newDisplayName"] };
 	}
 
 	@SubscribeMessage("verifyJWT")

@@ -1,5 +1,5 @@
 import { JwtModule } from '@nestjs/jwt';
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MainGateway } from './main.gateway';
 import { AppController } from './app.controller';
@@ -22,6 +22,9 @@ import { GameService } from 'game/game.service';
 		ServeStaticModule.forRoot({
 			rootPath: join(__dirname, '..', 'static')
 		}),
+		CacheModule.register({
+			isGlobal: true,
+		})
 	],
 	controllers: [AppController],
 	providers: [AppService, GameService, MainGateway, GameGateway],
