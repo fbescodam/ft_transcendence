@@ -21,61 +21,34 @@ export class FriendsGateway {
 
 	private readonly logger = new Logger("friends");
 
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("getUserFriends")
-	public async getUserRelations(@MessageBody() data: Object) {
-
-		// const relations = this.prismaService.user.findFirst({
-		// 	where: {
-		// 		intraName: data["user"].intraName
-		// 	},
-		// 	include: {
-		// 		relations: true
-		// 	}
-		// })
-
-	}
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("sendFriendRequest")
-	public async sendFriendRequest() {
-
-	}
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("cancelFriendRequest")
-	public async cancelFriendRequest() {
-
-	}
-
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("removeFriend")
-	public async removeFriend() {
+	public async removeFriend(@MessageBody() data: Object) {
+		
 
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("acceptFriendRequest")
-	public async acceptFriendRequest() {
-
+	public async acceptFriendRequest(@MessageBody() data: Object) {
+		
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("denyFriendRequest")
-	public async denyFriendRequest() {
-
+	public async denyFriendRequest(@MessageBody() data: Object) {
+		
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("BlockUser")
-	public async BlockUser() {
-
+	public async BlockUser(@MessageBody() data: Object) {
+		
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("unBlockUser")
-	public async unBlockUser() {
+	public async unBlockUser(@MessageBody() data: Object) {
 
 	}
 
