@@ -59,8 +59,10 @@ class GameAI {
 
 	/**
 	 * Ticker function - this function is run every game tick.
+	 * @param tps: The current ticks per second
+	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
-	private _think = () => {
+	private _think = (tps: number, deltaTick: number) => {
 		if (this._gameState.isPaused())
 			return;
 

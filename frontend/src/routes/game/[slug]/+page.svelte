@@ -19,6 +19,7 @@ import { initSocket } from "$lib/socketIO";
 
 let canvas: HTMLCanvasElement;
 let scores: HTMLElement;
+let timer: HTMLElement;
 let avatar1: HTMLImageElement;
 let avatar2: HTMLImageElement;
 
@@ -98,7 +99,7 @@ async function initGame() {
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
 	gameState = new GameStateMachine(gameTicker, gameSize, gameMode, player1, player2);
 	gameController = new GameController(gameTicker, gameState);
-	gameRenderer = new GameRenderer(canvas, gameState, scores, avatar1, avatar2);
+	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
 	if (gameMode === SINGLEPL_MODE_ID) {
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
@@ -147,7 +148,10 @@ const keyDownHandler = (event: KeyboardEvent) => {
 		<Container>
 			<div class="score">
 				<img bind:this={avatar1} width={64} height={64} src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P1"/>
-				<b bind:this={scores} >0 : 0</b>
+				<div class="score-middle">
+					<b bind:this={scores} >0 : 0</b>
+					<i bind:this={timer} >3:00</i>
+				</div>
 				<img bind:this={avatar2} width={64} height={64} src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P2"/>
 			</div>
 		</Container>
@@ -179,12 +183,20 @@ canvas {
 .score {
 	display: flex;
 	align-items: center;
+	text-align: center;
 	overflow: hidden;
 	justify-content: space-between;
 	font-family: 'Common Pixel', sans-serif;
 
 	& b {
+		display: block;
 		font-size: xx-large;
+	}
+
+	& i {
+		display: block;
+		color: var(--secondary-color);
+		margin-top: 0.2em;
 	}
 
 	& img {

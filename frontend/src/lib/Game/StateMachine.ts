@@ -1,6 +1,6 @@
 import type { Vec2, Dimensions, Direction, User } from "../Types";
 import type GameTicker from "./Ticker";
-import { LOCAL_MULTIPL_MODE_ID, type GameMode } from "./Modes";
+import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID, type GameMode } from "./Modes";
 import GameSoundEngine from "./SoundEngine";
 
 /**
@@ -366,7 +366,7 @@ export class PausedReason {
 	 * @returns True if the reason was defined by this class, false otherwise.
 	 */
 	public static isValidReason(pausedReason: PausedReasonObject) {
-		return pausedReason.id >= 0 && pausedReason.id <= 7;
+		return pausedReason.id >= 0 && pausedReason.id <= 13;
 	}
 
 	public static readonly PAUSED_BY_PLAYER: PausedReasonObject = { id: 0, text: "Game paused", reason: "You paused the game" };
@@ -377,6 +377,12 @@ export class PausedReason {
 	public static readonly WAITING_FOR_OPPONENT: PausedReasonObject = { id: 5, text: "Please wait...", reason: "Waiting for your opponent to join the game" };
 	public static readonly INITIALIZING_GAME: PausedReasonObject = { id: 6, text: "Please wait...", reason: "Setting up the game..." };
 	public static readonly READY_SET_GO: PausedReasonObject = { id: 7, text: "Ready to play?", reason: "Press SPACE to start." };
+	public static readonly GAME_OVER: PausedReasonObject = { id: 8, text: "Game over", reason: "You lost. Better luck next time!" };
+	public static readonly GAME_WON: PausedReasonObject = { id: 9, text: "Congratulations", reason: "You won! Well done." };
+	public static readonly GAME_WON_LOCAL_P1: PausedReasonObject = { id: 10, text: "Game over", reason: "Player 1 has won the game." };
+	public static readonly GAME_WON_LOCAL_P2: PausedReasonObject = { id: 11, text: "Game over", reason: "Player 2 has won the game." };
+	public static readonly GAME_TIED: PausedReasonObject = { id: 12, text: "Game over", reason: "The game ended in a tie." };
+	public static readonly GAME_OPPONENT_LEFT: PausedReasonObject = { id: 13, text: "Congratulations", reason: "Your opponent has given up, you win!" };
 	// When adding a reason here, make sure to update the isValidReason function above
 }
 
@@ -393,6 +399,8 @@ class GameStateMachine {
 	private _gameMode: GameMode;
 	private _gameSoundEngine: GameSoundEngine;
 	private _paused: PausedReasonObject | null = PausedReason.READY_SET_GO;
+	private _secondsPlayed: number = 0;
+	private _gameDuration: number = 180; // 3 minutes
 
 	player1: Player;
 	player2: Player;
@@ -440,13 +448,48 @@ class GameStateMachine {
 		// TODO: dispatch event here
 	}
 
+	private _gameEnd = () => {
+		if (this._gameMode == LOCAL_MULTIPL_MODE_ID) {
+			if (this.player1.score > this.player2.score)
+				this._paused = PausedReason.GAME_WON_LOCAL_P1;
+			else if (this.player1.score == this.player2.score)
+				this._paused = PausedReason.GAME_TIED;
+			else
+				this._paused = PausedReason.GAME_WON_LOCAL_P2;
+		}
+		else {
+			if (this.player1.score > this.player2.score)
+				this._paused = PausedReason.GAME_WON;
+			else if (this.player1.score == this.player2.score)
+				this._paused = PausedReason.GAME_TIED;
+			else
+				this._paused = PausedReason.GAME_OVER;
+		}
+	}
+
 	/**
 	 * Ticker function - this function is called every game tick.
+	 * @param tps The current ticks per second.
+	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
-	private _update = () => {
+	private _update = (tps: number, deltaTick: number) => {
 		if (this.isPaused()) {
 			return;
 		}
+
+		// Check if the game is over
+		if (this._secondsPlayed >= this._gameDuration) {
+			this._gameEnd();
+
+			// Bugfix: prevent negative time from appearing
+			this._secondsPlayed = this._gameDuration;
+
+			// TODO: dispatch event here
+			return;
+		}
+
+		// Update the game time
+		this._secondsPlayed += deltaTick / 1000;
 
 		// Did ball hit either left or right wall?
 		const p1Win = this.ball.pos.x > this._gameSize.w;
@@ -565,6 +608,22 @@ class GameStateMachine {
 	 */
 	public getPausedReason = (): PausedReasonObject | null => {
 		return this._paused;
+	}
+
+	/**
+	 * Get the amount of time played in the current game.
+	 * @returns The current game time in seconds.
+	 */
+	public getTimePlayed = (): number => {
+		return this._secondsPlayed;
+	}
+
+	/**
+	 * Get the current game's duration.
+	 * @returns The current game's duration in seconds.
+	 */
+	public getGameDuration = (): number => {
+		return this._gameDuration;
 	}
 }
 

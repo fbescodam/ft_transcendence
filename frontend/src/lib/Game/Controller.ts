@@ -43,8 +43,10 @@ class GameController {
 
 	/**
 	 * Ticker function - this function is run every game tick.
+	 * @param tps: The current ticks per second
+	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
-	public _update = () => {
+	public _update = (tps: number, deltaTick: number) => {
 		if (this._gameState.isPaused())
 			return;
 

@@ -1,3 +1,4 @@
+import { formatSeconds } from "$lib/Utils/Basic";
 import type { PausedReasonObject } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
 
@@ -6,14 +7,16 @@ class GameRenderer {
 	private _canvas: HTMLCanvasElement;
 	private _ctx: CanvasRenderingContext2D;
 	private _scores: HTMLElement;
+	private _timer: HTMLElement;
 	private _avatar1: HTMLImageElement;
 	private _avatar2: HTMLImageElement;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
 		this._scores = scores;
+		this._timer = timer;
 		this._avatar1 = avatar1;
 		this._avatar2 = avatar2;
 
@@ -97,6 +100,9 @@ class GameRenderer {
 
 		// Middle line
 		this._renderMiddleLine();
+
+		// Timer
+		this._timer.innerText = formatSeconds(this._gameState.getGameDuration() - this._gameState.getTimePlayed());
 
 		// Pause screen (if paused)
 		if (this._gameState.isPaused()) {

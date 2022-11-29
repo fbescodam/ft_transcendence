@@ -5,7 +5,8 @@
 	font-weight: 400;
 
 	color-scheme: light dark;
-	color: rgba(255, 255, 255, 0.87);
+	color: #fafafa;
+	--secondary-color: #a3a3a3;
 	background-color: var(--background);
 
 	font-synthesis: none;
@@ -20,7 +21,7 @@
 	--orange: #f19018;
 	--purple: #b63288;
 	--red: #e42b2f;
-	
+
 	--border-radius: 4px;
 
 	--shadow: rgb(0, 0, 0, 0.42);
@@ -29,7 +30,7 @@
 	--foreground-unfocused: rgb(66, 66, 66);
 	--background: #1a1a1a;
 	--secondary-background: #151515;
-	
+
 	--navbar-background: #121212;
 
 	--component-border: #292929;
@@ -61,7 +62,7 @@ hr {
 
 		--background: #ffffff;
 		--secondary-background: #f9f9f9;
-		
+
 		--component-border: #8e8e8e;
 		--component-background: #f9f9f9;
 		--component-secondary-bg: #cbcbcb;
