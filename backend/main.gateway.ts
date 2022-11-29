@@ -59,6 +59,7 @@ export class MainGateway {
 				intraName: true,
 				avatar: true,
 				games: true,
+				friends: true,
 			}
 		});
 

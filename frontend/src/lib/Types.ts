@@ -3,6 +3,8 @@ export type Direction = number;
 export type Dimensions = { w: number; h: number };
 export type User = {
 	id: number;
+	wins: number;
+	loss: number;
 	name: string;
 	intraName: string;
 	avatar: string;
