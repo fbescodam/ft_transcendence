@@ -419,11 +419,9 @@ class GameStateMachine {
 		this.ball.speed *= 1.1; // Speed up with every ball interception by a paddle
 
 		// Calculate the new direction of the ball
-		// Constant k defines how much the ball will be deflected by the paddle's vy
-		const k = 0.25;
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
 		const paddle_vy = this.ball.speed + 0.5 * paddle.getMoveDirection();
-		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
+		let ball_vy = Math.cos(ball_dir) * this.ball.speed + 0.25 * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
 		this.ball.dx = ball_vx + (ball_vx < 0 ? -1 : 1); // Ternary to make sure the ball is not going straight up or down
 		this.ball.dy = ball_vy;
