@@ -15,9 +15,15 @@ interface QueuedUser {
 @Injectable()
 export class GameService {
 	private _matchmakingQueue: QueuedUser[] = [];
+	private _matchmakingCheckInterval: NodeJS.Timer;
 
 	constructor() {
-		setInterval(this._checkQueue, 5000);
+		(async () => {
+			while (42) {
+				this._checkQueue()
+				await new Promise((resolve) => setTimeout(resolve, 5000));
+			}
+		})();
 	}
 
 	private async _checkQueue() {
