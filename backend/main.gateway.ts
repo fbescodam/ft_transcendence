@@ -4,7 +4,8 @@ import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
 import { ChannelType, Role } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
-import { Inject, Logger, UseGuards } from "@nestjs/common";
+import { Inject, Logger, UseGuards, CACHE_MANAGER } from "@nestjs/common";
+import { Cache } from 'cache-manager'
 import {
 	MessageBody,
 	SubscribeMessage,
@@ -32,6 +33,7 @@ export class MainGateway {
 	@Inject(TwoFactorAuthenticationService)
 	private readonly tfaService: TwoFactorAuthenticationService;
 
+	constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
 	@WebSocketServer()
 	server;
@@ -76,7 +78,7 @@ export class MainGateway {
 		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
 		await this.prismaService.message.create({
 			data: {
-				senderName: msg.user.intraName,
+				senderName: msg.user.name,
 				channelName: msg.inChannel,
 				text: msg.text
 			}
@@ -95,7 +97,7 @@ export class MainGateway {
 	@SubscribeMessage('getChannelsForUser')
 	async getChannelsForUser(@MessageBody() data: any) {
 		const user = await this.prismaService.user.findFirst({
-			where: { name: data.user.intraName },
+			where: { intraName: data.user.intraName },
 			include: { channels: true }
 		});
 		return user.channels;
@@ -241,35 +243,36 @@ export class MainGateway {
 
 	}
 
-	@SubscribeMessage("sendFriendRequest")
-	sendFriendRequest(@MessageBody() UserInfo: Object) {
-
-	}
-
-	@SubscribeMessage("unFriendUser")
-	unFriendUser(@MessageBody() UserInfo: Object) {
-
-	}
-
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changeDisplayName")
-	async changeDisplayName(@MessageBody() UserInfo: Object) {
-		//TODO: NEW JWTTOKEN
+	async changeDisplayName(@MessageBody() UserInfo: Object, @ConnectedSocket() socket: Socket) {
 		const user = await this.prismaService.user.findFirst({
-			where: { name: UserInfo["user"].name }
+			where: { name: UserInfo["newDisplayName"] }
 		})
 
-		// if (user)
-		// 	return {error:"Username already in use"}
+		if (user)
+			return {error:"Username already in use"}
 
-		await this.prismaService.user.update({
+		const newUser = await this.prismaService.user.update({
 			where: { intraName: UserInfo["user"].intraName },
 			data: { name: UserInfo["newDisplayName"] }
 		})
 
-		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
+		await this.prismaService.message.updateMany({
+			where: {
+				senderName: UserInfo["user"].name
+			},
+			data: {
+				senderName: newUser.name
+			}
+		})
 
-		return { newName: UserInfo["newDisplayName"] };
+		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
+		
+		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
+		await this.cacheManager.del(socket.handshake.auth.token)
+		socket.handshake.auth.token = { token: jwtToken }
+		return { token: jwtToken, newName: UserInfo["newDisplayName"] };
 	}
 
 	@SubscribeMessage("verifyJWT")
@@ -295,7 +298,7 @@ export class MainGateway {
 
 
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 
 		this.logger.log(jwtToken)
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
@@ -339,7 +342,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -361,7 +364,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa disabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -449,7 +452,7 @@ export class MainGateway {
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
 
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken, state: data["state"], displayName: userData.name, avatar: userData.avatar }; // <===== jwt
 	}
 }
