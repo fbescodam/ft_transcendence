@@ -50,7 +50,7 @@ export class JwtGuard implements CanActivate {
 			return Boolean(user);
 		} catch (err) {
 			this.logger.log(err.message)
-			client.disconnect()
+			// client.disconnect()
 			throw new WsException(err.message);
 		}
 	}
