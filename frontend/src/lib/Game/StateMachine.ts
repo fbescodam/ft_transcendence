@@ -1,6 +1,6 @@
-import type { Vec2, Dimensions, Direction } from "../Types";
+import type { Vec2, Dimensions, Direction, User } from "../Types";
 import type GameTicker from "./Ticker";
-import type { GameMode } from "./Modes";
+import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID, type GameMode } from "./Modes";
 import GameSoundEngine from "./SoundEngine";
 
 /**
@@ -296,19 +296,31 @@ export class Paddle extends GameObject {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class PlayerState {
+export class Player {
 	score: number;
 	name: string;
 	avatar: string;
 	paddle: Paddle;
+	_ready: boolean;
 
 	constructor(name: string, avatar: string, position: "left" | "right", gameSize: Dimensions) {
 		this.score = 0;
 		this.name = name;
 		this.avatar = avatar;
+		this._ready = false;
 
 		// Initialize paddle
 		this.paddle = new Paddle(position, gameSize);
+	}
+
+	//= Public =//
+
+	markReady = () => {
+		this._ready = true;
+	}
+
+	isReady = () => {
+		return this._ready;
 	}
 }
 
@@ -341,41 +353,37 @@ export class ScoreUpdatedEvent extends GameEvent {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+export interface PausedReasonObject {
+	id: number,
+	text: string;
+	reason: string;
+}
+
 export class PausedReason {
-	private static _reasons = [
-		"The game is not paused",
-		"You've paused the game",
-		"Your opponent has paused the game",
-		"Game paused by server",
-		"Connection lost. Reconnecting...",
-		"Connection lost"
-	];
-
-	public static readonly NOT_PAUSED: number = 0;
-	public static readonly PAUSED_BY_PLAYER: number = 1;
-	public static readonly PAUSED_BY_OPPONENT: number = 2;
-	public static readonly PAUSED_BY_SERVER: number = 3;
-	public static readonly CONNECTION_LOST_RECON: number = 4;
-	public static readonly CONNECTION_LOST_FINAL: number = 5;
-
 	/**
-	 * Get the reason for the game being paused.
-	 * @param reason The reason for the pause.
-	 * @returns The string describing the reason the game is paused.
+	 * This is ugly but it works. Check if a PausedReason was defined by this class.
+	 * @param reason The reason to check.
+	 * @returns True if the reason was defined by this class, false otherwise.
 	 */
-	public static getReason = (reason: number) => {
-		if (reason < 0 || reason > this.maxReasonNumber())
-			throw new Error("Invalid paused reason");
-		return PausedReason._reasons[reason];
+	public static isValidReason(pausedReason: PausedReasonObject) {
+		return pausedReason.id >= 0 && pausedReason.id <= 13;
 	}
 
-	/**
-	 * Get the maximum supported reason for the game being paused.
-	 * @returns The maximum reason number.
-	 */
-	public static maxReasonNumber = () => {
-		return PausedReason._reasons.length - 1;
-	}
+	public static readonly PAUSED_BY_PLAYER: PausedReasonObject = { id: 0, text: "Game paused", reason: "You paused the game" };
+	public static readonly PAUSED_BY_OPPONENT: PausedReasonObject = { id: 1, text: "Game paused", reason: "Your opponent paused the game" };
+	public static readonly PAUSED_BY_SERVER: PausedReasonObject = { id: 2, text: "Game paused", reason: "The server paused the game" };
+	public static readonly CONNECTION_LOST_RECON: PausedReasonObject = { id: 3, text: "Connection lost", reason: "Trying to reconnect..." };
+	public static readonly CONNECTION_LOST_FINAL: PausedReasonObject = { id: 4, text: "Connection lost", reason: "Gave up on trying to reconnect. This game is now over." };
+	public static readonly WAITING_FOR_OPPONENT: PausedReasonObject = { id: 5, text: "Please wait...", reason: "Waiting for your opponent to join the game" };
+	public static readonly INITIALIZING_GAME: PausedReasonObject = { id: 6, text: "Please wait...", reason: "Setting up the game..." };
+	public static readonly READY_SET_GO: PausedReasonObject = { id: 7, text: "Ready to play?", reason: "Press SPACE to start." };
+	public static readonly GAME_OVER: PausedReasonObject = { id: 8, text: "Game over", reason: "You lost. Better luck next time!" };
+	public static readonly GAME_WON: PausedReasonObject = { id: 9, text: "Congratulations", reason: "You won! Well done." };
+	public static readonly GAME_WON_LOCAL_P1: PausedReasonObject = { id: 10, text: "Game over", reason: "Player 1 has won the game." };
+	public static readonly GAME_WON_LOCAL_P2: PausedReasonObject = { id: 11, text: "Game over", reason: "Player 2 has won the game." };
+	public static readonly GAME_TIED: PausedReasonObject = { id: 12, text: "Game over", reason: "The game ended in a tie." };
+	public static readonly GAME_OPPONENT_LEFT: PausedReasonObject = { id: 13, text: "Congratulations", reason: "Your opponent has given up, you win!" };
+	// When adding a reason here, make sure to update the isValidReason function above
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -390,20 +398,22 @@ class GameStateMachine {
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
 	private _gameSoundEngine: GameSoundEngine;
-	private _paused: number = 0;
+	private _paused: PausedReasonObject | null = PausedReason.READY_SET_GO;
+	private _secondsPlayed: number = 0;
+	private _gameDuration: number = 180; // 3 minutes
 
-	player1: PlayerState;
-	player2: PlayerState;
+	player1: Player;
+	player2: Player;
 	ball: Ball;
 
-	constructor(gameTicker: GameTicker, gameWidth: number, gameHeight: number, gameMode: GameMode) {
-		this._gameSize = { w: gameWidth, h: gameHeight };
+	constructor(gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, player1: User, player2: User) {
+		this._gameSize = { w: gameSize.w, h: gameSize.h };
 		this._gameMode = gameMode;
 		this._gameSoundEngine = new GameSoundEngine();
 
-		this.ball = new Ball({ x: gameWidth * 0.5, y: gameHeight * 0.5 });
-		this.player1 = new PlayerState("Player 1", "", "left", this._gameSize);
-		this.player2 = new PlayerState("Player 2", "", "right", this._gameSize);
+		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
+		this.player1 = new Player(player1.name, player1.avatar, "left", this._gameSize);
+		this.player2 = new Player(player2.name, player2.avatar, "right", this._gameSize);
 
 		// Run the game state machine every tick
 		gameTicker.add(this._update);
@@ -417,11 +427,11 @@ class GameStateMachine {
 		this.ball.speed *= 1.1; // Speed up with every ball interception by a paddle
 
 		// Calculate the new direction of the ball
-		// Constant k defines how much the ball will be deflected by the paddle's vy
-		const k = 0.25;
+		// It is not a perfect reflection, but this is intended - the way it is now,
+		// the gameplay is in general more fun, because it is a bit more random.
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
 		const paddle_vy = this.ball.speed + 0.5 * paddle.getMoveDirection();
-		let ball_vy = Math.cos(ball_dir) * this.ball.speed + k * paddle_vy;
+		let ball_vy = Math.cos(ball_dir) * this.ball.speed + 0.25 * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
 		this.ball.dx = ball_vx + (ball_vx < 0 ? -1 : 1); // Ternary to make sure the ball is not going straight up or down
 		this.ball.dy = ball_vy;
@@ -438,12 +448,48 @@ class GameStateMachine {
 		// TODO: dispatch event here
 	}
 
+	private _gameEnd = () => {
+		if (this._gameMode == LOCAL_MULTIPL_MODE_ID) {
+			if (this.player1.score > this.player2.score)
+				this._paused = PausedReason.GAME_WON_LOCAL_P1;
+			else if (this.player1.score == this.player2.score)
+				this._paused = PausedReason.GAME_TIED;
+			else
+				this._paused = PausedReason.GAME_WON_LOCAL_P2;
+		}
+		else {
+			if (this.player1.score > this.player2.score)
+				this._paused = PausedReason.GAME_WON;
+			else if (this.player1.score == this.player2.score)
+				this._paused = PausedReason.GAME_TIED;
+			else
+				this._paused = PausedReason.GAME_OVER;
+		}
+	}
+
 	/**
 	 * Ticker function - this function is called every game tick.
+	 * @param tps The current ticks per second.
+	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
-	private _update = () => {
-		if (this.isPausedBool())
+	private _update = (tps: number, deltaTick: number) => {
+		if (this.isPaused()) {
 			return;
+		}
+
+		// Check if the game is over
+		if (this._secondsPlayed >= this._gameDuration) {
+			this._gameEnd();
+
+			// Bugfix: prevent negative time from appearing
+			this._secondsPlayed = this._gameDuration;
+
+			// TODO: dispatch event here
+			return;
+		}
+
+		// Update the game time
+		this._secondsPlayed += deltaTick / 1000;
 
 		// Did ball hit either left or right wall?
 		const p1Win = this.ball.pos.x > this._gameSize.w;
@@ -500,16 +546,38 @@ class GameStateMachine {
 	}
 
 	/**
+	 * Start the game: mark player 1 as ready.
+	 * Note: in local multiplayer, it marks both players as ready and starts the game.
+	 */
+	public startGame = () => {
+		this.player1.markReady();
+
+		// If we're in local multiplayer, mark player 2 as ready as well
+		if (this.getGameMode() == LOCAL_MULTIPL_MODE_ID) {
+			this.player2.markReady();
+		}
+
+		// Check if player 2 is ready
+		// Always perform this check: in singleplayer, the AI needs to be ready too!
+		if (!this.player2.isReady()) {
+			this._paused = PausedReason.WAITING_FOR_OPPONENT;
+		}
+		else {
+			this._paused = null;
+		}
+	}
+
+	/**
 	 * Pause the game.
 	 * @param reason The reason for the pause. See PausedReason for more info.
 	 * @returns True if the game is now paused, false if it was already paused.
 	 */
-	public pauseGame = (reason: number): boolean => {
-		if (this._paused > PausedReason.NOT_PAUSED)
+	public pauseGame = (reason: PausedReasonObject): boolean => {
+		if (this._paused)
 			return false;
 
-		if (reason < 0 || reason > PausedReason.maxReasonNumber())
-			throw new Error("Invalid paused reason");
+		if (!PausedReason.isValidReason(reason))
+			throw new Error("Invalid pause reason: " + reason);
 		this._paused = reason;
 		return true;
 	}
@@ -519,8 +587,8 @@ class GameStateMachine {
 	 * @returns True if the game was unpaused, false if remains paused.
 	 */
 	public unPauseGame = (): boolean => {
-		if (this._paused == PausedReason.PAUSED_BY_PLAYER) {
-			this._paused = PausedReason.NOT_PAUSED;
+		if (this._paused) {
+			this._paused = null;
 			return true;
 		}
 		return false;
@@ -528,18 +596,34 @@ class GameStateMachine {
 
 	/**
 	 * Check if the game is paused.
-	 * @returns The reason for the game being paused (see PausedReason for more info).
+	 * @returns True if the game is paused, false if it is not.
 	 */
-	public isPaused = (): number => {
+	public isPaused = (): boolean => {
+		return this._paused != null;
+	}
+
+	/**
+	 * Get the reason for the game being paused.
+	 * @returns The reason (see PausedReason for more info). NULL if the game is not paused.
+	 */
+	public getPausedReason = (): PausedReasonObject | null => {
 		return this._paused;
 	}
 
 	/**
-	 * Check if the game is paused.
-	 * @returns True if the game is paused, false otherwise.
+	 * Get the amount of time played in the current game.
+	 * @returns The current game time in seconds.
 	 */
-	public isPausedBool = (): boolean => {
-		return this._paused > PausedReason.NOT_PAUSED;
+	public getTimePlayed = (): number => {
+		return this._secondsPlayed;
+	}
+
+	/**
+	 * Get the current game's duration.
+	 * @returns The current game's duration in seconds.
+	 */
+	public getGameDuration = (): number => {
+		return this._gameDuration;
 	}
 }
 

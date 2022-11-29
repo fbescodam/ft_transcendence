@@ -1,14 +1,13 @@
 import type GameTicker from "./Ticker";
-import type { Paddle } from "./StateMachine";
+import type { Player, Paddle } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
-import type  from "./StateMachine";
 import type { Direction } from "$lib/Types";
 import { getRandomArbitrary } from "$lib/Utils/Basic";
 
 class GameAI {
 	// AI knowledge
 	private _gameState: GameStateMachine;
-	private _paddle: Paddle;
+	private _player: Player;
 
 	// AI brains
 	private _followBall: boolean = true;
@@ -16,13 +15,16 @@ class GameAI {
 	private _randomDirection: Direction = 0;
 	private _lastRandomDirectionChange: number = new Date().getTime();
 
-	constructor(gameTicker: GameTicker, gameState: GameStateMachine, paddle: Paddle, tickRate: number = 60) {
+	constructor(gameTicker: GameTicker, gameState: GameStateMachine, player: Player, tickRate: number = 60) {
 		this._gameState = gameState;
-		this._paddle = paddle;
-		this._paddle.limitMoveSpeed();
+		this._player = player;
+		this._player.paddle.limitMoveSpeed();
 
 		// run controller update every tick
 		gameTicker.add(this._think);
+
+		// mark AI player as ready
+		this._player.markReady();
 	}
 
 	/**
@@ -34,11 +36,11 @@ class GameAI {
 		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
 			this._lastRandomDirectionChange = now;
 			this._followBall = Math.random() > 0.5; // 50% chance that the AI decides to follow the ball around
-			const rand = getRandomArbitrary(1, this._paddle.getMaxMoveSpeed() * 0.5); // Decide on a random speed to move the paddle at
+			const rand = getRandomArbitrary(1, this._player.paddle.getMaxMoveSpeed() * 0.5); // Decide on a random speed to move the paddle at
 
 			// If the AI is supposed to follow the ball, move the paddle in the same direction as the ball
 			if (followBallOverride || this._followBall)
-				this._randomDirection = (this._paddle.pos.y + this._paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
+				this._randomDirection = (this._player.paddle.pos.y + this._player.paddle.size.h / 2) > this._gameState.ball.pos.y ? -rand : rand;
 
 			// Else, move the paddle in a random direction with the random speed calculated earlier
 			else
@@ -52,31 +54,33 @@ class GameAI {
 	 */
 	private _randomBehaviour = (followBallOverride: boolean = false) => {
 		this._rethinkIfItsTime(followBallOverride);
-		this._paddle.setMoveDirection(this._randomDirection);
+		this._player.paddle.setMoveDirection(this._randomDirection);
 	}
 
 	/**
 	 * Ticker function - this function is run every game tick.
+	 * @param tps: The current ticks per second
+	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
-	private _think = () => {
-		if (this._gameState.isPausedBool())
+	private _think = (tps: number, deltaTick: number) => {
+		if (this._gameState.isPaused())
 			return;
 
 		// Calculate where the ball will likely go
-		const possibleY = this._gameState.ball.intersectsAtY(this._paddle.pos.x);
+		const possibleY = this._gameState.ball.intersectsAtY(this._player.paddle.pos.x);
 
 		// Move paddle to intercept the ball
 		if (possibleY != Infinity) {
-			const paddleOffset = this._paddle.size.h * 0.3;
+			const paddleOffset = this._player.paddle.size.h * 0.3;
 
 			// Paddle is in the right position, keep it still
-			if (possibleY > this._paddle.pos.y + paddleOffset &&
-					possibleY < this._paddle.pos.y + this._paddle.size.h - paddleOffset)
+			if (possibleY > this._player.paddle.pos.y + paddleOffset &&
+					possibleY < this._player.paddle.pos.y + this._player.paddle.size.h - paddleOffset)
 				this._randomBehaviour(false);
 
 			// Move the paddle towards the ball (randomDirection should not be here but we add some randomness to it)
 			else {
-				this._paddle.setMoveDirection(possibleY + this._randomDirection * 2 - this._paddle.pos.y - paddleOffset + this._randomDirection);
+				this._player.paddle.setMoveDirection(possibleY + this._randomDirection * 2 - this._player.paddle.pos.y - paddleOffset + this._randomDirection);
 			}
 		}
 		else {

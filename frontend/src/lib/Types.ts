@@ -1,23 +1,23 @@
 export type Vec2 = { x: number; y: number };
 export type Direction = number;
 export type Dimensions = { w: number; h: number };
-export type Player = {
+export type User = {
 	id: number;
 	wins: number;
 	loss: number;
 	name: string;
 	intraName: string;
 	avatar: string;
-    friends: Player[];
-	games: Game[]
+	games: Game[];
+	friends: User[];
 };
 export type Game = {
-    id: number;
-    createDate: Date;
-    players: Player[];
-    victorScore: number;
-    loserScore: number;
-    winnerId: number;
+	id: number;
+	createDate: Date;
+	players: User[];
+	victorScore: number;
+	loserScore: number;
+	winnerId: number;
 
-    roomID: string;
+	roomID: string;
 };
