@@ -130,18 +130,25 @@ export class MainGateway {
 			return { error:"channel exists" }
 		}
 
-		const channel = await this.prismaService.channel.create({
-			data: {
-				name: channelData["name"],
-				password: channelData["password"] || null, //TODO: hash these mofos
-				users: {
-					create: {
-						role: Role.ADMIN,
-						userName: channelData["user"].intraName,
-					}
-				}
-			}
-		});
+		let channel;
+		if (channelData["password"] != null)
+		{
+			channel = await this.prismaService.channel.create({
+				data: {
+					name: channelData["name"],
+					password: {create: {string: channelData["password"]}}, //TODO: hashes lol
+					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
+			}});
+		}
+		else
+		{
+			channel = await this.prismaService.channel.create({
+				data: {
+					name: channelData["name"], 
+					password: null,
+					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
+			}});
+		}
 
 		socket.join(channelData["name"]) //TODO: for some reason this dont do shit
 		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
@@ -193,13 +200,16 @@ export class MainGateway {
 	@SubscribeMessage("joinChannel")
 	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 		const channel = await this.prismaService.channel.findUnique({
-			where: { name:channelData["name"] }
+			where: { name:channelData["name"] },
+			select: {password: true, users: true}
 		});
 
 		if (!channel)
-			return {error:"channel does not exist"}
-		if (channel.password && channel.password != channelData["password"])
-			return {error:"wrong password"}
+			return {error:"channel does not exist"};
+		if (channel.password.string && channel.password.string != channelData["password"])
+			return {error:"wrong password"};
+		if (channel.users.map(function(item) {return item['userName'];}).includes(channelData["user"].intraName))
+			return {error:"already in channel"};
 
 		await this.prismaService.channel.update({
 			where: { name: channelData["name"] },
