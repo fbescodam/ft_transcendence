@@ -15,32 +15,34 @@ interface QueuedUser {
 @Injectable()
 export class GameService {
 	private _matchmakingQueue: QueuedUser[] = [];
-	private _matchmakingCheckInterval: NodeJS.Timer;
+
+	@Inject(PrismaService)
+	private readonly prismaService: PrismaService;
+	@Inject(GameGateway)
+	private readonly gameGateway: GameGateway
 
 	constructor() {
 		(async () => {
 			while (42) {
-				this._checkQueue()
+				await this._checkQueue()
 				await new Promise((resolve) => setTimeout(resolve, 5000));
 			}
 		})();
 	}
 
+	/**
+	 * Check the matchmaking queue and start games if there are enough players.
+	 */
 	private async _checkQueue() {
 		if (this._matchmakingQueue.length >= 2) {
 			//if more than 2 users are in queue: createGame -> leave queue -> startGame
-			this.leaveQueue(this._matchmakingQueue[0].intraName);
-			this.leaveQueue(this._matchmakingQueue[1].intraName);
+			console.log(`Found 2 users in the queue to matchmake. Creating game...`);
 			const game = await this.createGame(this._matchmakingQueue[0].intraName, this._matchmakingQueue[1].intraName);
+			console.log(`Game ${game.id} created. Starting game...`);
 			await this.startGame(game, this._matchmakingQueue[0], this._matchmakingQueue[1]);
 			//TODO: game loop somewhere
 		}
 	}
-
-	@Inject(PrismaService)
-	private readonly prismaService: PrismaService;
-	@Inject(forwardRef(() => GameGateway))
-	private readonly gameGateway: GameGateway
 
 	/**
 	 * Add a user to the queue of users waiting for a game.
@@ -83,21 +85,23 @@ export class GameService {
 	/**
 	 * Create a new game between two users.
 	 * @param user1Name The intra name of the first user
-	 * @param user2name The intra name of the second user
+	 * @param user2Name The intra name of the second user
 	 * @returns The newly created game. On error, use catch.
 	 */
-	async createGame(user1Name, user2name) {
+	async createGame(user1Name, user2Name) {
+		console.log(user1Name, user2Name);
+		const randomRoomString = (Math.random() + 1).toString(36).substring(7);
 		const game = await this.prismaService.game.create({
 			data: {
 				status: GameStatus.ONGOING,
 				players: {
 					connect: [
 						{ intraName: user1Name },
-						{ intraName: user2name }
+						{ intraName: user2Name }
 					]
 				},
-				gameEvents: null,
-				roomId: `game${user1Name}+${user2name}`
+				gameEvents: undefined,
+				roomId: `game${user1Name}+${user2Name}+${randomRoomString}`
 			}
 		})
 		return game;
@@ -110,15 +114,18 @@ export class GameService {
 	 * @param user2 The second player
 	 */
 	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
+		this.gameGateway.server
+			.to(user1.socketId)
+			.to(user2.socketId)
+			.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
 		this.gameGateway.server.to(user1.socketId).to(user2.socketId).emit('gameStart', {
 			gameId: game.id,
 			player1: user1.intraName,
 			player2: user2.intraName //add whatever you need
 		})
-		this.gameGateway.server
-			.to(user1.socketId)
-			.to(user2.socketId)
-			.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
+		this.leaveQueue(user1.socketId);
+		this.leaveQueue(user2.socketId);
+		console.log(`Game ${game.id} started between ${user1.intraName} and ${user2.intraName}. Room ID is ${game.roomId}.`);
 	}
 
 	/**
@@ -148,7 +155,6 @@ export class GameService {
 	 * @param gameData An object defining who won the game including the scores
 	 */
 	async finishGame(gameId, gameData) {
-
 		await this.prismaService.game.update({
 			where: { id: gameId },
 			data: {

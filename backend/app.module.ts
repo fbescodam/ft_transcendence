@@ -7,9 +7,8 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
-import { GameGateway } from 'game/game.gateway';
-import { GameService } from 'game/game.service';
 import { FriendsModule } from 'friends/friends.module';
+import { GameModule } from 'game/game.module';
 
 /*==========================================================================*/
 
@@ -18,6 +17,7 @@ import { FriendsModule } from 'friends/friends.module';
 		PrismaModule,
 		TwoFactorAuthenticationModule,
 		FriendsModule,
+		GameModule,
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,
 		}),
@@ -29,7 +29,7 @@ import { FriendsModule } from 'friends/friends.module';
 		})
 	],
 	controllers: [AppController],
-	providers: [AppService, GameService, MainGateway, GameGateway],
+	providers: [AppService, MainGateway],
 })
 
 /*==========================================================================*/

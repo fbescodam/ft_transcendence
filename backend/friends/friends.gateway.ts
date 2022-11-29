@@ -5,7 +5,6 @@ import { Socket } from "socket.io";
 import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
 import { FriendsService } from "./friends.service";
-import { User } from "svelte-hero-icons";
 
 // do not set origin to *, is unsafe
 // use localhost domain to connect to BreadPong instead of IP addresses.
@@ -47,31 +46,31 @@ export class FriendsGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("cancelFriendRequest")
 	public async cancelFriendRequest() {
-		
+
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("removeFriend")
 	public async removeFriend() {
-		
+
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("acceptFriendRequest")
 	public async acceptFriendRequest() {
-		
+
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("denyFriendRequest")
 	public async denyFriendRequest() {
-		
+
 	}
-	
+
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("BlockUser")
 	public async BlockUser() {
-		
+
 	}
 
 	@UseGuards(JwtGuard)

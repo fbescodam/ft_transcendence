@@ -1,4 +1,5 @@
-import { PausedReason, type ScoreUpdatedEvent } from "./StateMachine";
+import { formatSeconds } from "$lib/Utils/Basic";
+import type { PausedReasonObject } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
 
 class GameRenderer {
@@ -6,12 +7,24 @@ class GameRenderer {
 	private _canvas: HTMLCanvasElement;
 	private _ctx: CanvasRenderingContext2D;
 	private _scores: HTMLElement;
+	private _timer: HTMLElement;
+	private _avatar1: HTMLImageElement;
+	private _avatar2: HTMLImageElement;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
 		this._scores = scores;
+		this._timer = timer;
+		this._avatar1 = avatar1;
+		this._avatar2 = avatar2;
+
+		// Set up user data
+		this._avatar1.src = this._gameState.player1.avatar;
+		this._avatar2.src = this._gameState.player2.avatar;
+		console.log(this._gameState.player1.avatar);
+		console.log(this._avatar1.src);
 
 		// Register game state events
 		document.addEventListener("scoreUpdated", this._updateScores);
@@ -32,18 +45,19 @@ class GameRenderer {
 	 * Draws the text indicating the game is paused. The reason is automatically fetched from the game state and displayed too.
 	 */
 	private _renderPausedText = () => {
+		const pausedReason: PausedReasonObject | null = this._gameState.getPausedReason();
 		this._ctx.save();
 		this._ctx.fillStyle = "#fff";
 		this._ctx.font = "48px 'Common Pixel'";
 		this._ctx.textAlign = "center";
-		this._ctx.fillText("GAME PAUSED", this._canvas.width * 0.5, this._canvas.height * 0.5);
+		this._ctx.fillText(pausedReason!.text.toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5);
 		this._ctx.restore();
 
 		this._ctx.save();
 		this._ctx.font = "24px 'Common Pixel'";
 		this._ctx.fillStyle = "#999";
 		this._ctx.textAlign = "center";
-		this._ctx.fillText(PausedReason.getReason(this._gameState.isPaused()).toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5 + 48);
+		this._ctx.fillText(pausedReason!.reason.toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5 + 48);
 		this._ctx.restore();
 	}
 
@@ -87,8 +101,11 @@ class GameRenderer {
 		// Middle line
 		this._renderMiddleLine();
 
+		// Timer
+		this._timer.innerText = formatSeconds(this._gameState.getGameDuration() - this._gameState.getTimePlayed());
+
 		// Pause screen (if paused)
-		if (this._gameState.isPaused() > 0) {
+		if (this._gameState.isPaused()) {
 			this._renderOverlay();
 			this._renderPausedText();
 		}

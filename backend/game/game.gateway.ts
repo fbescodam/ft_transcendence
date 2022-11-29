@@ -1,14 +1,10 @@
-import { Inject, Logger, UseGuards } from "@nestjs/common";
+import { forwardRef, Inject, Logger, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, OnGatewayDisconnect } from "@nestjs/websockets";
 import { PrismaClient } from "@prisma/client";
 import { Socket } from "socket.io";
 import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
 import { GameService } from "./game.service";
-
-
-const prisma = new PrismaClient()
-const gameHandler = new GameService()
 
 // do not set origin to *, is unsafe
 // use localhost domain to connect to BreadPong instead of IP addresses.
@@ -17,7 +13,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
-	@Inject(GameService)
+	@Inject(forwardRef(() => GameService))
 	private readonly gameService: GameService;
 
 	@WebSocketServer()
@@ -40,6 +36,22 @@ export class GameGateway implements OnGatewayDisconnect {
 		return { status: status }
 	}
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getGame')
+	async getGameInfo(@MessageBody() data: Object) {
+		try {
+			console.log(data);
+			console.log("Fetching game data on game " + data["game"]["id"]);
+			const game = await this.prismaService.game.findUnique({
+				where: { id: data["game"]["id"] },
+				include: { players: true }
+			})
+			return { game: game }
+		}
+		catch (e) {
+			return { error: e.toString() }
+		}
+	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('finishGame')
