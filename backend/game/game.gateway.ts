@@ -11,14 +11,11 @@ const prisma = new PrismaClient()
 const gameHandler = new GameService()
 async function checkQueue() {
 	const users = await prisma.queuedUser.findMany({
-		orderBy: {
-			joinedQueue: 'asc'
-		},
+		orderBy: { joinedQueue: 'asc' },
 		take: 2
 	})
 
-	if (users.length == 2)
-	{
+	if (users.length == 2) {
 		//if 2 users are in queue: createGame -> leave queue -> startGame
 		const game = await gameHandler.createGame(users[0].userName, users[1].userName)
 		await gameHandler.leaveQueue(users[0].userName)
@@ -32,8 +29,7 @@ async function checkQueue() {
 @WebSocketGateway({ cors: { origin: "*", credentials: false } })
 export class GameGateway {
 
-	constructor() { 
-
+	constructor() {
 		(async () => {
 			while (42) {
 				checkQueue()
@@ -46,7 +42,7 @@ export class GameGateway {
 	private readonly prismaService: PrismaService;
 	@Inject(GameService)
 	private readonly gameService: GameService;
-	
+
 	@WebSocketServer()
 	server;
 
@@ -54,14 +50,13 @@ export class GameGateway {
 
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage('joinQueue') 
+	@SubscribeMessage('joinQueue')
 	async joinQueue(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
 		await this.gameService.joinQueue(data["user"].intraName, socket.id)
-
 	}
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage('leaveQueue') 
+	@SubscribeMessage('leaveQueue')
 	async leaveQueue(@MessageBody() data: Object) {
 		await this.gameService.leaveQueue(data["user"].intraName)
 	}
@@ -72,8 +67,4 @@ export class GameGateway {
 	async finishGame() {
 
 	}
-
-
-
-
 }

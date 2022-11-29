@@ -11,7 +11,7 @@ import TileItem from "$lib/Components/TileItem/TileItem.svelte";
 <!-- HTML -->
 
 <Container>
-    <h1>Select a mode</h1>
+    <h1>Select a game mode</h1>
 </Container>
 <hr />
 <Container style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center">
