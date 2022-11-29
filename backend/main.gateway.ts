@@ -4,7 +4,8 @@ import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
 import { ChannelType, Role } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
-import { Inject, Logger, UseGuards } from "@nestjs/common";
+import { Inject, Logger, UseGuards, CACHE_MANAGER } from "@nestjs/common";
+import { Cache } from 'cache-manager'
 import {
 	MessageBody,
 	SubscribeMessage,
@@ -32,6 +33,7 @@ export class MainGateway {
 	@Inject(TwoFactorAuthenticationService)
 	private readonly tfaService: TwoFactorAuthenticationService;
 
+	constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
 	@WebSocketServer()
 	server;
@@ -245,9 +247,10 @@ export class MainGateway {
 		})
 
 		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
-
+		
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		await this.cacheManager.del(socket.handshake.auth.token)
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken, newName: UserInfo["newDisplayName"] };
 	}
 
@@ -274,7 +277,7 @@ export class MainGateway {
 
 
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 
 		this.logger.log(jwtToken)
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
@@ -318,7 +321,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -340,7 +343,7 @@ export class MainGateway {
 		})
 		this.logger.log(`tfa disabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -428,7 +431,7 @@ export class MainGateway {
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
 
-		socket.handshake.auth = { token: jwtToken }
+		socket.handshake.auth.token = { token: jwtToken }
 		return { token: jwtToken, state: data["state"], displayName: userData.name, avatar: userData.avatar }; // <===== jwt
 	}
 }
