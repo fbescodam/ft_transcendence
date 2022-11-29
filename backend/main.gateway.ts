@@ -20,7 +20,9 @@ import { TwoFactorAuthenticationService } from "auth/2fa.service";
 
 dotenv.config();
 
-@WebSocketGateway({ cors: { origin: "*", credentials: false } })
+// do not set origin to *, is unsafe
+// use localhost domain to connect to BreadPong instead of IP addresses.
+@WebSocketGateway({ cors: { origin: "localhost", credentials: false } })
 export class MainGateway {
 
 	//= Properties =//
