@@ -14,6 +14,9 @@ generator client {
 // models
 
 model User {
+
+	//==================userdata====================//
+
 	id          Int             @id @default(autoincrement())
 	intraId     Int             @unique
 	name        String         	@unique
@@ -21,19 +24,29 @@ model User {
 	email		String			@unique
 	role        Role            @default(USER)
 	joinedAt    DateTime        @default(now())
-	messages    Message[]
-	channels    UserInChannel[]
 	avatar      String
 
+	//==================channels====================//
+
+	messages    Message[]
+	channels    UserInChannel[]
+
+	//==================games====================//
+
 	games       Game[]
+
+	//==================twofactorauth====================//
 
 	tfaEnabled	Boolean			@default(false)
 	tfaSecret	String?
 
-	//----- subject to removal -----//
-	// friends             Int[]	//TODO: better way for this?
-	// pendingFriends      Int[]
-	// blocked             Int[]
+	//==================friends====================//
+	
+	friends				User[]	@relation("friends")
+	friendStore			User[]	@relation("friends") //This field is just for storing the many-to-many. ignore
+
+	blocked				User[]	@relation("blocked")
+	blockedStore		User[]	@relation("blocked") //This field is just for storing the many-to-many. ignore
 }
 
 model Channel {
@@ -62,7 +75,7 @@ model Message {
 	id          Int       @id @default(autoincrement())
 	sentAt      DateTime  @default(now())
 	text        String
-	sender      User?     @relation(fields: [senderName], references: [intraName])
+	sender      User?     @relation(fields: [senderName], references: [name])
 	senderName  String?
 	channel     Channel?  @relation(fields: [channelName], references: [name])
 	channelName String?
