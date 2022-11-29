@@ -27,7 +27,7 @@ let ratio = wins / loss;
 	<b>Name: {name}</b>
 	<b>Wins: {wins}</b>
 	<b>Losses: {loss}</b>
-	<b>games: {games}</b>
+	<b>Games: {games}</b>
 	<b>Ratio: {ratio}</b>
 </div>
 

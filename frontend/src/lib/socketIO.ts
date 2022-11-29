@@ -21,12 +21,16 @@ export function initSocket(JWT: string) {
 			token: JWT
 		}
 	});
+
+	io.on("disconnect", () => {
+		JWT = "";
+		goto("/auth", { replaceState: false });
+	});
+
 	//TODO: connection errors
 	io.emit("verifyJWT", function(answer:any) {
 		if (answer.status != "ok")
-		{
 			goto("/auth", { replaceState: false });
-		}
 	});
 	return (io);
 };

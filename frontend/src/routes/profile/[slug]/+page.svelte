@@ -66,7 +66,7 @@ const getRandomEmoji = () => {
 		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
 				<ProfilePic avatar={player.avatar} width={128} height={128}/>
-				<ProfileStats name={player.name} wins={620} loss={6} games={player.games.length} />
+				<ProfileStats name={player.name} wins={player.wins} loss={player.loss} games={player.games.length} />
 			</div>
 		</Container>
 		<hr />

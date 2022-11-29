@@ -3,9 +3,12 @@ export type Direction = number;
 export type Dimensions = { w: number; h: number };
 export type Player = {
 	id: number;
+	wins: number;
+	loss: number;
 	name: string;
 	intraName: string;
 	avatar: string;
+    friends: Player[];
 	games: Game[]
 };
 export type Game = {

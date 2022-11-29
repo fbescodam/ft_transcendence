@@ -18,6 +18,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 $state = $state == "empty" ? generateRandomString(32) : $state;
 let authCode = $page.url.searchParams.get("code");
 let stateMismatch = $page.url.searchParams.get("state") == $state;
+let timeout: boolean = false;
 
 //====//
 
@@ -31,6 +32,12 @@ onMount(() => {
 			$JWT = answer.token;
 			$displayName = answer.displayName;
 			$avatar = answer.avatar;
+
+			setTimeout(() => {
+				console.warn("Its been 5 seconds, check your connection...")
+				timeout = true;
+			}, 5000);
+			
 			goto('http://localhost:5173', { replaceState: true })
 		});
 	}
@@ -56,27 +63,29 @@ function onClick() {
 
 <!-- HTML -->
 
-{#if !authCode }
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">
 		<div class="center">
 			<img class="freek" src={Logo} alt="42-logo" height="256" width="256"/>
-			<h1>Welcome to Breadpong!</h1>
-			<Button on:click={onClick}>
-				<div class="login-button">
-					<b>Login</b>
-					<img src={Logo42} alt="42-logo" height="32" width="32"/>
-				</div>
-			</Button>
+			{#if !authCode && !timeout }
+				<h1>Welcome to Breadpong!</h1>
+				<Button on:click={onClick}>
+					<div class="login-button">
+						<b>Login</b>
+						<img src={Logo42} alt="42-logo" height="32" width="32"/>
+					</div>
+				</Button>
+			{:else if timeout }
+				<h1>Connection timeout, Is server down?</h1>
+			{:else if !stateMismatch }
+				<h1>Logging in...</h1>
+			{:else}
+				<h1>Error: state mismatch!</h1>
+				<p>Someone might be trying to do someting nasty.</p>
+			{/if}
 		</div>
 	</Container>
 </div>
-{:else if ! stateMismatch }
-	<h1>Logging you in...</h1>
-{:else}
-	<h1>Error: state mismatch!</h1>
-	<p>Someone might be trying to do someting nasty.</p>
-{/if}
 
 <!-- Styling -->
 
