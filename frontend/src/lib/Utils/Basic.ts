@@ -30,7 +30,7 @@ export function formatSeconds(seconds: number) : string {
 	let m = Math.floor((seconds / 60) % 60);
 	let u = Math.floor(((seconds / 60) / 60 ) % 60);
 	if (u == 0) {
-		return ((m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s);
+		return (m + ':' + (s < 10 ? '0' : '') + s);
 	}
-	return (u + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s);
+	return (u + ':' + m + ':' + (s < 10 ? '0' : '') + s);
 }
