@@ -91,8 +91,14 @@ async function initGame() {
 		const gameData: any = await getGameData(gameId);
 		if (gameData.players.length != 2)
 			throw new Error("Invalid number of players in game");
-		populateUser(player1, gameData.players[0]);
-		populateUser(player2, gameData.players[1]);
+		if (gameData.players[0].name == $displayName) {
+			populateUser(player1, gameData.players[0]);
+			populateUser(player2, gameData.players[1]);
+		}
+		else {
+			populateUser(player1, gameData.players[1]);
+			populateUser(player2, gameData.players[0]);
+		}
 	}
 
 	gameTicker = new GameTicker();
