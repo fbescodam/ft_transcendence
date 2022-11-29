@@ -8,21 +8,27 @@
 <script lang="ts">
 import { page } from "$app/stores";
 
+export let name: string;
+export let games: number;
+export let wins: number;
+export let loss: number;
+let ratio = wins / loss;
 
-const getUserData = (async () => {
-	const response = await fetch('https://dog.ceo/api/breeds/image/random')
-	return await response.json()
-})()
+// const getUserData = (async () => {
+// 	const response = await fetch('https://dog.ceo/api/breeds/image/random')
+// 	return await response.json()
+// })()
 
 </script>
 
 <!-- HTML -->
 
 <div class="box">
-	<b>Name: {"lde-la-h"}</b>
-	<b>Wins: {69}</b>
-	<b>Losses: {0}</b>
-	<b>Ratio: {0.421}</b>
+	<b>Name: {name}</b>
+	<b>Wins: {wins}</b>
+	<b>Losses: {loss}</b>
+	<b>games: {games}</b>
+	<b>Ratio: {ratio}</b>
 </div>
 
 <!-- Styling -->
