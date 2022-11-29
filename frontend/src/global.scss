@@ -48,6 +48,10 @@ body {
 	overflow: hidden;
 }
 
+h1, h2, h3, h4, h5 {
+	text-align: center;
+}
+
 hr {
 	border: 2px solid var(--component-border);
 	background-color: var(--component-border);

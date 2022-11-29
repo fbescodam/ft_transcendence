@@ -11,7 +11,9 @@
 </script>
 
 <button {type} on:click={() => { dispatch("click"); }}>
-    <slot/>
+	<div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+		<slot/>
+	</div>
 </button>
 
 <style lang="scss">

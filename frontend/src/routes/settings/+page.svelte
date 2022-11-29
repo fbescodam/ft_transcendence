@@ -13,39 +13,57 @@ import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 
-let newUsername: HTMLInputElement;
-let tfaCode: HTMLInputElement;
-let authCode: HTMLInputElement;
-
 let io: Socket;
 let qrcode: string;
 
-onMount(() => io = initSocket($JWT!));
+// TODO: Check if the user has tfa enabled.
+let tfaEnabled: boolean = false;
+let newUsername: HTMLInputElement;
+let authCode: HTMLInputElement;
 
+onMount(() => {
+	io = initSocket($JWT!)
+	io.emit("isTfaEnabled", {}, (data: { tfaEnabled: boolean }) => {
+		tfaEnabled = data.tfaEnabled;
+		console.log(tfaEnabled);
+	});
+});
+
+/**
+ * Change the name of the user
+ * @param e The submit event
+ */
 function changeUsername(e: SubmitEvent) {
 	e.preventDefault()
-	
-	if (newUsername.value)
-	{
-		io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
-			console.log(answer);
-			if ("error" in answer)
-				return console.log("error: %s", answer.error);
-			$displayName = newUsername.value;
-			newUsername.value = '';
-		})
-	}
 
+	io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
+		console.log(answer);
+		if ("error" in answer)
+			return console.log("error: %s", answer.error);
+		$displayName = newUsername.value;
+		newUsername.value = '';
+	})
 }
 
 function logOut() {
 	$JWT = null;
 }
 
-//this is how you get a qrcode as svg
-function getQrCode(e: SubmitEvent) {
+//this is how you check a code
+function checkCode(e: SubmitEvent) {
 	e.preventDefault()
 
+	io.emit('enableTfaAuth', {tfaCode: authCode.value}, function(answer:any) {
+		if ("error" in answer) {
+			authCode.setCustomValidity("Invalid code!");
+			return;
+		}
+		$JWT = answer["token"]
+		console.log(answer)
+	});
+}
+
+function getQRCode() {
 	io.emit('getQrCode', {}, function(e:any) {
 		console.log(e)
 		$JWT = e["token"]
@@ -53,33 +71,82 @@ function getQrCode(e: SubmitEvent) {
 	})
 }
 
-//this is how you check a code
-function checkCode(e: SubmitEvent) {
-	e.preventDefault()
-
-	io.emit('checkCode', {tfaCode: authCode.value}, function(answer: any) {
-		console.log(answer);
-	})
-}
-
-function disabletfa(e: SubmitEvent) {
-	e.preventDefault()
-
-}
-
-//this is how you enable 2fa
-function enableTfa(e: SubmitEvent) {
-	e.preventDefault()
-
-	io.emit('enableTfaAuth', {tfaCode: tfaCode.value}, function(answer:any) {
-		if ("error" in answer)
-			return console.log("error: %s", answer.error);
-		$JWT = answer["token"]
-		console.log(answer)
-	})
-}
-
 </script>
+
+<!-- HTML -->
+
+<svelte:head>
+	<title>Settings</title>
+	<meta name="description" content="Change your user settings" />
+</svelte:head>
+
+<div class="page">
+	<Container>
+		<h2>Settings</h2>
+	</Container>
+	<hr />
+	<Container style="flex: 1;">
+
+		<!-- User Data -->
+		<!-- TODO: Any extra settings ? -->
+		<form on:submit={(e) => { changeUsername(e); }}>
+			<fieldset>
+				<legend>User Data</legend>
+
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label>Username:</label>
+				<input type="text" bind:this={newUsername} placeholder={$displayName} required/>
+				<hr/>
+				<Button type="submit">Submit</Button>
+			</fieldset>
+		</form>
+
+		<br/>
+
+		<!-- Authentication -->
+		<form on:submit={(e) => checkCode(e)}>
+			<fieldset>
+				<legend>Authentication</legend>
+
+				<Button on:click={() => { tfaEnabled = !tfaEnabled }} >
+					{#if tfaEnabled}
+						Enable 2FA
+					{:else}
+						Disable 2FA
+					{/if}
+				</Button>
+				
+				{#if !tfaEnabled}
+					<hr/>
+					{#if qrcode === undefined}
+						<b>Request a new QRCode!</b>
+					{:else}
+						<img id="QRCode" src={qrcode} alt="qr-code"/>
+					{/if}
+					<br/>
+					<!-- svelte-ignore a11y-label-has-associated-control -->
+					<label>Please enter the code by scanning the QR:</label>
+					<input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code" bind:this={authCode}/>
+					
+					<hr/>
+					<Button type="submit">Send Code</Button>
+					<Button on:click={() => getQRCode()}>Get QRCode</Button>
+				{/if}
+				</fieldset>
+		</form>
+
+		<br/>
+
+		<!-- Logout -->
+		<form>
+			<fieldset>
+				<legend>Logout</legend>
+				<Button type="submit" on:click={logOut}>Log out</Button>
+			</fieldset>
+		</form>
+	</Container>
+</div>
+
 
 <!-- Styles -->
 
@@ -100,77 +167,6 @@ function enableTfa(e: SubmitEvent) {
 	fieldset {
 		border-radius: 8px;
 		padding: 8px; 
-		border: 2px solid;
-		border-color: var(--component-border-color); 
+		border: 2px solid var(--component-border);
 	}
 </style>
-
-<!-- HTML -->
-
-<svelte:head>
-	<title>Settings</title>
-	<meta name="description" content="Change your user settings" />
-</svelte:head>
-
-<div class="page">
-	<Container style="flex: 1;">
-		<form on:submit={(e) => { changeUsername(e); }}>
-			<fieldset>
-				<legend>User Data</legend>
-				<div>
-					<label>Username:</label>
-					<input type="text" bind:this={newUsername} placeholder={$displayName}/>
-				</div>
-				<br/>
-				<Button type="submit">Change username</Button>
-			</fieldset>
-		</form>
-
-		<form on:submit={(e) => { checkCode(e)}}>
-			<fieldset>
-				<legend>Authentication</legend>
-
-				<div>
-					<label htmlFor="token">Please enter the code you were sent:</label>
-					<input
-						type="text"
-						name="token"
-						id="token"
-						inputMode="numeric"
-						pattern="[0-9]*"
-						autoComplete="one-time-code"
-						bind:this={authCode}
-					/>
-				</div>
-
-				<Button type="submit">Submit</Button>
-			</fieldset>
-		</form>
-
-		<form>
-			<fieldset>
-				<Button type="submit" on:click={logOut}>Log out</Button>
-			</fieldset>
-		</form>
-
-		<form on:submit={(e) => { getQrCode(e); }}>
-			<fieldset>
-				<Button type="submit">getQrCode</Button>
-			</fieldset>
-		</form>
-
-		<form on:submit={(e) => { enableTfa(e); }}>
-			<fieldset>
-				<div>
-					<label>2faCode:</label>
-					<input type="text" bind:this={tfaCode}/>
-				</div>
-				<br/>
-				<Button type="submit">enableTfa</Button>
-			</fieldset>
-		</form>
-
-		<img id="qr" src={qrcode}/>
-
-	</Container>
-</div>

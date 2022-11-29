@@ -287,6 +287,12 @@ export class MainGateway {
 		return { valid: "2fa code is valid" }
 	}
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("isTfaEnabled")
+	public async tfaEnabled(@MessageBody() data: object) {
+		return { tfaEnabled: data["user"].tfaEnabled };
+	}
+
 	/**
 	 * enables 2fa authentication for user (flips a boolen in db)
 	 * @param data contains tfa code
@@ -295,9 +301,6 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("enableTfaAuth")
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
-		if (!valid)
-			return { error: "invalid 2fa" }
 
 		const user = await this.prismaService.user.update({
 			where: { intraName: data["user"].intraName },
