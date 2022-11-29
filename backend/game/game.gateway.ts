@@ -29,13 +29,23 @@ export class GameGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('joinQueue')
 	async joinQueue(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		await this.gameService.joinQueue(data["user"].intraName, socket.id)
+		const status = this.gameService.joinQueue(data["user"].intraName, socket.id)
+		if (status)
+			console.log(`${data["user"].intraName} joined the queue`);
+		else
+			console.log(`${data["user"].intraName} could not join the queue`);
+		return { status: status }
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('leaveQueue')
 	async leaveQueue(@MessageBody() data: Object) {
-		await this.gameService.leaveQueue(data["user"].intraName)
+		const status = this.gameService.leaveQueue(data["user"].intraName)
+		if (status)
+			console.log(`${data["user"].intraName} left the queue`);
+		else
+			console.log(`${data["user"].intraName} could not leave the queue`);
+		return { status: status }
 	}
 
 

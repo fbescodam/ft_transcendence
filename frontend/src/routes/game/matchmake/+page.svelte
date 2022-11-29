@@ -4,12 +4,18 @@
 import { page } from "$app/stores";
 import { Icon, Refresh } from "svelte-hero-icons"
 import Container from "$lib/Components/Container/Container.svelte";
-import { onMount } from "svelte";
-import { error } from "@sveltejs/kit";
+import { onDestroy, onMount } from "svelte";
 import { goto } from "$app/navigation";
-import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Game/Modes";
+import { SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Game/Modes";
+import { JWT } from "$lib/Stores/User";
+import { initSocket } from "$lib/socketIO";
+import type { Socket } from "socket.io-client";
+
+let userInQueue = false;
+let io: Socket | null = null;
 
 onMount(() => {
+    io = initSocket($JWT!);
     const selectedModeParam = $page.url.searchParams.get('mode');
 
     if (selectedModeParam != null) {
@@ -30,13 +36,24 @@ onMount(() => {
             case ONLINE_MULTIPL_MODE_ID: // Online Multiplayer
             {
                 console.log("Creating online multiplayer lobby");
-                //TODO: socket emit 'joinQueue'
+                io.emit("joinQueue", {});
+                window.onbeforeunload = () => {
+                    if (io)
+                        io.emit("leaveQueue", {});
+                }
                 break;
             }
             default:
                 console.warn("Invalid mode ID in matchmake", selectedModeID);
                 goto("/game", { replaceState: true });
         }
+    }
+});
+
+onDestroy(() => {
+    console.log("onDestroy called");
+    if (userInQueue && io != null) {
+        io.emit("leaveQueue", {});
     }
 });
 
