@@ -18,8 +18,11 @@ export class GameTicker {
 	private _tick = () => {
 		const now = new Date().getTime();
 		const deltaTick = now - this._lastTick;
-		for (let ticker of this._tickers)
-			ticker(this._tps, deltaTick);
+		for (let ticker of this._tickers) {
+			(async () => {
+				ticker(this._tps, deltaTick);
+			})();
+		}
 		this._lastTick = now;
 	}
 
