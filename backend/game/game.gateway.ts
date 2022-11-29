@@ -10,7 +10,9 @@ import { GameService } from "./game.service";
 const prisma = new PrismaClient()
 const gameHandler = new GameService()
 
-@WebSocketGateway({ cors: { origin: "*", credentials: false } })
+// do not set origin to *, is unsafe
+// use localhost domain to connect to BreadPong instead of IP addresses.
+@WebSocketGateway({ cors: { origin: "http://localhost:5173", credentials: false } })
 export class GameGateway {
 
 	@Inject(PrismaService)

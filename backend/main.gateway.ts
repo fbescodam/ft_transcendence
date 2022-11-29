@@ -22,7 +22,7 @@ dotenv.config();
 
 // do not set origin to *, is unsafe
 // use localhost domain to connect to BreadPong instead of IP addresses.
-@WebSocketGateway({ cors: { origin: "localhost", credentials: false } })
+@WebSocketGateway({ cors: { origin: "http://localhost:5173", credentials: false } })
 export class MainGateway {
 
 	//= Properties =//
