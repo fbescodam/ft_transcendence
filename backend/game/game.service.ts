@@ -52,22 +52,29 @@ export class GameService {
 		if (this.findInQueue(intraName))
 			return false;
 		this._matchmakingQueue.push({ intraName, socketId: id });
+		console.log(`${intraName} joined the queue`);
 		return true;
 	}
 
-	findInQueue(intraName: string): QueuedUser | undefined {
-		return this._matchmakingQueue.find((user) => user.intraName === intraName);
+	/**
+	 * Find a user in the matchmaking queue.
+	 * @param intraNameOrSocketId The intra name of the user to find in the queue, or their socket id
+	 * @returns A QueuedUser object if the user was found, undefined if otherwise.
+	 */
+	findInQueue(intraNameOrSocketId: string): QueuedUser | undefined {
+		return this._matchmakingQueue.find((user) => user.intraName === intraNameOrSocketId || user.socketId === intraNameOrSocketId);
 	}
 
 	/**
 	 * Remove a user from the queue of users waiting for a game.
-	 * @param intraName The intra name of the user to remove from the queue
+	 * @param intraNameOrSocketId The intra name of the user to remove from the queue, or their socket id
 	 * @returns Returns true if the user was removed from the queue, false on error
 	 */
-	leaveQueue(intraName: string): boolean {
-		const user: QueuedUser = this.findInQueue(intraName);
+	leaveQueue(intraNameOrSocketId: string): boolean {
+		const user: QueuedUser = this.findInQueue(intraNameOrSocketId);
 		if (user) {
 			this._matchmakingQueue.splice(this._matchmakingQueue.indexOf(user), 1);
+			console.log(`${user.intraName} left the queue`);
 			return true;
 		}
 		return false;
