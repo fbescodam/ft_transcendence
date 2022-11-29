@@ -30,6 +30,9 @@ export class GameService {
 		})();
 	}
 
+	/**
+	 * Check the matchmaking queue and start games if there are enough players.
+	 */
 	private async _checkQueue() {
 		if (this._matchmakingQueue.length >= 2) {
 			//if more than 2 users are in queue: createGame -> leave queue -> startGame

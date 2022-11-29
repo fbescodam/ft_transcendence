@@ -36,6 +36,19 @@ export class GameGateway implements OnGatewayDisconnect {
 		return { status: status }
 	}
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getGame')
+	async getGameInfo(@MessageBody() data: Object) {
+		const game = await this.prismaService.game.findUnique({
+			where: {
+				id: data["gameId"]
+			},
+			include: {
+				players: true
+			}
+		})
+		return { game: game }
+	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('finishGame')

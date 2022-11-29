@@ -47,7 +47,7 @@ onMount(() => {
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores);
 	if (gameState.getGameMode() === SINGLEPL_MODE_ID) {
-		gameAI = new GameAI(gameTicker, gameState, gameState.player2.paddle);
+		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
 	}
 });
 
@@ -67,6 +67,8 @@ const keyDownHandler = (event: KeyboardEvent) => {
 
 	if (event.code === "Escape")
 		gameController.togglePause();
+	if (event.code === "Space")
+		gameController.amReady();
 };
 
 </script>

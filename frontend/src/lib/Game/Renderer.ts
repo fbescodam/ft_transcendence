@@ -1,4 +1,4 @@
-import { PausedReason, type ScoreUpdatedEvent } from "./StateMachine";
+import type { PausedReasonObject } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
 
 class GameRenderer {
@@ -32,18 +32,19 @@ class GameRenderer {
 	 * Draws the text indicating the game is paused. The reason is automatically fetched from the game state and displayed too.
 	 */
 	private _renderPausedText = () => {
+		const pausedReason: PausedReasonObject | null = this._gameState.getPausedReason();
 		this._ctx.save();
 		this._ctx.fillStyle = "#fff";
 		this._ctx.font = "48px 'Common Pixel'";
 		this._ctx.textAlign = "center";
-		this._ctx.fillText("GAME PAUSED", this._canvas.width * 0.5, this._canvas.height * 0.5);
+		this._ctx.fillText(pausedReason!.text.toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5);
 		this._ctx.restore();
 
 		this._ctx.save();
 		this._ctx.font = "24px 'Common Pixel'";
 		this._ctx.fillStyle = "#999";
 		this._ctx.textAlign = "center";
-		this._ctx.fillText(PausedReason.getReason(this._gameState.isPaused()).toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5 + 48);
+		this._ctx.fillText(pausedReason!.reason.toUpperCase(), this._canvas.width * 0.5, this._canvas.height * 0.5 + 48);
 		this._ctx.restore();
 	}
 
@@ -88,7 +89,7 @@ class GameRenderer {
 		this._renderMiddleLine();
 
 		// Pause screen (if paused)
-		if (this._gameState.isPaused() > 0) {
+		if (this._gameState.isPaused()) {
 			this._renderOverlay();
 			this._renderPausedText();
 		}

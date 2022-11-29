@@ -45,7 +45,7 @@ class GameController {
 	 * Ticker function - this function is run every game tick.
 	 */
 	public _update = () => {
-		if (this._gameState.isPausedBool())
+		if (this._gameState.isPaused())
 			return;
 
 		// In all game modes
@@ -74,6 +74,13 @@ class GameController {
 		if (key in this._keysPressed)
 			delete this._keysPressed[key];
 	};
+
+	/**
+	 * Run this function when the player is ready to start playing.
+	 */
+	public amReady = () => {
+		this._gameState.startGame();
+	}
 
 	/**
 	 * Pause the game from the current player's perspective.
