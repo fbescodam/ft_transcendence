@@ -2,13 +2,16 @@
 
 <script lang="ts">
 import { onMount, onDestroy } from "svelte";
+import { page } from '$app/stores';
+import { goto } from "$app/navigation";
 import GameTicker from "$lib/Game/Ticker";
 import GameStateMachine from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
+import type { GameMode } from "$lib/Game/Modes";
 import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
-import { LOCAL_MULTIPL_MODE_ID } from "$lib/Game/Modes";
+import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from "$lib/Game/Modes";
 
 let canvas: HTMLCanvasElement;
 let gameTicker: GameTicker;
@@ -20,11 +23,30 @@ let scores: HTMLElement;
 
 onMount(() => {
 	console.log("onMount called");
+	const gameId: number = parseInt($page.params.slug);
+	let gameMode: GameMode = ONLINE_MULTIPL_MODE_ID;
+	if (isNaN(gameId)) {
+		switch ($page.params.slug) {
+			case "singleplayer":
+				gameMode = SINGLEPL_MODE_ID;
+				break;
+			case "local-multiplayer":
+				gameMode = LOCAL_MULTIPL_MODE_ID;
+				break;
+			default:
+				console.warn("Invalid game slug", $page.params.slug);
+				return goto("/game", { replaceState: true });
+		}
+	}
+	else {
+		alert("Online multiplayer is not implemented yet");
+		goto("/game", { replaceState: true });
+	}
 	gameTicker = new GameTicker();
-	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, LOCAL_MULTIPL_MODE_ID);
+	gameState = new GameStateMachine(gameTicker, canvas.width, canvas.height, gameMode);
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores);
-	if (gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID) {
+	if (gameState.getGameMode() === SINGLEPL_MODE_ID) {
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2.paddle);
 	}
 });

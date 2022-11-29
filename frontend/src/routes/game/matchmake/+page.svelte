@@ -7,7 +7,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 import { onMount } from "svelte";
 import { error } from "@sveltejs/kit";
 import { goto } from "$app/navigation";
-import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Modes";
+import { Modes, SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Game/Modes";
 
 onMount(() => {
     const selectedModeParam = $page.url.searchParams.get('mode');
@@ -16,14 +16,20 @@ onMount(() => {
         const selectedModeID = parseInt(selectedModeParam);
         switch (selectedModeID) {
             case SINGLEPL_MODE_ID: // Singleplayer
-            case LOCAL_MULTIPL_MODE_ID: // Local Multiplayer
             {
                 console.log("Creating singleplayer lobby");
+                goto("/game/singleplayer", { replaceState: true });
                 break;
             }
-            case ONLINE_MULTIPL_MODE_ID: // Multiplayer
+            case LOCAL_MULTIPL_MODE_ID: // Local Multiplayer
             {
-                console.log("Creating multiplayer lobby");
+                console.log("Creating local multiplayer lobby");
+                goto("/game/local-multiplayer", { replaceState: true });
+                break;
+            }
+            case ONLINE_MULTIPL_MODE_ID: // Online Multiplayer
+            {
+                console.log("Creating online multiplayer lobby");
                 //TODO: socket emit 'joinQueue'
                 break;
             }
@@ -41,7 +47,7 @@ onMount(() => {
 <div class="center">
     <Container>
         <div class="loading">
-            <b>Searching</b>
+            <b>Searching for players...</b>
             <span class="icon">
                 <Icon src={Refresh} size={"24px"}/>
             </span>
