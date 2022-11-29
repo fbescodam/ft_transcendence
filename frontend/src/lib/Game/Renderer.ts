@@ -6,12 +6,22 @@ class GameRenderer {
 	private _canvas: HTMLCanvasElement;
 	private _ctx: CanvasRenderingContext2D;
 	private _scores: HTMLElement;
+	private _avatar1: HTMLImageElement;
+	private _avatar2: HTMLImageElement;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
 		this._scores = scores;
+		this._avatar1 = avatar1;
+		this._avatar2 = avatar2;
+
+		// Set up user data
+		this._avatar1.src = this._gameState.player1.avatar;
+		this._avatar2.src = this._gameState.player2.avatar;
+		console.log(this._gameState.player1.avatar);
+		console.log(this._avatar1.src);
 
 		// Register game state events
 		document.addEventListener("scoreUpdated", this._updateScores);

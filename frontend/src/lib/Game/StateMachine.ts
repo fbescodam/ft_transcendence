@@ -1,4 +1,4 @@
-import type { Vec2, Dimensions, Direction } from "../Types";
+import type { Vec2, Dimensions, Direction, User } from "../Types";
 import type GameTicker from "./Ticker";
 import { LOCAL_MULTIPL_MODE_ID, type GameMode } from "./Modes";
 import GameSoundEngine from "./SoundEngine";
@@ -398,14 +398,14 @@ class GameStateMachine {
 	player2: Player;
 	ball: Ball;
 
-	constructor(gameTicker: GameTicker, gameWidth: number, gameHeight: number, gameMode: GameMode) {
-		this._gameSize = { w: gameWidth, h: gameHeight };
+	constructor(gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, player1: User, player2: User) {
+		this._gameSize = { w: gameSize.w, h: gameSize.h };
 		this._gameMode = gameMode;
 		this._gameSoundEngine = new GameSoundEngine();
 
-		this.ball = new Ball({ x: gameWidth * 0.5, y: gameHeight * 0.5 });
-		this.player1 = new Player("Player 1", "", "left", this._gameSize);
-		this.player2 = new Player("Player 2", "", "right", this._gameSize);
+		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
+		this.player1 = new Player(player1.name, player1.avatar, "left", this._gameSize);
+		this.player2 = new Player(player2.name, player2.avatar, "right", this._gameSize);
 
 		// Run the game state machine every tick
 		gameTicker.add(this._update);
