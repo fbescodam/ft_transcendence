@@ -13,6 +13,7 @@ import type { Socket } from "socket.io-client";
 
 let userInQueue = false;
 let io: Socket | null = null;
+let matchmakeStatus: string = "Joining the matchmaking queue...";
 
 onMount(() => {
 	io = initSocket($JWT!);
@@ -38,6 +39,15 @@ onMount(() => {
 				console.log("Creating online multiplayer lobby");
 				io.emit("joinQueue", {}, (ret: any) => {
 					console.log("Queue joing status:", ret);
+					if (ret.status === true)
+						matchmakeStatus = "Searching for players...";
+				});
+				io.on("gameStart", (data: any) => {
+					console.log("Game start data:", data);
+					matchmakeStatus = "Game starting...";
+					setTimeout(function() {
+						goto("/game/" + data.gameId, { replaceState: true });
+					}, 2000);
 				});
 				window.onbeforeunload = () => {
 					if (io) {
@@ -71,7 +81,7 @@ onDestroy(() => {
 <div class="center">
 	<Container>
 		<div class="loading">
-			<b>Searching for players...</b>
+			<b>{matchmakeStatus}</b>
 			<span class="icon">
 				<Icon src={Refresh} size={"24px"}/>
 			</span>
