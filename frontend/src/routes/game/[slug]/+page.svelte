@@ -101,6 +101,7 @@ const keyDownHandler = (event: KeyboardEvent) => {
 canvas {
 	display: block;
 	margin-top: 1rem;
+	max-width: 100%;
 
 	border-radius: 8px;
 	outline: none;
