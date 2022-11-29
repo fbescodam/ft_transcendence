@@ -24,7 +24,7 @@ export class FriendsGateway {
 
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage("getUserRelations")
+	@SubscribeMessage("getUserFriends")
 	public async getUserRelations(@MessageBody() data: Object) {
 
 		// const relations = this.prismaService.user.findFirst({

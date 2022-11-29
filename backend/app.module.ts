@@ -9,6 +9,7 @@ import { join } from 'path';
 import { TwoFactorAuthenticationModule } from 'auth/2fa.module';
 import { GameGateway } from 'game/game.gateway';
 import { GameService } from 'game/game.service';
+import { FriendsModule } from 'friends/friends.module';
 
 /*==========================================================================*/
 
@@ -16,6 +17,7 @@ import { GameService } from 'game/game.service';
 	imports: [
 		PrismaModule,
 		TwoFactorAuthenticationModule,
+		FriendsModule,
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,
 		}),
