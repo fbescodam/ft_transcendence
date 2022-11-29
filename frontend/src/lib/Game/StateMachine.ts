@@ -419,6 +419,8 @@ class GameStateMachine {
 		this.ball.speed *= 1.1; // Speed up with every ball interception by a paddle
 
 		// Calculate the new direction of the ball
+		// It is not a perfect reflection, but this is intended - the way it is now,
+		// the gameplay is in general more fun, because it is a bit more random.
 		const ball_dir = Math.atan2(this.ball.dx, this.ball.dy);
 		const paddle_vy = this.ball.speed + 0.5 * paddle.getMoveDirection();
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + 0.25 * paddle_vy;
