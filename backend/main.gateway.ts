@@ -29,7 +29,7 @@ export class MainGateway {
 	private readonly prismaService: PrismaService;
 	@Inject(TwoFactorAuthenticationService)
 	private readonly tfaService: TwoFactorAuthenticationService;
-	
+
 
 	@WebSocketServer()
 	server;
@@ -49,13 +49,15 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('sendMsg')
 	async handleMessage(@MessageBody() msg: any): Promise<void> {
-	 this.server.to(msg.inChannel).emit('sendMsg', {text: msg.text, user:msg.user.name, channel:msg.inChannel});
-	 this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
-	 await this.prismaService.message.create({data: {
-		senderName: msg.user.intraName,
-		channelName: msg.inChannel,
-		text: msg.text
-	 }});
+		this.server.to(msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
+		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+		await this.prismaService.message.create({
+			data: {
+				senderName: msg.user.intraName,
+				channelName: msg.inChannel,
+				text: msg.text
+			}
+		});
 	}
 
 
@@ -70,11 +72,8 @@ export class MainGateway {
 	@SubscribeMessage('getChannelsForUser')
 	async getChannelsForUser(@MessageBody() data: any) {
 		const user = await this.prismaService.user.findFirst({
-			where: { 
-				name: data.user.intraName },
-			include: { 
-				channels: true
-			}
+			where: { name: data.user.intraName },
+			include: { channels: true }
 		});
 		return user.channels;
 	}
@@ -89,7 +88,7 @@ export class MainGateway {
 	async getMessagesFromChannel(@MessageBody() name: any) {
 	const channel = await this.prismaService.channel.findFirst({
 		where: {name: name.name },
-		include: { messages: true}
+		include: { messages: true }
 	})
 	return channel.messages;
 }
@@ -119,15 +118,12 @@ export class MainGateway {
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
 		const channelExists = await this.prismaService.channel.findUnique({
-			where: {
-				name:channelData["name"]
-			}
+			where: { name:channelData["name"] }
 		});
 
-		if (channelExists)
-		{
+		if (channelExists) {
 			this.logger.log(`channel named ${channelData["name"]} exists`)
-			return {error:"channel exists"}
+			return { error:"channel exists" }
 		}
 
 		const channel = await this.prismaService.channel.create({
@@ -136,8 +132,8 @@ export class MainGateway {
 				password: channelData["password"] || null, //TODO: hash these mofos
 				users: {
 					create: {
-					role: Role.ADMIN,
-					userName: channelData["user"].intraName,
+						role: Role.ADMIN,
+						userName: channelData["user"].intraName,
 					}
 				}
 			}
@@ -151,16 +147,13 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("createDirectChannel")
 	public async createDirectChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
-		
+
 		const newChannelName = channelData["user1"].name + "-" + channelData["user2"].name
 		const channelExists = await this.prismaService.channel.findUnique({
-			where: {
-				name:newChannelName
-			}
+			where: { name:newChannelName }
 		});
 
-		if (channelExists)
-		{
+		if (channelExists) {
 			this.logger.log(`direct channel named ${channelData["name"]} exists`)
 			return {error:"direct channel exists"}
 		}
@@ -173,14 +166,14 @@ export class MainGateway {
 				password: null,
 				users: {
 					create: [
-					{
-						userName: channelData["user1"].name,
-						role: Role.ADMIN
-					},
-					{
-						userName: channelData["user2"].name,
-						role: Role.ADMIN
-					}
+						{
+							userName: channelData["user1"].name,
+							role: Role.ADMIN
+						},
+						{
+							userName: channelData["user2"].name,
+							role: Role.ADMIN
+						}
 					]
 				}
 			}
@@ -196,9 +189,7 @@ export class MainGateway {
 	@SubscribeMessage("joinChannel")
 	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 		const channel = await this.prismaService.channel.findUnique({
-			where: {
-				name:channelData["name"]
-			}
+			where: { name:channelData["name"] }
 		});
 
 		if (!channel)
@@ -207,9 +198,7 @@ export class MainGateway {
 			return {error:"wrong password"}
 
 		await this.prismaService.channel.update({
-			where: {
-				name: channelData["name"]
-			},
+			where: { name: channelData["name"] },
 			data: {
 				users: {
 					create: {
@@ -221,7 +210,7 @@ export class MainGateway {
 		});
 
 		socket.join(channelData["name"])
-		return {name:channelData["name"]}
+		return { name: channelData["name"] }
 	}
 
 	@SubscribeMessage("leaveChannel")
@@ -244,37 +233,31 @@ export class MainGateway {
 	async changeDisplayName(@MessageBody() UserInfo: Object) {
 		//TODO: NEW JWTTOKEN
 		const user = await this.prismaService.user.findFirst({
-			where: {
-				name: UserInfo["user"].name
-			}
+			where: { name: UserInfo["user"].name }
 		})
 
 		// if (user)
 		// 	return {error:"Username already in use"}
 
 		await this.prismaService.user.update({
-			where: {
-				intraName: UserInfo["user"].intraName
-			},
-			data: {
-				name: UserInfo["newDisplayName"]
-			}
+			where: { intraName: UserInfo["user"].intraName },
+			data: { name: UserInfo["newDisplayName"] }
 		})
 
 		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
 
-		return {newName:UserInfo["newDisplayName"]};
+		return { newName: UserInfo["newDisplayName"] };
 	}
 
-	@SubscribeMessage("verifyJWT") 
+	@SubscribeMessage("verifyJWT")
 	verifyJwt(@ConnectedSocket() socket: Socket) {
 		try {
 			JWT.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
 		}
 		catch (e) {
-			return {status:"sad"}
+			return { status: "sad" }
 		}
-		return {status:"ok"}
+		return { status: "ok" }
 	}
 
 	/**
@@ -293,7 +276,7 @@ export class MainGateway {
 
 		this.logger.log(jwtToken)
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
-		return {token: jwtToken, qrcode:ret}
+		return { token: jwtToken, qrcode: ret }
 	}
 
 	//TODO: 2fa flow. user logs in -> check if 2fa is enabled -> log user in or redirect them to 2fa flow
@@ -309,7 +292,7 @@ export class MainGateway {
 		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
 		if (!valid)
 			return {error:"invalid 2fa"}
-		return {valid:"2fa code is valid"}
+		return { valid: "2fa code is valid" }
 	}
 
 	/**
@@ -322,20 +305,16 @@ export class MainGateway {
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
 		if (!valid)
-			return {error:"invalid 2fa"}
+			return { error: "invalid 2fa" }
 
 		const user = await this.prismaService.user.update({
-			where: {
-				intraName: data["user"].intraName
-			},
-			data: {
-				tfaEnabled: true
-			}
+			where: { intraName: data["user"].intraName },
+			data: { tfaEnabled: true }
 		})
 		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
 		socket.handshake.auth = { token: jwtToken }
-		return {token: jwtToken}
+		return { token: jwtToken }
 	}
 
 	/**
@@ -348,20 +327,16 @@ export class MainGateway {
 	public async disableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
 		if (!valid)
-			return {error:"invalid 2fa"}
-		
+			return { error: "invalid 2fa" }
+
 		const user = await this.prismaService.user.update({
-			where: {
-				intraName: data["user"].intraName
-			},
-			data: {
-				tfaEnabled: false
-			}
+			where: { intraName: data["user"].intraName },
+			data: { tfaEnabled: false }
 		})
 		this.logger.log(`tfa disabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
 		socket.handshake.auth = { token: jwtToken }
-		return {token: jwtToken}
+		return { token: jwtToken }
 	}
 
 
@@ -409,9 +384,7 @@ export class MainGateway {
 		// Registration
 		// these things should only be done on first-time login
 		const userExists = await this.prismaService.user.count({
-			where: {
-				intraId: userResponse["id"]
-			}
+			where: { intraId: userResponse["id"] }
 		});
 		const avatarFile = `avatars/${userResponse["id"]}`;
 		if (!userExists) {
@@ -426,12 +399,9 @@ export class MainGateway {
 
 		// Store user data with upsert, if user already exists this does nothing
 		const userData = await this.prismaService.user.upsert({
-			where: {
-				intraId: userResponse["id"]
-			},
+			where: { intraId: userResponse["id"] },
 			update: {}, // Empty since if user exists already all this data should be there
-			create:
-			{
+			create: {
 				name: userResponse["login"],
 				email: userResponse["email"],
 				intraId: userResponse["id"],
