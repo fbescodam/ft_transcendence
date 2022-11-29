@@ -6,7 +6,8 @@ export type User = {
 	name: string;
 	intraName: string;
 	avatar: string;
-	games: Game[]
+	games: Game[];
+	friends: User[];
 };
 export type Game = {
 	id: number;
