@@ -8,13 +8,17 @@
 <script lang="ts">
 import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
+import Disable2FaModal from "$lib/Components/Modal/Disable2FAModal.svelte";
+import Enable2FaModal from "$lib/Components/Modal/Enable2FAModal.svelte";
 import { initSocket } from "$lib/socketIO";
 import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 
 let io: Socket;
-let qrcode: string;
+let show2FAModal: boolean = false;
+let showDis2FAModal: boolean = false;
+
 
 // TODO: Check if the user has tfa enabled.
 let tfaEnabled: boolean = false;
@@ -68,14 +72,6 @@ function checkCode(e: SubmitEvent) {
 	});
 }
 
-function getQRCode() {
-	io.emit('getQrCode', {}, function(e:any) {
-		console.log(e)
-		$JWT = e["token"]
-		qrcode = e["qrcode"]
-	})
-}
-
 </script>
 
 <!-- HTML -->
@@ -84,6 +80,9 @@ function getQRCode() {
 	<title>Settings</title>
 	<meta name="description" content="Change your user settings" />
 </svelte:head>
+
+<Enable2FaModal bind:visible={show2FAModal} bind:tfaEnabled={tfaEnabled}/>
+<Disable2FaModal bind:visible={showDis2FAModal} bind:tfaEnabled={tfaEnabled}/>
 
 <div class="page">
 	<Container>
@@ -112,30 +111,14 @@ function getQRCode() {
 		<form on:submit={(e) => checkCode(e)}>
 			<fieldset>
 				<legend>Authentication</legend>
-
-				<Button on:click={() => { tfaEnabled = !tfaEnabled }} >
-					{#if tfaEnabled}
-						Enable 2FA
-					{:else}
+				{#if tfaEnabled}
+					<Button on:click={() => { showDis2FAModal = true }} >
 						Disable 2FA
-					{/if}
-				</Button>
-				
-				{#if !tfaEnabled}
-					<hr/>
-					{#if qrcode === undefined}
-						<b>Request a new QRCode!</b>
-					{:else}
-						<img id="QRCode" src={qrcode} alt="qr-code"/>
-					{/if}
-					<br/>
-					<!-- svelte-ignore a11y-label-has-associated-control -->
-					<label>Please enter the code by scanning the QR:</label>
-					<input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code" bind:this={authCode}/>
-					
-					<hr/>
-					<Button type="submit">Send Code</Button>
-					<Button on:click={() => getQRCode()}>Get QRCode</Button>
+					</Button>
+				{:else}
+					<Button on:click={() => { show2FAModal = true }} >
+						Enable 2FA
+					</Button>
 				{/if}
 				</fieldset>
 		</form>

@@ -282,7 +282,7 @@ export class MainGateway {
 		
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
 		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth.token = { token: jwtToken }
+		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken, newName: UserInfo["newDisplayName"] };
 	}
 
@@ -310,7 +310,7 @@ export class MainGateway {
 
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
 		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth.token = { token: jwtToken }
+		socket.handshake.auth = { token: jwtToken }
 
 		this.logger.log(jwtToken)
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
@@ -327,7 +327,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("checkCode")
 	public async checkCode(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
 		if (!valid)
 			return {error:"invalid 2fa"}
 		return { valid: "2fa code is valid" }
@@ -348,6 +348,10 @@ export class MainGateway {
 	@SubscribeMessage("enableTfaAuth")
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		if (!valid)
+			return { error: "invalid 2fa" }
+
 		const user = await this.prismaService.user.update({
 			where: { intraName: data["user"].intraName },
 			data: { tfaEnabled: true }
@@ -355,7 +359,7 @@ export class MainGateway {
 		this.logger.log(`tfa enabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
 		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth.token = { token: jwtToken }
+		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -367,7 +371,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("disableTfaAuth")
 	public async disableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
 		if (!valid)
 			return { error: "invalid 2fa" }
 
@@ -378,7 +382,7 @@ export class MainGateway {
 		this.logger.log(`tfa disabled for ${user.intraName}`)
 		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
 		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth.token = { token: jwtToken }
+		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken }
 	}
 
@@ -466,7 +470,7 @@ export class MainGateway {
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
 
-		socket.handshake.auth.token = { token: jwtToken }
+		socket.handshake.auth = { token: jwtToken }
 		return { token: jwtToken, state: data["state"], displayName: userData.name, avatar: userData.avatar }; // <===== jwt
 	}
 }
