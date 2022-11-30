@@ -13,7 +13,7 @@ class GameAI {
 	private _followBall: boolean = true;
 	private _rethinkAfter = 320;
 	private _randomDirection: Direction = 0;
-	private _lastRandomDirectionChange: number = new Date().getTime();
+	private _lastRandomDirectionChange: number = Date.now();
 
 	constructor(gameTicker: GameTicker, gameState: GameStateMachine, player: Player, tickRate: number = 60) {
 		this._gameState = gameState;
@@ -32,7 +32,7 @@ class GameAI {
 	 * @param followBallOverride If set, this will override the current followBall setting
 	 */
 	private _rethinkIfItsTime = (followBallOverride: boolean = false) => {
-		const now = new Date().getTime();
+		const now = Date.now();
 		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
 			this._lastRandomDirectionChange = now;
 			this._followBall = Math.random() > 0.5; // 50% chance that the AI decides to follow the ball around

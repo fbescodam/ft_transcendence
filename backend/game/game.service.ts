@@ -10,11 +10,19 @@ interface QueuedUser {
 	socketId: string;
 }
 
+interface GameCache {
+	[gameId: string]: {
+		roomId: string;
+		players: [string, string];
+	}
+}
+
 /*==========================================================================*/
 
 @Injectable()
 export class GameService {
 	private _matchmakingQueue: QueuedUser[] = [];
+	private _gameCache: GameCache = {};
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
@@ -40,7 +48,6 @@ export class GameService {
 			const game = await this.createGame(this._matchmakingQueue[0].intraName, this._matchmakingQueue[1].intraName);
 			console.log(`Game ${game.id} created. Starting game...`);
 			await this.startGame(game, this._matchmakingQueue[0], this._matchmakingQueue[1]);
-			//TODO: game loop somewhere
 		}
 	}
 
@@ -101,7 +108,7 @@ export class GameService {
 					]
 				},
 				gameEvents: undefined,
-				roomId: `game${user1Name}+${user2Name}+${randomRoomString}`
+				roomId: `game${user1Name}+${user2Name}+${randomRoomString}` // unused (TODO?)
 			}
 		})
 		return game;
@@ -114,17 +121,31 @@ export class GameService {
 	 * @param user2 The second player
 	 */
 	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
-		this.gameGateway.server
-			.to(user1.socketId)
-			.to(user2.socketId)
-			.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
+		// TODO: use rooms?
+		// this.gameGateway.server
+		// 	.to(user1.socketId)
+		// 	.to(user2.socketId)
+		// 	.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
+
+		// Set up game cache for multiplayer events
+		this._gameCache[game.id] = {
+			roomId: game.roomId,
+			players: [ user1.intraName, user2.intraName ]
+		};
+
+		// Let users know the game can start
 		this.gameGateway.server.to(user1.socketId).to(user2.socketId).emit('gameStart', {
 			gameId: game.id,
 			player1: user1.intraName,
 			player2: user2.intraName //add whatever you need
 		})
+
+		// Remove users from queue
 		this.leaveQueue(user1.socketId);
 		this.leaveQueue(user2.socketId);
+
+		// TODO: game state machine server-side for cheat detection?
+
 		console.log(`Game ${game.id} started between ${user1.intraName} and ${user2.intraName}. Room ID is ${game.roomId}.`);
 	}
 
@@ -150,11 +171,34 @@ export class GameService {
 	}
 
 	/**
+	 * Send a game state to the opponent of a player.
+	 * @param sourceUser The username of the source
+	 * @param gameId The game's gameID
+	 * @param gameState The state to send over
+	 */
+	sendGameState(sourceUser, gameId, gameState) {
+		if (!this._gameCache[gameId])
+			throw new Error('Game not found');
+		if (!this._gameCache[gameId].players.includes(sourceUser))
+		{
+			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].sockets}`);
+			throw new Error('Unauthorized');
+		}
+		const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);
+		console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
+		this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
+	}
+
+	/**
 	 * Mark a game as finished and fill in the remaining data.
 	 * @param gameId The ID of the game that has finished
 	 * @param gameData An object defining who won the game including the scores
 	 */
 	async finishGame(gameId, gameData) {
+		// Remove game from the cache
+		delete this._gameCache[gameId];
+
+		// Finalize game data in DB
 		await this.prismaService.game.update({
 			where: { id: gameId },
 			data: {

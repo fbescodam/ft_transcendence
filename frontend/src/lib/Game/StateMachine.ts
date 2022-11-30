@@ -2,6 +2,8 @@ import type { Vec2, Dimensions, Direction, User } from "../Types";
 import type GameTicker from "./Ticker";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID, type GameMode } from "./Modes";
 import GameSoundEngine from "./SoundEngine";
+import GameNetworkHandler, { type OnlineGameState, type OnlinePlayerState } from "./NetworkHandler";
+import type { Socket } from "socket.io-client";
 
 /**
  * A base class for drawable 2d objects.
@@ -228,8 +230,9 @@ export class Paddle extends GameObject {
 
 	/**
 	 * Move the paddle. This function is supposed to be called every frame.
+	 * @returns Always returns true (for now?)
 	 */
-	public move = () => {
+	public move = (): boolean => {
 		let newPos = this.pos.y + this._dy;
 		if (newPos < this._minY)
 			newPos = this._minY;
@@ -237,13 +240,14 @@ export class Paddle extends GameObject {
 			newPos = this._maxY;
 		this.pos.y = newPos;
 
-		// TODO: dispatch event here
+		return true;
 	}
 
 	/**
 	 * Set the height of the paddle. This will also update the paddle's maximum off-screen movement.
 	 * Only making the paddle smaller was tested, but it might work for making it bigger too.
 	 * @param newHeight The new height of the paddle.
+	 * @returns True if the height was changed, false if the new height is the same as the current one.
 	 */
 	public setHeight = (newHeight: number) => {
 		if (newHeight != this.size.h) {
@@ -257,8 +261,9 @@ export class Paddle extends GameObject {
 			const diff = oldYBottom - newYBottom;
 			this.pos.y += diff * 0.5;
 
-			// TODO: dispatch event here
+			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -321,6 +326,21 @@ export class Player {
 
 	isReady = () => {
 		return this._ready;
+	}
+
+	getOnlineState = (): OnlinePlayerState => {
+		return {
+			score: this.score,
+			ready: this.isReady(),
+			name: this.name,
+			avatar: this.avatar,
+			paddle: {
+				pos: this.paddle.pos,
+				size: this.paddle.size,
+				position: this.paddle.getPosition(),
+				dy: this.paddle.getMoveDirection()
+			}
+		};
 	}
 }
 
@@ -402,11 +422,13 @@ class GameStateMachine {
 	private _secondsPlayed: number = 0;
 	private _gameDuration: number = 180; // 3 minutes
 
+	private _networkHandler: GameNetworkHandler	| null = null;
+
 	player1: Player;
 	player2: Player;
 	ball: Ball;
 
-	constructor(gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, player1: User, player2: User) {
+	constructor(gameId: number, gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, player1: User, player2: User, io: Socket | null = null) {
 		this._gameSize = { w: gameSize.w, h: gameSize.h };
 		this._gameMode = gameMode;
 		this._gameSoundEngine = new GameSoundEngine();
@@ -414,6 +436,10 @@ class GameStateMachine {
 		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
 		this.player1 = new Player(player1.name, player1.avatar, "left", this._gameSize);
 		this.player2 = new Player(player2.name, player2.avatar, "right", this._gameSize);
+
+		if (gameMode == ONLINE_MULTIPL_MODE_ID) {
+			this._networkHandler = new GameNetworkHandler(gameId, io as Socket, this._handleOnlineState);
+		}
 
 		// Run the game state machine every tick
 		gameTicker.add(this._update);
@@ -445,7 +471,8 @@ class GameStateMachine {
 		// Play a beeping sound
 		this._gameSoundEngine.playBeep();
 
-		// TODO: dispatch event here
+		// Send game state to server
+		this._networkHandler?.sendState(this.getOnlineState());
 	}
 
 	private _gameEnd = () => {
@@ -484,7 +511,8 @@ class GameStateMachine {
 			// Bugfix: prevent negative time from appearing
 			this._secondsPlayed = this._gameDuration;
 
-			// TODO: dispatch event here
+			// Send game state to server
+			this._networkHandler?.sendState(this.getOnlineState());
 			return;
 		}
 
@@ -509,6 +537,9 @@ class GameStateMachine {
 
 			// Dispatch score updated event
 			new ScoreUpdatedEvent(this.player1.score, this.player2.score).dispatch();
+
+			// Send game state to server
+			this._networkHandler?.sendState(this.getOnlineState());
 		}
 		// Check paddle intersection on left
 		else if (GameObject.intersects(this.ball, this.player1.paddle)) {
@@ -526,7 +557,8 @@ class GameStateMachine {
 			// Play a beeping sound
 			this._gameSoundEngine.playBoop();
 
-			// TODO: dispatch event here
+			// Send game state to server
+			this._networkHandler?.sendState(this.getOnlineState());
 		}
 
 		// Update positions
@@ -535,7 +567,74 @@ class GameStateMachine {
 		this.player2.paddle.move();
 	}
 
+	/**
+	 *
+	 */
+	private _handleOnlineState = (state: OnlineGameState) => {
+		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
+			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
+		}
+
+		// TODO: handle timestamp
+
+		// Update the ball position
+		this.ball.pos.x = state.ball.pos.x;
+		this.ball.pos.y = state.ball.pos.y;
+
+		// Match left and right with the correct player
+		const playerLeft = (state.players.left.paddle.position == "left" ? this.player1 : this.player2);
+		const playerRight = (state.players.left.paddle.position == "right" ? this.player2 : this.player1);
+
+		const updatePlayerState = (player: Player, onlinePlayerState: OnlinePlayerState) => {
+			player.avatar = onlinePlayerState.avatar;
+			player.name = onlinePlayerState.name;
+			player.paddle.pos.x = onlinePlayerState.paddle.pos.x;
+			player.paddle.pos.y = onlinePlayerState.paddle.pos.y;
+			player.paddle.size.w = onlinePlayerState.paddle.size.w;
+			player.paddle.setHeight(onlinePlayerState.paddle.size.h);
+			player.score = onlinePlayerState.score;
+			if (!player.isReady() && onlinePlayerState.ready)
+				player.markReady();
+		}
+
+		// Update the "left" player
+		updatePlayerState(playerLeft, state.players.left);
+
+		// Update the "right" player
+		updatePlayerState(playerRight, state.players.right);
+
+		// Update the time
+		this._secondsPlayed = state.time.secondsPlayed;
+		this._gameDuration = state.time.gameDuration;
+	}
+
 	//= Public =//
+
+	/**
+	 * Get the current game state used for online multiplayer.
+	 * @returns The full current game state.
+	 */
+	public getOnlineState = (): OnlineGameState => {
+		return {
+			time: {
+				timestamp: Date.now(),
+				secondsPlayed: this._secondsPlayed,
+				gameDuration: this._gameDuration
+			},
+			paused: this._paused,
+			players: {
+				left: this.player1.getOnlineState(),
+				right: this.player2.getOnlineState()
+			},
+			ball: {
+				pos: this.ball.pos,
+				size: this.ball.size,
+				dx: this.ball.dx,
+				dy: this.ball.dy,
+				speed: this.ball.speed
+			}
+		};
+	}
 
 	/**
 	 * Get the game mode of the current game.
@@ -550,6 +649,9 @@ class GameStateMachine {
 	 * Note: in local multiplayer, it marks both players as ready and starts the game.
 	 */
 	public startGame = () => {
+		if (this.getPausedReason() != PausedReason.READY_SET_GO)
+			return;
+
 		this.player1.markReady();
 
 		// If we're in local multiplayer, mark player 2 as ready as well
@@ -565,6 +667,9 @@ class GameStateMachine {
 		else {
 			this._paused = null;
 		}
+
+		// Send game state to server
+		this._networkHandler?.sendState(this.getOnlineState());
 	}
 
 	/**

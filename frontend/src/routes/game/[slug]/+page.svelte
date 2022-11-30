@@ -91,7 +91,7 @@ async function initGame() {
 
 	gameTicker = new GameTicker();
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
-	gameState = new GameStateMachine(gameTicker, gameSize, gameMode, player1, player2);
+	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, player1, player2, io);
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
