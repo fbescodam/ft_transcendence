@@ -40,7 +40,6 @@ onMount(() => {
 function changeUsername(e: SubmitEvent) {
 	e.preventDefault()
 
-	console.log("penis");
 	io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
 		console.log(answer);
 		if ("error" in answer)
@@ -153,7 +152,7 @@ function checkCode(e: SubmitEvent) {
 	}
 
 	fieldset {
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 		padding: 8px; 
 		border: 2px solid var(--component-border);
 	}

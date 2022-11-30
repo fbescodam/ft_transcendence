@@ -7,7 +7,6 @@ import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
-import { initSocket } from "$lib/socketIO";
 
 let navitems = [
 	{
@@ -84,7 +83,7 @@ let navitems = [
 	gap: 10px;
 
 	& img {
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 		object-fit: cover;
 	}
 }

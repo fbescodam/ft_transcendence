@@ -18,7 +18,7 @@
 
 <style lang="scss">
 button {
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     border: 1px solid transparent;
     padding: 0.4em 0.7em;
     font-size: 1em;
@@ -29,7 +29,7 @@ button {
     transition: all 0.25s;
 
     &:hover {
-        border-color: #646cff;
+        border-color: var(--component-border-hover);
     }
 
     &:active {

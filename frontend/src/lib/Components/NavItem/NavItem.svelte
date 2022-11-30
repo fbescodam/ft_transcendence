@@ -47,7 +47,7 @@ a {
 
 	padding: 6px;
 	margin: 0 0 0.5rem 0;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	text-align: center;
 
 	color: white;

@@ -26,6 +26,7 @@ import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 
 let socket: Socket;
 let user: User | null = null;
+let isCurrentUser: boolean = false;
 
 onMount(() => {
 	socket = initSocket($JWT!);
@@ -57,7 +58,7 @@ const getRandomEmoji = () => {
 
 {#if user}
 	<div>
-		{#if $page.params.slug === $displayName}
+		{#if user && $page.params.slug === user.name}
 			<Container style="flex: 1; height: 95%;">
 				<h1>Welcome back {$displayName} {getRandomEmoji()}</h1>
 			</Container>
@@ -151,7 +152,7 @@ const getRandomEmoji = () => {
 		user-select: none;
 		padding: 10px;
 		margin-bottom: 10px;
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 		border: 1px var(--component-border) solid;
 		background-color: var(--component-background);
 		box-shadow: 10px 20px 30px -20px rgba(0, 0, 0, 0.30);

@@ -32,7 +32,7 @@ export let score: { p1: number, p2: number };
 	}
 
 	& img {
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 	}
 }
 </style>

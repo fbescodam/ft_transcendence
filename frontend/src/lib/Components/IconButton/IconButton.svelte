@@ -43,7 +43,7 @@ button {
 	white-space: nowrap;
 
 	padding: 6px;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	text-align: center;
 
 	color: white;
