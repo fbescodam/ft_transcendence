@@ -38,16 +38,17 @@ model User {
 
 	//==================twofactorauth====================//
 
-	tfaEnabled Boolean @default(false)
-	tfaSecret  TfaSecret?
+	tfaEnabled 	Boolean @default(false)
+	tfaSecret  	TfaSecret?
 
 	//==================friends====================//
 
-	friends     User[] @relation("friends")
-	friendStore User[] @relation("friends") //This field is just for storing the many-to-many. ignore
+	friends    		User[] @relation("friends")
+	friendStore		User[] @relation("friends") //This field is just for storing the many-to-many. ignore
 
-	blocked      User[] @relation("blocked")
-	blockedStore User[] @relation("blocked") //This field is just for storing the many-to-many. ignore
+	blocked     	User[] @relation("blocked")
+	blockedStore	User[] @relation("blocked") //This field is just for storing the many-to-many. ignore
+
 }
 
 model TfaSecret { //this gets automatically excluded from queries which is necessary

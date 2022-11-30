@@ -230,7 +230,7 @@ export class MainGateway {
 			return {error:"channel does not exist"};
 		if (channel.password.string && channel.password.string != channelData["password"])
 			return {error:"wrong password"};
-		if (channel.users.map(function(item) {return item['userName'];}).includes(channelData["user"].intraName))
+		if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
 			return {error:"already in channel"};
 
 		await this.prismaService.channel.update({
