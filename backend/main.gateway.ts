@@ -327,7 +327,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("checkCode")
 	public async checkCode(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["authCode"], data["user"])
 		if (!valid)
 			return {error:"invalid 2fa"}
 		return { valid: "2fa code is valid" }
@@ -471,9 +471,15 @@ export class MainGateway {
 
 		//sign a jwttoken and store it in the auth of the socket handshake
 		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
-
 		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken, state: data["state"], displayName: userData.name, avatar: userData.avatar }; // <===== jwt
+
+		return { 
+			token: jwtToken, 
+			state: data["state"], 
+			displayName: userData.name, 
+			avatar: userData.avatar, 
+			hasTfa: userData.tfaEnabled
+		}; // <===== jwt
 	}
 }
 
