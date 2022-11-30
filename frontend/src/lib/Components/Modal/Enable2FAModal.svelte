@@ -44,7 +44,7 @@ function enableTFA() {
 		console.log("2fa enabled");
 		tfaEnabled = true;
 		visible = false;
-		qrcode = undefined;
+		qrcode = "";
 	})
 }
 
@@ -66,7 +66,7 @@ function getQRCode() {
 		<h1>2FA Authentication</h1>
 		<hr/>
 		<div style="display: flex; align-items: center; justify-content: center;">
-			{#if qrcode === undefined}
+			{#if qrcode === undefined || qrcode == ""}
 				<b>Request a new QRCode!</b>
 			{:else}
 				<img id="QRCode" src={qrcode} alt="qr-code"/>

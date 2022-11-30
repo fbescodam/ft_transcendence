@@ -454,6 +454,8 @@ export class MainGateway {
 				intraId: userResponse["id"],
 				intraName: userResponse["login"],
 				avatar: avatarFile,
+				wins: 0,
+				losses: 0,
 				channels: {
 					create: {
 						role: Role.USER,
