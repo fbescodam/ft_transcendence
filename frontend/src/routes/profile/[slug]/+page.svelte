@@ -93,7 +93,7 @@ const getRandomEmoji = () => {
 				{#if user.friends.length > 0}
 					<div class="friends-list">
 						{#each user.friends as friend}
-							<ProfileFriend user={friend} />
+							<ProfileFriend profile={friend} />
 						{/each}
 					</div>
 				{:else}
