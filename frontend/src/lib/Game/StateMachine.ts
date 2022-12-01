@@ -1,6 +1,6 @@
 import type GameTicker from "./Ticker";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, type GameMode } from "./Modes";
-import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkHandler";
+import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkTypes";
 
 // Basic types
 export type Vec2 = { x: number; y: number };

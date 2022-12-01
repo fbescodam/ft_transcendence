@@ -17,10 +17,9 @@ import type { User } from "$lib/Types";
 import { JWT, displayName, avatar } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
-
 // @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
 import { createPlaceholderUser } from "$lib/Utils/Placeholders";
-import type { OnlineGameState, OnlinePaddleState } from "$lib/Game/NetworkHandler";
+import type { OnlineGameState, OnlinePaddleState } from "$lib/Game/NetworkTypes";
 import GameNetworkHandler from "$lib/Game/NetworkHandler";
 
 let canvas: HTMLCanvasElement;
@@ -116,10 +115,12 @@ async function initGame() {
 			// do nothing here: the state is only sent by the host, which is the server
 		},
 		onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
-			gameNetworkHandler.sendPaddleState(paddleState);
+			if (gameNetworkHandler)
+				gameNetworkHandler.sendPaddleState(paddleState);
 		},
 		onPlayerReady: (player: Player) => {
-			gameNetworkHandler.sendPlayerReady(player.intraName);
+			if (gameNetworkHandler)
+				gameNetworkHandler.sendPlayerReady(player.intraName);
 		}
 	});
 	gameController = new GameController(gameTicker, gameState);

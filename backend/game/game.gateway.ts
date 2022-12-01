@@ -76,6 +76,31 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@UseGuards(JwtGuard)
+	@SubscribeMessage('paddleGameState')
+	async handlePaddleGameState(@MessageBody() data: Object) {
+		try {
+			return this.gameService.handlePlayerReady(data["game"]["id"], data["paddleState"]);
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('playerReady')
+	async handlePlayerReady(@MessageBody() data: Object) {
+		try {
+			return this.gameService.handlePlayerReady(data["game"]["id"], data["user"]["intraName"]);
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
+	}
+
+
+	@UseGuards(JwtGuard)
 	@SubscribeMessage('setupGameConnection')
 	async setupGameConnection(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
 		if (this.gameService.connectUserToGames(socket.id, data["user"]["intraName"]))

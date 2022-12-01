@@ -3,7 +3,7 @@ import { Game, GameStatus, User } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameGateway } from './game.gateway';
 import { ONLINE_MULTIPL_MODE_ID } from './lib/Modes';
-import GameNetworkHandler, { OnlineGameState, OnlinePaddleState } from './lib/NetworkHandler';
+import type { OnlineGameState, OnlinePaddleState } from './lib/NetworkTypes';
 import GameStateMachine, { Player } from './lib/StateMachine';
 import GameTicker from './lib/Ticker';
 
@@ -18,7 +18,6 @@ interface NetworkGame {
 	[gameId: string]: {
 		roomId: string;
 		players: [string, string]; // intraNames
-		networkHandler: GameNetworkHandler;
 		stateMachine: GameStateMachine;
 	}
 }
@@ -226,7 +225,7 @@ export class GameService {
 			onBoopSound: ()	=> {},
 			onImportantStateChange: (state: OnlineGameState) => {
 				console.log(`Sending game state update for game ${gameId} to room ${game.roomId} (players: ${game.players.map(p => p.intraName).join(', ')})`);
-				networkHandler.sendState(state);
+				this.gameGateway.server.to(game.roomId).emit('gameState', state);
 			},
 			onPaddleMoveChange(paddleState: OnlinePaddleState) {
 				// TODO?
@@ -236,45 +235,44 @@ export class GameService {
 			}
 		}, true);
 
-		// Set up the Network Handler
-		const networkHandler = new GameNetworkHandler(game.id, this.gameGateway.server, null, (state: OnlinePaddleState | null, playerReadyPosition: string | null) => {
-			gameStateMachine.handleOnlinePaddleState(state, playerReadyPosition);
-		});
-
 		// Add the game to the internal games
 		this._games[gameId] = {
 			roomId: game.roomId,
 			players: [ game.players[0].intraName, game.players[1].intraName ],
-			stateMachine: gameStateMachine,
-			networkHandler: networkHandler
+			stateMachine: gameStateMachine
 		}
 		return this._games[gameId];
 	}
 
-	/**
-	 * Send a game state to the opponent of a player.
-	 * @param sourceUser The intraName of the source user
-	 * @param gameId The game's gameID
-	 * @param gameState The state to send over
-	 */
-	// async sendGameState(sourceUser, gameId, gameState) {
-	// 	return new Promise<void>(async (resolve, reject) => {
-	// 		if (!this._games[gameId]) {
-	// 			// game does not exist in cache, add it again. Could be a game from an invite or something.
-	// 			console.warn(`User ${sourceUser} tried to send a game state for a non-cached game`);
-	// 			await this._setupInternalGame(gameId);
-	// 		}
-	// 		if (!this._games[gameId].players.includes(sourceUser)) {
-	// 			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].players}`);
-	// 			return reject('Unauthorized');
-	// 		}
-	// 		const otherSocketId = this._games[gameId].players.find((id) => id !== sourceUser);
-	// 		console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
-	// 		// this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
-	// 		this.gameGateway.server.to(this._games[gameId].roomId).emit('serverGameState', gameState);
-	// 		return resolve();
-	// 	});
-	// }
+	async handlePaddleMovement(gameId: number, intraName: string, paddleState: OnlinePaddleState) {
+		return new Promise<void>((resolve, reject) => {
+			if (!this._games[gameId]) {
+				console.warn("Trying to handle paddle movement for a game which is not running.");
+				return reject('Game is not running');
+			}
+			if (!this._games[gameId].players.includes(intraName)) {
+				console.warn(`User ${intraName} tried to send a paddle state for game ${gameId} but they are not in this game. In game: ${this._games[gameId].players}`);
+				return reject('Unauthorized');
+			}
+			this._games[gameId].stateMachine.handleOnlinePaddleState(paddleState, null);
+			resolve();
+		});
+	}
+
+	async handlePlayerReady(gameId: number, intraName: string) {
+		return new Promise<void>((resolve, reject) => {
+			if (!this._games[gameId]) {
+				console.warn("Trying to handle player ready for a game which is not running.");
+				return reject('Game is not running');
+			}
+			if (!this._games[gameId].players.includes(intraName)) {
+				console.warn(`User ${intraName} tried to send a player ready for game ${gameId} but they are not in this game. In game: ${this._games[gameId].players}`);
+				return reject('Unauthorized');
+			}
+			this._games[gameId].stateMachine.handleOnlinePaddleState(null, intraName);
+			resolve();
+		});
+	}
 
 	/**
 	 * Mark a game as finished and fill in the remaining data.
