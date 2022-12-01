@@ -1,5 +1,6 @@
 import { PausedReason, type PausedReasonObject, type Dimensions, type Direction, type Vec2 } from "./StateMachine";
 import type { Socket } from "socket.io";
+// server: change above to socket.io. client: change above to socket.io-client
 
 export interface OnlinePaddleState {
 	position: string;
@@ -43,10 +44,15 @@ class GameNetworkHandler {
 	private _io: Socket;
 	private _gameId: number;
 	private _clientStateHandler: null | ((state: OnlineGameState) => void);
-	private _hostStateHandler: null | ((state: OnlinePaddleState) => void);
+	private _hostStateHandler: null | ((state: OnlinePaddleState | null, playerReady: string | null) => void);
 	private _isHost: boolean;
 
-	constructor(gameId: number, io: Socket, clientStateHandler: null | ((state: OnlineGameState) => void) = null, hostStateHandler: null | ((state: OnlinePaddleState) => void) = null) {
+	constructor(
+		gameId: number,
+		io: Socket,
+		clientStateHandler: null | ((state: OnlineGameState) => void) = null,
+		hostStateHandler: null | ((state: OnlinePaddleState | null, playerReady: string | null) => void) = null)
+	{
 		if (clientStateHandler && hostStateHandler)
 			throw new Error("Only one of clientStateHandler and hostStateHandler can be set");
 
@@ -72,9 +78,14 @@ class GameNetworkHandler {
 			});
 		}
 		else {
-			this._io.on("gameState", (state: OnlinePaddleState) => {
-				console.log("Received game state from client:", state);
-				this._hostStateHandler!(state);
+			this._io.on("paddleGameState", (paddleState: OnlinePaddleState) => {
+				console.log("Received paddle game state from client:", paddleState);
+				this._hostStateHandler!(paddleState, null);
+			});
+
+			this._io.on("playerReady", (playerReady: string) => {
+				console.log("Player is ready:", playerReady);
+				this._hostStateHandler!(null, playerReady);
 			});
 		}
 	}
@@ -94,14 +105,33 @@ class GameNetworkHandler {
 		return gameState;
 	}
 
+	public sendPaddleState = (paddleState: OnlinePaddleState) => {
+		console.log("Sending game state", paddleState);
+		this._io.emit("paddleGameState", { game: { id: this._gameId, state: paddleState}}, (ret: any) => {
+			if ("error" in ret) {
+				console.error(ret.error);
+			}
+		});
+	}
+
 	public sendState = (state: OnlineGameState) => {
 		console.log("Sending game state", state);
 		this._io.emit("gameState", { game: { id: this._gameId, state: state}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
 			}
-			else if (ret.status !== true) {
-				console.warn("Failed to send game state to server");
+		});
+	}
+
+	/**
+	 * Mark a player as ready in an online multiplayer game
+	 * @param playerReady The intraName of the player that is ready
+	 */
+	public sendPlayerReady = (playerReady: string) => {
+		console.log("Sending player ready");
+		this._io.emit("playerReady", { game: { id: this._gameId, playerReady: playerReady }}, (ret: any) => {
+			if ("error" in ret) {
+				console.error(ret.error);
 			}
 		});
 	}

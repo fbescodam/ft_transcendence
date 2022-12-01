@@ -5,7 +5,7 @@ import { onMount, onDestroy } from "svelte";
 import { page } from '$app/stores';
 import { goto } from "$app/navigation";
 import GameTicker from "$lib/Game/Ticker";
-import GameStateMachine, { type Dimensions } from "$lib/Game/StateMachine";
+import GameStateMachine, { Player, type Dimensions } from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
 import GameSoundEngine from "$lib/Game/SoundEngine";
@@ -20,7 +20,7 @@ import { initSocket } from "$lib/socketIO";
 
 // @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
 import { createPlaceholderUser } from "$lib/Utils/Placeholders";
-import type { OnlineGameState } from "$lib/Game/NetworkHandler";
+import type { OnlineGameState, OnlinePaddleState } from "$lib/Game/NetworkHandler";
 import GameNetworkHandler from "$lib/Game/NetworkHandler";
 
 let canvas: HTMLCanvasElement;
@@ -115,6 +115,12 @@ async function initGame() {
 			// gameNetworkHandler.sendState(state);
 			// do nothing here: the state is only sent by the host, which is the server
 		},
+		onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
+			gameNetworkHandler.sendPaddleState(paddleState);
+		},
+		onPlayerReady: (player: Player) => {
+			gameNetworkHandler.sendPlayerReady(player.intraName);
+		}
 	});
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);

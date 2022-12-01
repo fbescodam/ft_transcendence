@@ -4,7 +4,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { GameGateway } from './game.gateway';
 import { ONLINE_MULTIPL_MODE_ID } from './lib/Modes';
 import GameNetworkHandler, { OnlineGameState, OnlinePaddleState } from './lib/NetworkHandler';
-import GameStateMachine from './lib/StateMachine';
+import GameStateMachine, { Player } from './lib/StateMachine';
 import GameTicker from './lib/Ticker';
 
 /*==========================================================================*/
@@ -220,18 +220,25 @@ export class GameService {
 		const gameStateMachine = new GameStateMachine(game.id, this._ticker, { w: 1080, h: 720 }, ONLINE_MULTIPL_MODE_ID, { p1: game.players[0], p2: game.players[1] }, {
 			onScoreUpdated: (p1Score: number, p2Score: number) => {
 				console.log(`Score updated for game ${gameId}: ${p1Score} - ${p2Score}`);
+				// TODO?
 			},
 			onBeepSound: () => {},
 			onBoopSound: ()	=> {},
 			onImportantStateChange: (state: OnlineGameState) => {
 				console.log(`Sending game state update for game ${gameId} to room ${game.roomId} (players: ${game.players.map(p => p.intraName).join(', ')})`);
 				networkHandler.sendState(state);
+			},
+			onPaddleMoveChange(paddleState: OnlinePaddleState) {
+				// TODO?
+			},
+			onPlayerReady: (player: Player) => {
+				// TODO?
 			}
 		}, true);
 
 		// Set up the Network Handler
-		const networkHandler = new GameNetworkHandler(game.id, this.gameGateway.server, null, (state: OnlinePaddleState) => {
-			gameStateMachine.handleOnlinePaddleState(state);
+		const networkHandler = new GameNetworkHandler(game.id, this.gameGateway.server, null, (state: OnlinePaddleState | null, playerReadyPosition: string | null) => {
+			gameStateMachine.handleOnlinePaddleState(state, playerReadyPosition);
 		});
 
 		// Add the game to the internal games
@@ -275,6 +282,14 @@ export class GameService {
 	 * @param gameData An object defining who won the game including the scores
 	 */
 	async finishGame(gameId, gameData) {
+		if (!this._games[gameId]) {
+			console.warn(`Tried to finish game ${gameId} that was not running`);
+			return;
+		}
+
+		// Stop the game ticker
+		this._ticker.remove(this._games[gameId].stateMachine.getTickerId());
+
 		// Remove game from the cache
 		delete this._games[gameId];
 

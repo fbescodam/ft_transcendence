@@ -166,13 +166,15 @@ export class Paddle extends GameObject {
 	private _maxMove: number = 16; // Max pixels to move per frame, in either direction
 	private _position: "left" | "right";
 	private _dy: Direction = 0;
+	private _onPaddleMoveChange: (paddleState: OnlinePaddleState) => void;
 
-	constructor(position: "left" | "right", gameSize: Dimensions, size: Dimensions = { w: 8, h: 180 }) {
+	constructor(position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void, size: Dimensions = { w: 8, h: 180 }) {
 		const pos: Vec2 = { x: (position == "left" ? 16 : gameSize.w - 16) - size.w * 0.5, y: gameSize.h * 0.5 - 100 * 0.5 };
 		super(pos, size);
 		this._dy = 0;
 		this._position = position;
 		this._moveAxisSize = gameSize.h;
+		this._onPaddleMoveChange = onPaddleMoveChange;
 
 		this._updateMaxOffscreen();
 	}
@@ -215,11 +217,17 @@ export class Paddle extends GameObject {
 	/**
 	 * Set the direction to move the paddle in. This speed cannot exceed the paddle's maximum move speed (see getMaxMoveSpeed).
 	 * @param dir The amount of pixels to move the paddle, every frame.
+	 * @returns True if the movedirection was different than before.
 	 */
 	public setMoveDirection = (dir: Direction) => {
 		if (Math.abs(dir) > this._maxMove)
 			dir = (dir < 0 ? -this._maxMove: this._maxMove);
-		this._dy = dir;
+		if (this._dy != dir) {
+			this._dy = dir;
+			this._onPaddleMoveChange(this.getOnlineState());
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -232,9 +240,11 @@ export class Paddle extends GameObject {
 
 	/**
 	 * Move the paddle. This function is supposed to be called every frame.
-	 * @returns Always returns true (for now?)
+	 * @returns  Returns true if the position changed.
 	 */
 	public move = (): boolean => {
+		if (this._dy == 0)
+			return false;
 		let newPos = this.pos.y + this._dy;
 		if (newPos < this._minY)
 			newPos = this._minY;
@@ -281,6 +291,15 @@ export class Paddle extends GameObject {
 		return newSize;
 	}
 
+	public getOnlineState = () => {
+		return {
+			pos: this.pos,
+			size: this.size,
+			position: this.getPosition(),
+			dy: this.getMoveDirection()
+		};
+	}
+
 	/**
 	 * Render the paddle. This function is supposed to be called every frame.
 	 * @param ctx The canvas rendering context object.
@@ -306,18 +325,20 @@ export class Paddle extends GameObject {
 export class Player {
 	score: number;
 	name: string;
+	intraName: string;
 	avatar: string;
 	paddle: Paddle;
 	_ready: boolean;
 
-	constructor(name: string, avatar: string, position: "left" | "right", gameSize: Dimensions) {
+	constructor(intraName: string, name: string, avatar: string, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void) {
 		this.score = 0;
+		this.intraName = intraName;
 		this.name = name;
 		this.avatar = avatar;
 		this._ready = false;
 
 		// Initialize paddle
-		this.paddle = new Paddle(position, gameSize);
+		this.paddle = new Paddle(position, gameSize, onPaddleMoveChange);
 	}
 
 	//= Public =//
@@ -337,12 +358,7 @@ export class Player {
 			ready: this.isReady(),
 			name: this.name,
 			avatar: this.avatar,
-			paddle: {
-				pos: this.paddle.pos,
-				size: this.paddle.size,
-				position: this.paddle.getPosition(),
-				dy: this.paddle.getMoveDirection()
-			}
+			paddle: this.paddle.getOnlineState()
 		};
 	}
 }
@@ -411,6 +427,18 @@ export interface GameStateHandlers {
 	 * @param state The state of the game to send to the client.
 	 */
 	onImportantStateChange: (state: OnlineGameState) => void;
+
+	/**
+	 * Called when the dy of a paddle changes.
+	 * @param paddle The paddle that was changed.
+	 */
+	onPaddleMoveChange: (paddleState: OnlinePaddleState) => void;
+
+	/**
+	 * Called when a player is marked as ready.
+	 * @param player The player that is ready.
+	 */
+	onPlayerReady: (player: Player) => void;
 }
 
 /**
@@ -462,8 +490,8 @@ class GameStateMachine {
 		this._isHost = isHost;
 
 		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
-		this.player1 = new Player(players.p1.name, players.p1.avatar, "left", this._gameSize);
-		this.player2 = new Player(players.p2.name, players.p2.avatar, "right", this._gameSize);
+		this.player1 = new Player(players.p1.intraName, players.p1.name, players.p1.avatar, "left", this._gameSize, this._gameStateHandlers.onPaddleMoveChange);
+		this.player2 = new Player(players.p2.intraName, players.p2.name, players.p2.avatar, "right", this._gameSize, this._gameStateHandlers.onPaddleMoveChange);
 
 		// Run the game state machine every tick
 		gameTicker.add(this.getTickerId(), this._update);
@@ -591,6 +619,7 @@ class GameStateMachine {
 
 		// Update positions
 		this.ball.move();
+
 		this.player1.paddle.move();
 		this.player2.paddle.move();
 	}
@@ -601,19 +630,33 @@ class GameStateMachine {
 		return `sm-${this._gameId}`;
 	}
 
-	public handleOnlinePaddleState = (paddleState: OnlinePaddleState) => {
+	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
 		}
 
 		// TODO: handle timestamp
 
-		// Update the correct paddle
-		const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
-		paddle.pos.y = paddleState.pos.y;
-		paddle.pos.x = paddleState.pos.x;
-		paddle.size.w = paddleState.size.w;
-		paddle.setHeight(paddleState.size.h);
+		if (paddleState) {
+			// Update the correct paddle
+			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
+			paddle.pos.y = paddleState.pos.y;
+			paddle.pos.x = paddleState.pos.x;
+			paddle.size.w = paddleState.size.w;
+			paddle.setHeight(paddleState.size.h);
+		}
+
+		if (playerReady) {
+			// find the correct player by their IntraID (playerReady)
+			const player = this.player1.intraName == playerReady ? this.player1 : this.player2;
+			if (!player.isReady()) {
+				player.markReady();
+
+				// If this state machine is acting as the host, send the new state to the listening clients
+				if (this._isHost)
+					this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+			}
+		}
 	}
 
 	/**
