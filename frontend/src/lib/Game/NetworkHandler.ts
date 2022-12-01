@@ -18,8 +18,13 @@ class GameNetworkHandler {
 			console.log("Received game state from host", state);
 
 			// Check if the host sees the game mirrored
-			if (state.players.left.intraName != this._gameState.player1.intraName)
+			if (this._gameState.player1.paddle.getPosition() != state.players[this._gameState.player1.intraName].paddle.position)
 				state = this._invertGameState(state);
+
+			// Always invert the game state for p1
+			if (state.players[this._gameState.player1.intraName].ready && state.paused == PausedReason.READY_SET_GO)
+				state.paused = PausedReason.WAITING_FOR_OPPONENT;
+
 			this._stateHandler(state);
 		});
 
@@ -31,9 +36,13 @@ class GameNetworkHandler {
 	}
 
 	private _invertGameState = (gameState: OnlineGameState): OnlineGameState => {
-		const tempLeft: OnlinePlayerState = gameState.players.left;
-		gameState.players.left = gameState.players.right;
-		gameState.players.right = tempLeft;
+		console.warn("Inverting game state");
+
+		// Invert ball
+		gameState.ball.dx *= -1;
+		gameState.ball.pos.x = this._gameState.getGameSize().w - gameState.ball.pos.x;
+
+		// Invert paused state
 		if (gameState.paused == PausedReason.PAUSED_BY_PLAYER)
 			gameState.paused = PausedReason.PAUSED_BY_OPPONENT;
 		else if (gameState.paused == PausedReason.PAUSED_BY_OPPONENT)
@@ -61,8 +70,11 @@ class GameNetworkHandler {
 	public sendPlayerReady = (playerReady: string) => {
 		console.log("Sending player ready");
 		this._io.emit("playerReady", { game: { id: this._gameState.getGameId(), playerReady: playerReady }}, (ret: any) => {
-			if ("error" in ret) {
+			if ("error" in ret)
 				console.error(ret.error);
+			else {
+				console.log("Player ready sent", ret);
+				this._gameState.handleOnlineState(ret);
 			}
 		});
 	}

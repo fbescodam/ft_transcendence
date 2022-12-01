@@ -231,7 +231,7 @@ export class GameService {
 				// TODO?
 			},
 			onPlayerReady: (player: Player) => {
-				// TODO?
+				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());
 			}
 		}, true);
 
@@ -245,7 +245,7 @@ export class GameService {
 	}
 
 	async handlePaddleMovement(gameId: number, intraName: string, paddleState: OnlinePaddleState) {
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<OnlineGameState>((resolve, reject) => {
 			if (!this._games[gameId]) {
 				console.warn("Trying to handle paddle movement for a game which is not running.");
 				return reject('Game is not running');
@@ -255,11 +255,12 @@ export class GameService {
 				return reject('Unauthorized');
 			}
 			this._games[gameId].stateMachine.handleOnlinePaddleState(paddleState, null);
-			resolve();
+			resolve(this._games[gameId].stateMachine.getOnlineState());
 		});
 	}
 
 	async handlePlayerReady(gameId: number, intraName: string) {
+		console.log(`Handling playerReady event for game ${gameId} and user ${intraName}`);
 		return new Promise<void>((resolve, reject) => {
 			if (!this._games[gameId]) {
 				console.warn("Trying to handle player ready for a game which is not running.");

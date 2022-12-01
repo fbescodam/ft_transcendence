@@ -328,7 +328,7 @@ export class Player {
 	intraName: string;
 	avatar: string;
 	paddle: Paddle;
-	_ready: boolean;
+	private _ready: boolean;
 
 	constructor(intraName: string, name: string, avatar: string, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void) {
 		this.score = 0;
@@ -635,6 +635,10 @@ class GameStateMachine {
 		return this._gameId;
 	}
 
+	public getGameSize = (): Dimensions => {
+		return this._gameSize;
+	}
+
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
@@ -684,10 +688,6 @@ class GameStateMachine {
 		this.ball.pos.x = state.ball.pos.x;
 		this.ball.pos.y = state.ball.pos.y;
 
-		// Match left and right with the correct player
-		const playerLeft = (state.players.left.paddle.position == "right" ? this.player1 : this.player2);
-		const playerRight = (state.players.right.paddle.position == "left" ? this.player2 : this.player1);
-
 		const updatePlayerState = (player: Player, onlinePlayerState: OnlinePlayerState) => {
 			player.avatar = onlinePlayerState.avatar;
 			player.name = onlinePlayerState.name;
@@ -706,10 +706,10 @@ class GameStateMachine {
 		}
 
 		// Update the "left" player
-		updatePlayerState(playerLeft, state.players.left);
+		updatePlayerState(this.player1, state.players[this.player1.intraName]);
 
 		// Update the "right" player
-		updatePlayerState(playerRight, state.players.right);
+		updatePlayerState(this.player2, state.players[this.player2.intraName]);
 
 		// Update the paused state
 		// @ts-ignore no typescript, fuck you
@@ -718,7 +718,6 @@ class GameStateMachine {
 
 		// Check if both players are ready and start the game if it hasn't yet
 		console.log(this._paused);
-		console.log(playerLeft.isReady(), playerRight.isReady());
 		console.log(this.player1.isReady(), this.player2.isReady());
 		if (this._paused == PausedReason.WAITING_FOR_OPPONENT && this.player1.isReady() && this.player2.isReady()) {
 			this.startGame();
@@ -745,8 +744,8 @@ class GameStateMachine {
 			},
 			paused: this._paused,
 			players: {
-				left: this.player1.getOnlineState(),
-				right: this.player2.getOnlineState()
+				[this.player1.intraName]: this.player1.getOnlineState(),
+				[this.player2.intraName]: this.player2.getOnlineState()
 			},
 			ball: {
 				pos: this.ball.pos,
@@ -773,6 +772,7 @@ class GameStateMachine {
 	public startGame = () => {
 		console.log("Starting game?");
 		console.log(this.getPausedReason());
+		console.log(this.player1.isReady());
 		if (this.getPausedReason() == PausedReason.READY_SET_GO || this.getPausedReason() == PausedReason.WAITING_FOR_OPPONENT) {
 			this.player1.markReady();
 			this._gameStateHandlers.onPlayerReady(this.player1);
@@ -796,6 +796,9 @@ class GameStateMachine {
 			// If this state machine is acting as the host, send the new state to the listening clients
 			if (this._isHost)
 				this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+		}
+		else {
+			console.error("GODVERDOMME");
 		}
 	}
 
