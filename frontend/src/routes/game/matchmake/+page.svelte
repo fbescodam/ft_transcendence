@@ -16,7 +16,7 @@ let io: Socket | null = null;
 let matchmakeStatus: string = "Joining the matchmaking queue...";
 
 onMount(() => {
-	io = initSocket($JWT!);
+	io = initSocket($page.url.hostname, $JWT!);
 	const selectedModeParam = $page.url.searchParams.get('mode');
 
 	if (selectedModeParam != null) {

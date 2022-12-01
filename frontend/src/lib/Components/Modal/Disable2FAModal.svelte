@@ -4,6 +4,7 @@
 <script lang="ts">
 import { initSocket } from "$lib/socketIO";
 import { JWT } from "$lib/Stores/User";
+import { page } from '$app/stores';
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 import Button from "../Button/Button.svelte";
@@ -22,7 +23,7 @@ let authCode: HTMLInputElement;
 
 //= Methods =//
 
-onMount(() => io = initSocket($JWT!));
+onMount(() => io = initSocket($page.url.hostname, $JWT!));
 
 /** Handler for closing the modal. */
 function onCancel() {

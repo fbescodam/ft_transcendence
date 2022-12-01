@@ -91,9 +91,9 @@ let navitems = [
 .fuck-off {
 	display: flex;
 	gap: 1rem;
-	justify-content: center; 
-	align-items: center; 
-	height: 100%; 
+	justify-content: center;
+	align-items: center;
+	height: 100%;
 	flex-direction: column;
 }
 

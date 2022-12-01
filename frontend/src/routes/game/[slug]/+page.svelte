@@ -13,6 +13,7 @@ import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from "$lib/Game/Modes";
 import type { User, Dimensions } from "$lib/Types";
+import { createPlaceholderUser } from "$lib/Utils/Placeholders";
 import { JWT, displayName, avatar } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
@@ -48,7 +49,6 @@ async function getGameData(gameId: number) {
 
 function populateUser(user: User, gameUserData: any) {
 	user.id = gameUserData.id;
-	user.intraId = gameUserData.intraId;
 	user.intraName = gameUserData.intraName;
 	user.name = gameUserData.name;
 	user.avatar = `${$page.url.protocol}//${$page.url.hostname}:3000/${gameUserData.avatar}`;
@@ -71,23 +71,11 @@ async function initGame() {
 		}
 	}
 
-	let player1: User = {
-		id: 999999999999,
-		intraName: "TODO", // TODO: replace with IntraName
-		name: ($displayName ? $displayName : "Player 1"),
-		avatar: ($avatar ? `${$page.url.protocol}//${$page.url.hostname}:3000/${$avatar}` : ""),
-		games: []
-	};
-	let player2: User = {
-		id: 999999999999,
-		intraName: "player2",
-		name: "Player 2",
-		avatar: "https://picsum.photos/200",
-		games: []
-	};
+	const player1: User = createPlaceholderUser("TODO", ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
+	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
 
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
-		io = initSocket($JWT!);
+		io = initSocket($page.url.hostname, $JWT!);
 		const gameData: any = await getGameData(gameId);
 		if (gameData.players.length != 2)
 			throw new Error("Invalid number of players in game");
@@ -103,7 +91,7 @@ async function initGame() {
 
 	gameTicker = new GameTicker();
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
-	gameState = new GameStateMachine(gameTicker, gameSize, gameMode, player1, player2);
+	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, player1, player2, io);
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 

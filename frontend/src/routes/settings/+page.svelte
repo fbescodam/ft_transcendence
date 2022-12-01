@@ -14,6 +14,7 @@ import { initSocket } from "$lib/socketIO";
 import { displayName, JWT, avatar } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
+import { page } from "$app/stores";
 
 let io: Socket;
 let show2FAModal: boolean = false;
@@ -27,7 +28,7 @@ let authCode: HTMLInputElement;
 let newAvatar: HTMLInputElement;
 
 onMount(() => {
-	io = initSocket($JWT!)
+	io = initSocket($page.url.hostname, $JWT!)
 	io.emit("isTfaEnabled", {}, (data: { tfaEnabled: boolean }) => {
 		tfaEnabled = data.tfaEnabled;
 		console.log(tfaEnabled);
@@ -185,7 +186,7 @@ function checkCode(e: SubmitEvent) {
 
 	fieldset {
 		border-radius: var(--border-radius);
-		padding: 8px; 
+		padding: 8px;
 		border: 2px solid var(--component-border);
 	}
 </style>

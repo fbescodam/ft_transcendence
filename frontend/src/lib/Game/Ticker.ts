@@ -6,7 +6,7 @@ export class GameTicker {
 	constructor(ticksPerSecond: number = 60) {
 		this._tps = ticksPerSecond;
 
-		this._lastTick = new Date().getTime();
+		this._lastTick = Date.now();
 
 		// Run tick function at the defined tickRate
 		setInterval(() => this._tick(), 1000 / this._tps);
@@ -16,7 +16,7 @@ export class GameTicker {
 	 * Call all functions defined in the list of tickers.
 	 */
 	private _tick = () => {
-		const now = new Date().getTime();
+		const now = Date.now();
 		const deltaTick = now - this._lastTick;
 		for (let ticker of this._tickers) {
 			(async () => {

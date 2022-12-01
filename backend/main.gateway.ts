@@ -21,9 +21,9 @@ import { TwoFactorAuthenticationService } from "auth/2fa.service";
 
 dotenv.config();
 
-// do not set origin to *, is unsafe
-// use localhost domain to connect to BreadPong instead of IP addresses.
-@WebSocketGateway({ cors: { origin: "http://localhost:5173", credentials: false } })
+// normally we do not set origin to *, is unsafe
+// however here we don't really have a domain, so we do not care
+@WebSocketGateway({ cors: { origin: "*", credentials: false } })
 export class MainGateway {
 
 	//= Properties =//
@@ -51,7 +51,7 @@ export class MainGateway {
 	public async getUserData(@MessageBody() data: object) {
 		this.logger.log(`getting user data for ${data["penis"]}`);
 		const user = await this.prismaService.user.findFirst({
-			where: { 
+			where: {
 				name: data["penis"]
 			},
 			select: {
@@ -166,7 +166,7 @@ export class MainGateway {
 		{
 			channel = await this.prismaService.channel.create({
 				data: {
-					name: channelData["name"], 
+					name: channelData["name"],
 					password: null,
 					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
 			}});
@@ -279,7 +279,7 @@ export class MainGateway {
 		})
 
 		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
-		
+
 		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
 		await this.cacheManager.del(socket.handshake.auth.token)
 		socket.handshake.auth = { token: jwtToken }
@@ -423,6 +423,9 @@ export class MainGateway {
 	public async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 		this.logger.log(data);
 
+		if (!("redirectUrl" in data) || !("state" in data) || !("authCode" in data))
+			return { error: "invalid request" }
+
 		// Fetch the oauth token.
 		const response = await fetch("https://api.intra.42.fr/oauth/token", {
 			method: "POST",
@@ -432,7 +435,7 @@ export class MainGateway {
 				client_secret: process.env.INTRA_SECRET,
 				code: data["authCode"],
 				state: data["state"],
-				redirect_uri: "http://localhost:5173/auth"
+				redirect_uri: data["redirectUrl"]
 			}),
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"

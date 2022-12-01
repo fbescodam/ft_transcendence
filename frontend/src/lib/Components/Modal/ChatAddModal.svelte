@@ -3,6 +3,7 @@
 
 <script lang="ts">
 import { initSocket } from "$lib/socketIO";
+import { page } from '$app/stores';
 import { channels } from "$lib/Stores/Channel";
 import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
@@ -30,7 +31,7 @@ let io: Socket;
 
 //= Methods =//
 
-onMount(() => io = initSocket($JWT!));
+onMount(() => io = initSocket($page.url.hostname, $JWT!));
 
 /** Handler for closing the modal. */
 function onCancel() {
@@ -47,7 +48,7 @@ function onChannelCreate(e: SubmitEvent) {
     let password = null
 
     if (channelPasswordInput)
-        password = channelPasswordInput.value;    
+        password = channelPasswordInput.value;
 
     io.emit('createChannel', {name:channelNameInput.value, password:password}, function (answer: any) {
         if (answer.error)
@@ -64,7 +65,7 @@ function onChannelCreate(e: SubmitEvent) {
  */
 function onChannelJoin(e: SubmitEvent) {
     e.preventDefault();
-    
+
     io.emit('joinChannel', {name:joinChannelNameInput.value, password:joinChannelPasswordInput.value}, function (answer: any) {
         if (answer.error)
             console.log(answer.error)
@@ -86,13 +87,13 @@ function onChannelJoin(e: SubmitEvent) {
             <section class="form-body">
                 <!-- Data -->
                 <div class="form-content">
-    
+
                     <!-- Channel Name -->
                     <label for="channel-name">
                         <b>Channel:</b>
                     </label>
                     <input bind:this={channelNameInput} id="channel-name" type="text" required>
-                    
+
                     <!-- Channel Type -->
                     <br/>
                     <section>
@@ -100,13 +101,13 @@ function onChannelJoin(e: SubmitEvent) {
                             <b>Public</b>
                         </label>
                         <input bind:this={isPublicChannelInput} type="radio" id="public" name="private" required bind:group={publicOrPrivate} value={false}>
-        
+
                         <label for="private">
                             <b>Private</b>
                         </label>
                         <input bind:this={isPrivateChannelInput} type="radio" id="private" name="private" required bind:group={publicOrPrivate} value={true}>
                     </section>
-    
+
                     <!-- Channel Password -->
                     <br/>
                     {#if publicOrPrivate}
@@ -129,13 +130,13 @@ function onChannelJoin(e: SubmitEvent) {
             <section class="form-body">
                 <!-- Data -->
                 <div class="form-content">
-    
+
                     <!-- Channel Name -->
                     <label for="join-channel-name">
                         <b>Channel:</b>
                     </label>
                     <input bind:this={joinChannelNameInput} id="join-channel-name" type="text" required>
-                    
+
                     <!-- Channel Password -->
                     <br/>
                     <label for="join-password">

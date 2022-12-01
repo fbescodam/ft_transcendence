@@ -3,7 +3,7 @@
 
 <script lang="ts">
 import { initSocket } from "$lib/socketIO";
-import { channels } from "$lib/Stores/Channel";
+import { page } from '$app/stores';
 import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
@@ -25,7 +25,7 @@ let authCode: HTMLInputElement;
 
 //= Methods =//
 
-onMount(() => io = initSocket($JWT!));
+onMount(() => io = initSocket($page.url.hostname, $JWT!));
 
 /** Handler for closing the modal. */
 function onCancel() {
@@ -33,7 +33,7 @@ function onCancel() {
 }
 
 function enableTFA() {
-	
+
 	io.emit('enableTfaAuth', {tfaCode: authCode.value}, function(e:any) {
 		if ("error" in e) {
 			authCode.setCustomValidity("Invalid code!");
