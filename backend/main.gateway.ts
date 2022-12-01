@@ -393,6 +393,9 @@ export class MainGateway {
 	public async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 		this.logger.log(data);
 
+		if (!("redirectUrl" in data) || !("state" in data) || !("authCode" in data))
+			return { error: "invalid request" }
+
 		// Fetch the oauth token.
 		const response = await fetch("https://api.intra.42.fr/oauth/token", {
 			method: "POST",
@@ -402,7 +405,7 @@ export class MainGateway {
 				client_secret: process.env.INTRA_SECRET,
 				code: data["authCode"],
 				state: data["state"],
-				redirect_uri: "http://localhost:5173/auth"
+				redirect_uri: data["redirectUrl"]
 			}),
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"

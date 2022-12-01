@@ -28,7 +28,12 @@ onMount(() => {
 		const io = authSocket()
 
 		// send authentication code to backend
-		io.emit("authStart", { authCode: authCode, state: $state },  function (answer: any) {
+		io.emit("authStart", { authCode: authCode, state: $state, redirectUrl: `${$page.url.origin}${$page.url.pathname}` },  function (answer: any) {
+			if ("error" in answer) {
+				console.error(answer.error, answer);
+				alert(`Error: ${answer.error}`);
+			}
+
 			$JWT = answer.token;
 			$displayName = answer.displayName;
 			$avatar = answer.avatar;
@@ -37,7 +42,7 @@ onMount(() => {
 				console.warn("Its been 5 seconds, check your connection...")
 				timeout = true;
 			}, 5000);
-			
+
 			goto('http://localhost:5173', { replaceState: true })
 		});
 	}
@@ -117,7 +122,7 @@ function onClick() {
 			animation-duration: 6000ms;
 			animation-iteration-count: infinite;
 			animation-timing-function: linear;
-		
+
 			@keyframes spin {
 				to {
 					transform:rotate(0deg);
