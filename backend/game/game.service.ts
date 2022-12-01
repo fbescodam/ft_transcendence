@@ -319,6 +319,11 @@ export class GameService {
 			victorScore = gameState.players.player2.score;
 			loserScore = gameState.players.player1.score;
 		}
+		else {
+			console.warn(`Game ${gameId} ended in a draw`);
+			victorScore = gameState.players.player1.score;
+			loserScore = gameState.players.player2.score;
+		}
 		// else: draw, set everything to null
 
 		// Finalize game data in DB
