@@ -357,6 +357,7 @@ export class Player {
 			score: this.score,
 			ready: this.isReady(),
 			name: this.name,
+			intraName: this.intraName,
 			avatar: this.avatar,
 			paddle: this.paddle.getOnlineState()
 		};
@@ -628,6 +629,10 @@ class GameStateMachine {
 
 	public getTickerId = () => {
 		return `sm-${this._gameId}`;
+	}
+
+	public getGameId = () => {
+		return this._gameId;
 	}
 
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {

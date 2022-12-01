@@ -357,6 +357,7 @@ export class Player {
 			score: this.score,
 			ready: this.isReady(),
 			name: this.name,
+			intraName: this.intraName,
 			avatar: this.avatar,
 			paddle: this.paddle.getOnlineState()
 		};
@@ -630,6 +631,10 @@ class GameStateMachine {
 		return `sm-${this._gameId}`;
 	}
 
+	public getGameId = () => {
+		return this._gameId;
+	}
+
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
@@ -770,6 +775,7 @@ class GameStateMachine {
 		console.log(this.getPausedReason());
 		if (this.getPausedReason() == PausedReason.READY_SET_GO || this.getPausedReason() == PausedReason.WAITING_FOR_OPPONENT) {
 			this.player1.markReady();
+			this._gameStateHandlers.onPlayerReady(this.player1);
 
 			// If we're in local multiplayer, mark player 2 as ready as well
 			if (this.getGameMode() == LOCAL_MULTIPL_MODE_ID) {

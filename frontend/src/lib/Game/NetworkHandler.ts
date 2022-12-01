@@ -1,20 +1,25 @@
-import { PausedReason } from "./StateMachine";
+import GameStateMachine, { PausedReason } from "./StateMachine";
 import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkTypes";
 import type { Socket } from "socket.io-client";
 // server: change above to socket.io. client: change above to socket.io-client
 
 class GameNetworkHandler {
 	private _io: Socket;
-	private _gameId: number;
+	private _gameState: GameStateMachine;
 	private _stateHandler: (state: OnlineGameState) => void;
 
-	constructor(gameId: number, io: Socket, stateHandler: (state: OnlineGameState) => void) {
-		this._gameId = gameId;
+	constructor(gameState: GameStateMachine, io: Socket, stateHandler: (state: OnlineGameState) => void) {
+		this._gameState = gameState;
 		this._io = io;
 		this._stateHandler = stateHandler;
 
 		console.log("Registering client state handler");
 		this._io.on("gameState", (state: OnlineGameState) => {
+			console.log("Received game state from host", state);
+
+			// Check if the host sees the game mirrored
+			if (state.players.left.intraName != this._gameState.player1.intraName)
+				state = this._invertGameState(state);
 			this._stateHandler(state);
 		});
 
@@ -42,7 +47,7 @@ class GameNetworkHandler {
 
 	public sendPaddleState = (paddleState: OnlinePaddleState) => {
 		console.log("Sending paddle state", paddleState);
-		this._io.emit("paddleGameState", { game: { id: this._gameId, state: paddleState}}, (ret: any) => {
+		this._io.emit("paddleGameState", { game: { id: this._gameState.getGameId(), state: paddleState}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
 			}
@@ -55,7 +60,7 @@ class GameNetworkHandler {
 	 */
 	public sendPlayerReady = (playerReady: string) => {
 		console.log("Sending player ready");
-		this._io.emit("playerReady", { game: { id: this._gameId, playerReady: playerReady }}, (ret: any) => {
+		this._io.emit("playerReady", { game: { id: this._gameState.getGameId(), playerReady: playerReady }}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
 			}

@@ -130,7 +130,7 @@ async function initGame() {
 	if (gameMode === SINGLEPL_MODE_ID)
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
 	else if (gameMode == ONLINE_MULTIPL_MODE_ID)
-		gameNetworkHandler = new GameNetworkHandler(gameId, io, gameState.handleOnlineState)
+		gameNetworkHandler = new GameNetworkHandler(gameState, io, gameState.handleOnlineState)
 }
 
 onMount(() => {

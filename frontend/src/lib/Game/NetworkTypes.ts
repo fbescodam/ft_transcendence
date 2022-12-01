@@ -9,6 +9,7 @@ export interface OnlinePaddleState {
 
 export interface OnlinePlayerState {
 	avatar: string;
+	intraName: string;
 	name: string;
 	paddle: OnlinePaddleState;
 	score: number;
