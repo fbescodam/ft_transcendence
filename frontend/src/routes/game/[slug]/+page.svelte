@@ -9,6 +9,7 @@ import GameStateMachine, { Player, type Dimensions } from "$lib/Game/StateMachin
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
 import GameSoundEngine from "$lib/Game/SoundEngine";
+import GameDebugger from "$lib/Game/Debugger";
 import type { GameMode } from "$lib/Game/Modes";
 import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
@@ -35,6 +36,7 @@ let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
 let gameNetworkHandler: GameNetworkHandler;
 let gameAI: GameAI;
+let gameDebugger: GameDebugger;
 let io: Socket;
 
 async function getGameData(gameId: number) {
@@ -131,6 +133,10 @@ async function initGame() {
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
 	else if (gameMode == ONLINE_MULTIPL_MODE_ID)
 		gameNetworkHandler = new GameNetworkHandler(gameState, io, gameState.handleOnlineState)
+
+	// Set up the game debugger and link it to the renderer
+	gameDebugger = new GameDebugger(gameAI, gameController, gameNetworkHandler, gameRenderer, gameSoundEngine, gameState);
+	gameRenderer.setDebugger(gameDebugger);
 }
 
 onMount(() => {
@@ -139,6 +145,7 @@ onMount(() => {
 });
 
 onDestroy(() => {
+	gameTicker.clear(); // For just in case
 	console.log("onDestroy called");
 	window.location.reload();
 	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
@@ -152,8 +159,10 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	// console.log(event);
 	gameController.setKeyPressed(event.key);
 
-	if (event.code === "Escape")
+	if (event.key === "Escape")
 		gameController.togglePause();
+	if (event.key === "/")
+		gameRenderer.debugScreen = (gameRenderer.debugScreen ? false : true);
 };
 
 </script>

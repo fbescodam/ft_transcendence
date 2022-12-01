@@ -492,6 +492,9 @@ class GameStateMachine {
 	private _secondsPlayed: number = 0;
 	private _gameDuration: number = 180; // 3 minutes
 
+	private _actualTps: number = 0;
+	private _tps: number = 0;
+
 	private _gameStateHandlers: GameStateHandlers;
 	private _isHost: boolean;
 
@@ -564,6 +567,10 @@ class GameStateMachine {
 	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
 	private _update = (tps: number, deltaTick: number) => {
+		// Update the tps based on the deltaTick
+		this._tps = tps;
+		this._actualTps = 1000 / deltaTick;
+
 		// Check if we're still waiting for players...
 		if (this._waitingForPlayers()) {
 			if (this.player1.isReady() && !this.player2.isReady())
@@ -657,6 +664,10 @@ class GameStateMachine {
 
 	public getTickerId = () => {
 		return `sm-${this._gameId}`;
+	}
+
+	public getTps = () => {
+		return [this._tps, this._actualTps];
 	}
 
 	public getGameId = () => {

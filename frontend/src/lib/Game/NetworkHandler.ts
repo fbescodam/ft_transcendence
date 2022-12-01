@@ -7,6 +7,7 @@ class GameNetworkHandler {
 	private _io: Socket;
 	private _gameState: GameStateMachine;
 	private _stateHandler: (state: OnlineGameState) => void;
+	private _lastResponseTime: number = Infinity;
 
 	constructor(gameState: GameStateMachine, io: Socket, stateHandler: (state: OnlineGameState) => void) {
 		this._gameState = gameState;
@@ -16,7 +17,7 @@ class GameNetworkHandler {
 		console.log("Registering client state handler");
 		this._io.on("gameState", (state: OnlineGameState) => {
 			console.log("Received game state from host", state);
-
+			this._lastResponseTime = Date.now() - state.time.timestamp;
 			this._stateHandler(state);
 		});
 
@@ -54,6 +55,10 @@ class GameNetworkHandler {
 
 	public getSocketId = (): string => {
 		return this._io.id;
+	}
+
+	public getResponseTime = (): number => {
+		return this._lastResponseTime;
 	}
 }
 
