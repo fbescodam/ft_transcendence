@@ -24,12 +24,14 @@ onMount(() => {
 		switch (selectedModeID) {
 			case SINGLEPL_MODE_ID: // Singleplayer
 			{
+				matchmakeStatus = "Loading...";
 				console.log("Creating singleplayer lobby");
 				goto("/game/singleplayer", { replaceState: true });
 				break;
 			}
 			case LOCAL_MULTIPL_MODE_ID: // Local Multiplayer
 			{
+				matchmakeStatus = "Loading...";
 				console.log("Creating local multiplayer lobby");
 				goto("/game/local-multiplayer", { replaceState: true });
 				break;
@@ -39,8 +41,10 @@ onMount(() => {
 				console.log("Creating online multiplayer lobby");
 				io.emit("joinQueue", {}, (ret: any) => {
 					console.log("Queue joing status:", ret);
-					if (ret.status === true)
+					if (ret.status === true) {
 						matchmakeStatus = "Searching for players...";
+						userInQueue = true;
+					}
 				});
 				io.on("gameStart", (data: any) => {
 					console.log("Game start data:", data);

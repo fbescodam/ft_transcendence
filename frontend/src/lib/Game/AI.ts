@@ -1,7 +1,6 @@
 import type GameTicker from "./Ticker";
-import type { Player, Paddle } from "./StateMachine";
+import type { Player, Paddle, Direction } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
-import type { Direction } from "$lib/Types";
 import { getRandomArbitrary } from "$lib/Utils/Basic";
 
 class GameAI {
@@ -11,7 +10,7 @@ class GameAI {
 
 	// AI brains
 	private _followBall: boolean = true;
-	private _rethinkAfter = 320;
+	private _rethinkEvery = 320; // ms
 	private _randomDirection: Direction = 0;
 	private _lastRandomDirectionChange: number = Date.now();
 
@@ -21,7 +20,7 @@ class GameAI {
 		this._player.paddle.limitMoveSpeed();
 
 		// run controller update every tick
-		gameTicker.add(this._think);
+		gameTicker.add('ai', this._think);
 
 		// mark AI player as ready
 		this._player.markReady();
@@ -33,7 +32,7 @@ class GameAI {
 	 */
 	private _rethinkIfItsTime = (followBallOverride: boolean = false) => {
 		const now = Date.now();
-		if (now - this._lastRandomDirectionChange > this._rethinkAfter) {
+		if (now - this._lastRandomDirectionChange > this._rethinkEvery) {
 			this._lastRandomDirectionChange = now;
 			this._followBall = Math.random() > 0.5; // 50% chance that the AI decides to follow the ball around
 			const rand = getRandomArbitrary(1, this._player.paddle.getMaxMoveSpeed() * 0.5); // Decide on a random speed to move the paddle at
@@ -87,6 +86,18 @@ class GameAI {
 			this._randomBehaviour(false);
 		}
 	};
+
+	//= Public =//
+	public getState = () => {
+		return {
+			paddle: this._player.paddle.getPosition(),
+			followBall: this._followBall,
+			randomDirection: this._randomDirection,
+			lastRandomDirectionChange: this._lastRandomDirectionChange,
+			rethinkEvery: this._rethinkEvery,
+		}
+	}
+
 }
 
 export default GameAI;

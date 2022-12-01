@@ -1,5 +1,6 @@
 import { formatSeconds } from "$lib/Utils/Basic";
-import type { PausedReasonObject } from "./StateMachine";
+import type GameDebugger from "./Debugger";
+import type { Dimensions, PausedReasonObject } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
 
 class GameRenderer {
@@ -11,6 +12,13 @@ class GameRenderer {
 	private _avatar1: HTMLImageElement;
 	private _avatar2: HTMLImageElement;
 
+	private _size: Dimensions;
+
+	private _debugger: GameDebugger | undefined;
+	debugScreen: boolean = false;
+	private _lastFrameTime: number = 0;
+	private _fps = 0;
+
 	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
@@ -19,6 +27,8 @@ class GameRenderer {
 		this._timer = timer;
 		this._avatar1 = avatar1;
 		this._avatar2 = avatar2;
+
+		this._size = { w: canvas.width, h: canvas.height };
 
 		// Set up user data
 		this._avatar1.src = this._gameState.player1.avatar;
@@ -85,9 +95,23 @@ class GameRenderer {
 	}
 
 	/**
+	 * Draw debug information, such as the current FPS and movements.
+	 */
+	private _renderDebugScreen = () => {
+		if (this._debugger)
+			this._debugger.render(this._ctx, this._fps);
+	}
+
+	/**
 	 * Game drawing loop. Calls itself recursively using requestAnimationFrame.
 	 */
 	private _renderFrame = () => {
+		// Calculate FPS
+		const now = performance.now();
+		const delta = now - this._lastFrameTime;
+		this._lastFrameTime = now;
+		this._fps = Math.round(1000 / delta);
+
 		// Clear canvas and draw background
 		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 		this._ctx.fillStyle = "black";
@@ -110,9 +134,22 @@ class GameRenderer {
 			this._renderPausedText();
 		}
 
+		// Debug screen
+		if (this.debugScreen)
+			this._renderDebugScreen();
+
 		// Render next frame
 		requestAnimationFrame(this._renderFrame);
 	};
+
+	//= Public =//
+	public setDebugger = (dbugger: GameDebugger) => {
+		this._debugger = dbugger;
+	}
+
+	public getSize = (): Dimensions => {
+		return this._size;
+	}
 };
 
 export default GameRenderer;

@@ -11,6 +11,7 @@ export const session = createSessionStorage<any>();
 export const state = writable<string>(generateRandomString(32))
 export const JWT = persist<string | null>(writable<string | null>(null), session, "token");
 export const displayName = persist<string | null>(writable<string | null>(null), session, "displayName");
+export const intraName = persist<string | null>(writable<string | null>(null), session, "intraName");
 export const avatar = persist<string | null>(writable<string | null>(null), session, "avatar");
 
 /*==========================================================================*/

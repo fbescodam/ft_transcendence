@@ -1,44 +1,63 @@
-import type { Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type GameStateMachine from "./StateMachine";
-import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
+import type { Direction } from "./StateMachine";
 import { PausedReason } from "./StateMachine";
+import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
 
 class GameController {
 	private _gameState: GameStateMachine;
 	private _keysPressed: { [key: string]: boolean } = {};
+	private _mainUser: string;
 
-	constructor(gameTicker: GameTicker, gameState: GameStateMachine, tickRate: number = 60) {
+	constructor(gameTicker: GameTicker, gameState: GameStateMachine, mainUserIntraName: string) {
 		this._gameState = gameState;
+		this._mainUser = mainUserIntraName;
 
 		// run controller update every tick
-		gameTicker.add(this._update);
+		gameTicker.add('controller', this._update);
+
+		// mark main user as ready
+		this._getMainUser().markReady();
+	}
+
+	private _getMainUser() {
+		if (this._gameState.player1.intraName === this._mainUser)
+			return this._gameState.player1;
+		return this._gameState.player2;
+	}
+
+	private _getOtherUser() {
+		if (this._gameState.player1.intraName === this._mainUser)
+			return this._gameState.player2;
+		return this._gameState.player1;
 	}
 
 	/**
 	 * Move the paddle of player 1
 	 */
-	private _movePaddleP1 = () => {
-		const maxSpeed = this._gameState.player1.paddle.getMaxMoveSpeed();
+	private _movePaddleWS = () => {
+		const player = this._getMainUser();
+		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["w"] && !this._keysPressed["s"])
 			dy = -maxSpeed;
 		if (this._keysPressed["s"] && !this._keysPressed["w"])
 			dy = maxSpeed;
-		this._gameState.player1.paddle.setMoveDirection(dy);
+		player.paddle.setMoveDirection(dy);
 	}
 
 	/**
 	 * Move the paddle of player 2 - this is only used in local multiplayer mode
 	 */
-	private _movePaddleP2 = () => {
-		const maxSpeed = this._gameState.player2.paddle.getMaxMoveSpeed();
+	private _movePaddleArrows = () => {
+		const player = this._getOtherUser();
+		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
 			dy = -maxSpeed;
 		if (this._keysPressed["ArrowDown"] && !this._keysPressed["ArrowUp"])
 			dy = maxSpeed;
-		this._gameState.player2.paddle.setMoveDirection(dy);
+		player.paddle.setMoveDirection(dy);
 	}
 
 	/**
@@ -51,11 +70,11 @@ class GameController {
 			return;
 
 		// In all game modes
-		this._movePaddleP1();
+		this._movePaddleWS();
 
 		// Only in local multiplayer mode
 		if (this._gameState.getGameMode() == LOCAL_MULTIPL_MODE_ID)
-			this._movePaddleP2();
+			this._movePaddleArrows();
 	};
 
 	//= Public =//
@@ -78,25 +97,18 @@ class GameController {
 	};
 
 	/**
-	 * Run this function when the player is ready to start playing.
-	 */
-	public amReady = () => {
-		this._gameState.startGame();
-	}
-
-	/**
 	 * Pause the game from the current player's perspective.
 	*/
 	public pause = () => {
 		if (!this._gameState.isPaused())
-			this._gameState.pauseGame(PausedReason.PAUSED_BY_PLAYER);
+			this._gameState.pauseGame(PausedReason.PAUSED_P1);
 	}
 
 	/**
 	 * Resume the game from the current player's perspective.
 	 */
 	public resume = () => {
-		if (this._gameState.getPausedReason() == PausedReason.PAUSED_BY_PLAYER)
+		if (this._gameState.getPausedReason() == PausedReason.PAUSED_P1)
 			this._gameState.unPauseGame();
 	}
 

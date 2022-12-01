@@ -5,18 +5,23 @@ import { onMount, onDestroy } from "svelte";
 import { page } from '$app/stores';
 import { goto } from "$app/navigation";
 import GameTicker from "$lib/Game/Ticker";
-import GameStateMachine from "$lib/Game/StateMachine";
+import GameStateMachine, { Player, type Dimensions } from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
+import GameSoundEngine from "$lib/Game/SoundEngine";
+import GameDebugger from "$lib/Game/Debugger";
 import type { GameMode } from "$lib/Game/Modes";
 import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from "$lib/Game/Modes";
-import type { User, Dimensions } from "$lib/Types";
-import { createPlaceholderUser } from "$lib/Utils/Placeholders";
-import { JWT, displayName, avatar } from "$lib/Stores/User";
+import type { User } from "$lib/Types";
+import { JWT, displayName, avatar, intraName } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
+// @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
+import { createPlaceholderUser } from "$lib/Utils/Placeholders";
+import type { OnlineGameState, OnlinePaddleState } from "$lib/Game/NetworkTypes";
+import GameNetworkHandler from "$lib/Game/NetworkHandler";
 
 let canvas: HTMLCanvasElement;
 let scores: HTMLElement;
@@ -24,11 +29,14 @@ let timer: HTMLElement;
 let avatar1: HTMLImageElement;
 let avatar2: HTMLImageElement;
 
+let gameSoundEngine: GameSoundEngine;
 let gameTicker: GameTicker;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
+let gameNetworkHandler: GameNetworkHandler;
 let gameAI: GameAI;
+let gameDebugger: GameDebugger;
 let io: Socket;
 
 async function getGameData(gameId: number) {
@@ -55,6 +63,7 @@ function populateUser(user: User, gameUserData: any) {
 }
 
 async function initGame() {
+	// Retrieve the game mode
 	const gameId: number = parseInt($page.params.slug);
 	let gameMode: GameMode = ONLINE_MULTIPL_MODE_ID;
 	if (isNaN(gameId)) {
@@ -71,33 +80,63 @@ async function initGame() {
 		}
 	}
 
-	const player1: User = createPlaceholderUser("TODO", ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
+	// Populate user data and initialize multiplayer socket if required
+	const player1: User = createPlaceholderUser(($intraName ? $intraName : "player1"), ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
 	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
-
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
 		io = initSocket($page.url.hostname, $JWT!);
 		const gameData: any = await getGameData(gameId);
 		if (gameData.players.length != 2)
 			throw new Error("Invalid number of players in game");
-		if (gameData.players[0].name == $displayName) {
-			populateUser(player1, gameData.players[0]);
-			populateUser(player2, gameData.players[1]);
-		}
-		else {
-			populateUser(player1, gameData.players[1]);
-			populateUser(player2, gameData.players[0]);
-		}
+		populateUser(player1, gameData.players[0]);
+		populateUser(player2, gameData.players[1]);
 	}
 
+	// Set up the game engine
 	gameTicker = new GameTicker();
+	gameSoundEngine = new GameSoundEngine();
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
-	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, player1, player2, io);
-	gameController = new GameController(gameTicker, gameState);
+	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
+		onScoreUpdated: (p1Score: number, p2Score: number) => {
+			scores.innerText = `${p1Score} : ${p2Score}`;
+		},
+		onBeepSound: () => {
+			gameSoundEngine.playBeep();
+		},
+		onBoopSound: () => {
+			gameSoundEngine.playBoop();
+		},
+		onImportantStateChange: (state: OnlineGameState) => {
+			// gameNetworkHandler.sendState(state);
+			// do nothing here: the state is only sent by the host, which is the server
+		},
+		onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
+			if (gameNetworkHandler)
+				gameNetworkHandler.sendPaddleState(paddleState);
+		},
+		onPlayerReady: async (player: Player) => {
+			console.log("Player ready callback called", gameNetworkHandler);
+			while (!gameNetworkHandler) {
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+			gameNetworkHandler.sendPlayerReady(player.intraName);
+		},
+		onGameOver: (state: OnlineGameState) => {
+			console.log("The game is over! Final state:", state);
+		}
+	}, (gameMode != ONLINE_MULTIPL_MODE_ID));
+	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
-	if (gameMode === SINGLEPL_MODE_ID) {
+	// Set up additional extensions of the game mode that only apply to certain game modes
+	if (gameMode === SINGLEPL_MODE_ID)
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
-	}
+	else if (gameMode == ONLINE_MULTIPL_MODE_ID)
+		gameNetworkHandler = new GameNetworkHandler(gameState, io, gameState.handleOnlineState)
+
+	// Set up the game debugger and link it to the renderer
+	gameDebugger = new GameDebugger(gameAI, gameController, gameNetworkHandler, gameRenderer, gameSoundEngine, gameState);
+	gameRenderer.setDebugger(gameDebugger);
 }
 
 onMount(() => {
@@ -106,6 +145,7 @@ onMount(() => {
 });
 
 onDestroy(() => {
+	gameTicker.clear(); // For just in case
 	console.log("onDestroy called");
 	window.location.reload();
 	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
@@ -119,10 +159,10 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	// console.log(event);
 	gameController.setKeyPressed(event.key);
 
-	if (event.code === "Escape")
+	if (event.key === "Escape")
 		gameController.togglePause();
-	if (event.code === "Space")
-		gameController.amReady();
+	if (event.key === "/")
+		gameRenderer.debugScreen = (gameRenderer.debugScreen ? false : true);
 };
 
 </script>

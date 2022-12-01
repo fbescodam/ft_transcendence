@@ -1,7 +1,11 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { Game, GameStatus } from '@prisma/client';
+import { Game, GameStatus, User } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameGateway } from './game.gateway';
+import { ONLINE_MULTIPL_MODE_ID } from './lib/Modes';
+import type { OnlineGameState, OnlinePaddleState } from './lib/NetworkTypes';
+import GameStateMachine, { Player } from './lib/StateMachine';
+import GameTicker from './lib/Ticker';
 
 /*==========================================================================*/
 
@@ -10,10 +14,11 @@ interface QueuedUser {
 	socketId: string;
 }
 
-interface GameCache {
+interface NetworkGame {
 	[gameId: string]: {
 		roomId: string;
 		players: [string, string]; // intraNames
+		stateMachine: GameStateMachine;
 	}
 }
 
@@ -22,7 +27,8 @@ interface GameCache {
 @Injectable()
 export class GameService {
 	private _matchmakingQueue: QueuedUser[] = [];
-	private _gameCache: GameCache = {};
+	private _games: NetworkGame = {};
+	private _ticker: GameTicker;
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
@@ -30,6 +36,9 @@ export class GameService {
 	private readonly gameGateway: GameGateway
 
 	constructor() {
+		this._ticker = new GameTicker(60);
+
+		// Check the matchmaking queue every 5 seconds, asynchronously
 		(async () => {
 			while (42) {
 				await this._checkQueue()
@@ -121,16 +130,20 @@ export class GameService {
 	 * @param user2 The second player
 	 */
 	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
+		await this.prismaService.game.update({
+			where: { id: game.id },
+			data: {
+				status: GameStatus.ONGOING
+			}
+		});
+
 		this.gameGateway.server
 			.to(user1.socketId)
 			.to(user2.socketId)
 			.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
 
 		// Set up game cache for multiplayer events
-		this._gameCache[game.id] = {
-			roomId: game.roomId,
-			players: [ user1.intraName, user2.intraName ]
-		};
+		await this._setupInternalGame(game.id);
 
 		// Let users know the game can start
 		this.gameGateway.server.to(user1.socketId).to(user2.socketId).emit('gameStart', {
@@ -177,9 +190,9 @@ export class GameService {
 	 */
 	connectUserToGames(socketId, intraName) {
 		let addedToAny: boolean = false;
-		for (const gameId in this._gameCache) {
-			if (this._gameCache[gameId].players.includes(intraName)) {
-				this.gameGateway.server.to(socketId).socketsJoin(this._gameCache[gameId].roomId);
+		for (const gameId in this._games) {
+			if (this._games[gameId].players.includes(intraName)) {
+				this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
 				addedToAny = true;
 			}
 		}
@@ -191,11 +204,11 @@ export class GameService {
 	 * @param gameId The id of the game to add to the cache.
 	 * @returns The cached game object.
 	 */
-	private async _addGameToCacheAgain(gameId: number) {
+	private async _setupInternalGame(gameId: number) {
 		const game = await this.prismaService.game.findFirst({
-			where: { id: gameId },
-			include: { players: true }
-		});
+				where: { id: gameId },
+				include: { players: true }
+			});
 		if (!game) {
 			console.warn(`Game ${gameId} does not exist`);
 			throw new Error(`Game ${gameId} does not exist`);
@@ -208,51 +221,114 @@ export class GameService {
 			console.warn(`Game ${gameId} does not have exactly 2 players`);
 			throw new Error(`Game ${gameId} does not have exactly 2 players`);
 		}
-		this._gameCache[gameId] = {
+
+		// Set up GameStateMachine
+		const gameStateMachine = new GameStateMachine(game.id, this._ticker, { w: 1080, h: 720 }, ONLINE_MULTIPL_MODE_ID, { p1: game.players[0], p2: game.players[1] }, {
+			onScoreUpdated: (p1Score: number, p2Score: number) => {
+				console.log(`Score updated for game ${gameId}: ${p1Score} - ${p2Score}`);
+				// TODO?
+			},
+			onBeepSound: () => {},
+			onBoopSound: ()	=> {},
+			onImportantStateChange: (state: OnlineGameState) => {
+				console.log(`Sending game state update for game ${gameId} to room ${game.roomId} (players: ${game.players.map(p => p.intraName).join(', ')})`);
+				this.gameGateway.server.to(game.roomId).emit('gameState', state);
+			},
+			onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
+				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());
+			},
+			onPlayerReady: (player: Player) => {
+				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());
+			},
+			onGameOver: (state: OnlineGameState) => {
+				this.gameGateway.server.to(game.roomId).emit('gameState', state);
+				this._finishGame(gameId, state)
+			}
+		}, true);
+
+		// Add the game to the internal games
+		this._games[gameId] = {
 			roomId: game.roomId,
-			players: [ game.players[0].intraName, game.players[1].intraName ]
+			players: [ game.players[0].intraName, game.players[1].intraName ],
+			stateMachine: gameStateMachine
 		}
-		return this._gameCache[gameId];
+		return this._games[gameId];
 	}
 
-	/**
-	 * Send a game state to the opponent of a player.
-	 * @param sourceUser The intraName of the source user
-	 * @param gameId The game's gameID
-	 * @param gameState The state to send over
-	 */
-	async sendGameState(sourceUser, gameId, gameState) {
-		if (!this._gameCache[gameId]) {
-			// game does not exist in cache, add it again. Could be a game from an invite or something.
-			console.warn(`User ${sourceUser} tried to send a game state for a non-cached game`);
-			this._addGameToCacheAgain(gameId);
-		}
-		if (!this._gameCache[gameId].players.includes(sourceUser)) {
-			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].players}`);
-			throw new Error('Unauthorized');
-		}
-		const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);
-		console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
-		// this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
-		this.gameGateway.server.to(this._gameCache[gameId].roomId).emit('serverGameState', gameState);
+	async handlePaddleMovement(gameId: number, intraName: string, paddleState: OnlinePaddleState) {
+		return new Promise<OnlineGameState>((resolve, reject) => {
+			if (!this._games[gameId]) {
+				console.warn("Trying to handle paddle movement for a game which is not running.");
+				return reject('Game is not running');
+			}
+			if (!this._games[gameId].players.includes(intraName)) {
+				console.warn(`User ${intraName} tried to send a paddle state for game ${gameId} but they are not in this game. In game: ${this._games[gameId].players}`);
+				return reject('Unauthorized');
+			}
+			this._games[gameId].stateMachine.handleOnlinePaddleState(paddleState, null);
+			resolve(this._games[gameId].stateMachine.getOnlineState());
+		});
+	}
+
+	async handlePlayerReady(gameId: number, intraName: string) {
+		console.log(`Handling playerReady event for game ${gameId} and user ${intraName}`);
+		return new Promise<void>((resolve, reject) => {
+			if (!this._games[gameId]) {
+				console.warn("Trying to handle player ready for a game which is not running.");
+				return reject('Game is not running');
+			}
+			if (!this._games[gameId].players.includes(intraName)) {
+				console.warn(`User ${intraName} tried to send a player ready for game ${gameId} but they are not in this game. In game: ${this._games[gameId].players}`);
+				return reject('Unauthorized');
+			}
+			this._games[gameId].stateMachine.handleOnlinePaddleState(null, intraName);
+			resolve();
+		});
 	}
 
 	/**
 	 * Mark a game as finished and fill in the remaining data.
 	 * @param gameId The ID of the game that has finished
-	 * @param gameData An object defining who won the game including the scores
+	 * @param gameState The final game state
 	 */
-	async finishGame(gameId, gameData) {
+	private async _finishGame(gameId: number, gameState: OnlineGameState) {
+		if (!this._games[gameId]) {
+			console.warn(`Tried to finish game ${gameId} that was not running`);
+			return;
+		}
+
+		console.log(`Finishing game ${gameId}`);
+
+		// Stop the game ticker
+		this._ticker.remove(this._games[gameId].stateMachine.getTickerId());
+
 		// Remove game from the cache
-		delete this._gameCache[gameId];
+		delete this._games[gameId];
+
+		// Calculate winner data
+		let winnerUserId: number | null = null;
+		let victorScore: number | null = null;
+		let loserScore: number | null = null;
+		if (gameState.players.player1.score > gameState.players.player2.score) {
+			winnerUserId = gameState.players.player1.id;
+			victorScore = gameState.players.player1.score;
+			loserScore = gameState.players.player2.score;
+		}
+		else if (gameState.players.player2.score > gameState.players.player1.score) {
+			winnerUserId = gameState.players.player2.id;
+			victorScore = gameState.players.player2.score;
+			loserScore = gameState.players.player1.score;
+		}
+		// else: draw, set everything to null
 
 		// Finalize game data in DB
 		await this.prismaService.game.update({
 			where: { id: gameId },
 			data: {
-				winnerId: gameData["winnerId"],
-				loserScore: gameData["loserScore"],
-				victorScore: gameData["victoreScore"]
+				status: GameStatus.ENDED,
+				winnerId: winnerUserId,
+				loserScore: loserScore,
+				victorScore: victorScore
 			}
 		})
 	}
