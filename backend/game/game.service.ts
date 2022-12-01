@@ -130,6 +130,13 @@ export class GameService {
 	 * @param user2 The second player
 	 */
 	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
+		await this.prismaService.game.update({
+			where: { id: game.id },
+			data: {
+				status: GameStatus.ONGOING
+			}
+		});
+
 		this.gameGateway.server
 			.to(user1.socketId)
 			.to(user2.socketId)
@@ -232,6 +239,10 @@ export class GameService {
 			},
 			onPlayerReady: (player: Player) => {
 				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());
+			},
+			onGameOver: (state: OnlineGameState) => {
+				this.gameGateway.server.to(game.roomId).emit('gameState', state);
+				this._finishGame(gameId, state)
 			}
 		}, true);
 
@@ -278,13 +289,15 @@ export class GameService {
 	/**
 	 * Mark a game as finished and fill in the remaining data.
 	 * @param gameId The ID of the game that has finished
-	 * @param gameData An object defining who won the game including the scores
+	 * @param gameState The final game state
 	 */
-	async finishGame(gameId, gameData) {
+	private async _finishGame(gameId: number, gameState: OnlineGameState) {
 		if (!this._games[gameId]) {
 			console.warn(`Tried to finish game ${gameId} that was not running`);
 			return;
 		}
+
+		console.log(`Finishing game ${gameId}`);
 
 		// Stop the game ticker
 		this._ticker.remove(this._games[gameId].stateMachine.getTickerId());
@@ -292,13 +305,30 @@ export class GameService {
 		// Remove game from the cache
 		delete this._games[gameId];
 
+		// Calculate winner data
+		let winnerUserId: number | null = null;
+		let victorScore: number | null = null;
+		let loserScore: number | null = null;
+		if (gameState.players.player1.score > gameState.players.player2.score) {
+			winnerUserId = gameState.players.player1.id;
+			victorScore = gameState.players.player1.score;
+			loserScore = gameState.players.player2.score;
+		}
+		else if (gameState.players.player2.score > gameState.players.player1.score) {
+			winnerUserId = gameState.players.player2.id;
+			victorScore = gameState.players.player2.score;
+			loserScore = gameState.players.player1.score;
+		}
+		// else: draw, set everything to null
+
 		// Finalize game data in DB
 		await this.prismaService.game.update({
 			where: { id: gameId },
 			data: {
-				winnerId: gameData["winnerId"],
-				loserScore: gameData["loserScore"],
-				victorScore: gameData["victoreScore"]
+				status: GameStatus.ENDED,
+				winnerId: winnerUserId,
+				loserScore: loserScore,
+				victorScore: victorScore
 			}
 		})
 	}

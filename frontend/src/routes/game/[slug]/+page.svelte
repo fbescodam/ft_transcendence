@@ -118,6 +118,9 @@ async function initGame() {
 				await new Promise(resolve => setTimeout(resolve, 100));
 			}
 			gameNetworkHandler.sendPlayerReady(player.intraName);
+		},
+		onGameOver: (state: OnlineGameState) => {
+			console.log("The game is over! Final state:", state);
 		}
 	});
 	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));

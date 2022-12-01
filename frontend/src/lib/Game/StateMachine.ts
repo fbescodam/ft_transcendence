@@ -87,15 +87,17 @@ abstract class GameObject {
 export class Ball extends GameObject {
 	private _spawnPos: Vec2;
 	private _spawnSpeed: number;
+	private _host: boolean;
 	dx: Direction = 0;
 	dy: Direction = 0;
 	speed: number;
 
-	constructor(pos: Vec2, speed: number = 5, size: Dimensions = { w: 16, h: 16 }) {
+	constructor(pos: Vec2, host: boolean = true, speed: number = 5, size: Dimensions = { w: 16, h: 16 }) {
 		super(pos, size);
 		this._spawnPos = { x: pos.x, y: pos.y };
 		this._spawnSpeed = speed;
 		this.speed = speed;
+		this._host = host;
 		this.reset();
 	}
 
@@ -116,7 +118,7 @@ export class Ball extends GameObject {
 	 */
 	public intersectsAtY = (x: number): number => {
 		const maxIterations = 64;
-		const tempBall = new Ball({ x: this.pos.x, y: this.pos.y }, this.speed, this.size);
+		const tempBall = new Ball({ x: this.pos.x, y: this.pos.y }, this._host, this.speed, this.size);
 		tempBall.dx = this.dx;
 		tempBall.dy = this.dy;
 		for (let i = 0; i < maxIterations; i++) {
@@ -135,10 +137,10 @@ export class Ball extends GameObject {
 		this.pos.x = this._spawnPos.x;
 		this.pos.y = this._spawnPos.y;
 		this.speed = this._spawnSpeed;
-		this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
-		this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
-
-		// TODO: dispatch event here
+		if (this._host) {
+			this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
+			this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
+		}
 	}
 
 	/**
@@ -323,6 +325,7 @@ export class Paddle extends GameObject {
 ////////////////////////////////////////////////////////////////////////////////
 
 export class Player {
+	private _id: number;
 	score: number;
 	name: string;
 	intraName: string;
@@ -331,11 +334,12 @@ export class Player {
 	private _ready: boolean;
 	private _onReady: (player: Player) => void;
 
-	constructor(intraName: string, name: string, avatar: string, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void, onPlayerReady: (player: Player) => void) {
+	constructor(user: User, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void, onPlayerReady: (player: Player) => void) {
 		this.score = 0;
-		this.intraName = intraName;
-		this.name = name;
-		this.avatar = avatar;
+		this._id = user.id;
+		this.intraName = user.intraName;
+		this.name = user.name;
+		this.avatar = user.avatar;
 		this._ready = false;
 		this._onReady = onPlayerReady;
 
@@ -362,6 +366,7 @@ export class Player {
 			score: this.score,
 			ready: this.isReady(),
 			name: this.name,
+			id: this._id,
 			intraName: this.intraName,
 			avatar: this.avatar,
 			paddle: this.paddle.getOnlineState()
@@ -444,6 +449,12 @@ export interface GameStateHandlers {
 	 * @param player The player that is ready.
 	 */
 	onPlayerReady: (player: Player) => void;
+
+	/**
+	 * Called when the game is over and the winner is known.
+	 * @param state The state of the game when it ended.
+	 */
+	onGameOver: (state: OnlineGameState) => void;
 }
 
 /**
@@ -494,9 +505,9 @@ class GameStateMachine {
 		this._gameStateHandlers = gameStateHandlers;
 		this._isHost = isHost;
 
-		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
-		this.player1 = new Player(players.p1.intraName, players.p1.name, players.p1.avatar, "left", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
-		this.player2 = new Player(players.p2.intraName, players.p2.name, players.p2.avatar, "right", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
+		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 }, this._isHost);
+		this.player1 = new Player(players.p1, "left", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
+		this.player2 = new Player(players.p2, "right", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
 
 		// Run the game state machine every tick
 		gameTicker.add(this.getTickerId(), this._update);
@@ -540,6 +551,9 @@ class GameStateMachine {
 			this._paused = PausedReason.GAME_TIED;
 		else
 			this._paused = PausedReason.GAME_WON_P2;
+
+		// Call the game over handler
+		this._gameStateHandlers.onGameOver(this.getOnlineState());
 	}
 
 	/**
