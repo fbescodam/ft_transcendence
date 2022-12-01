@@ -690,14 +690,14 @@ class GameStateMachine {
 		}
 
 		// TODO: handle timestamp
-
-		// Debug
-		console.log(`Left player name locally before state change: ${this.player1.name}`);
-		console.log(`Right player name locally before state change: ${this.player2.name}`);
+		console.log("Timestamp difference:", Date.now() - state.time.timestamp + "ms");
 
 		// Update the ball position
 		this.ball.pos.x = state.ball.pos.x;
 		this.ball.pos.y = state.ball.pos.y;
+		this.ball.dx = state.ball.dx;
+		this.ball.dy = state.ball.dy;
+		this.ball.speed = state.ball.speed;
 
 		const updatePlayerState = (player: Player, onlinePlayerState: OnlinePlayerState) => {
 			player.avatar = onlinePlayerState.avatar;
@@ -706,7 +706,10 @@ class GameStateMachine {
 			player.paddle.pos.y = onlinePlayerState.paddle.pos.y;
 			player.paddle.size.w = onlinePlayerState.paddle.size.w;
 			player.paddle.setHeight(onlinePlayerState.paddle.size.h);
-			player.score = onlinePlayerState.score;
+			if (player.score != onlinePlayerState.score) {
+				player.score = onlinePlayerState.score;
+				this._gameStateHandlers.onScoreUpdated(this.player1.score, this.player2.score);
+			}
 			if (!player.isReady() && onlinePlayerState.ready) {
 				console.log(`Player ${player.name} is ready!`);
 				player.markReady();
@@ -720,8 +723,7 @@ class GameStateMachine {
 		updatePlayerState(this.player2, state.players.player2);
 
 		// Update the paused state
-		if (state.paused)
-			this._paused = state.paused;
+		this._paused = state.paused;
 
 		// Update the time
 		this._secondsPlayed = state.time.secondsPlayed;
