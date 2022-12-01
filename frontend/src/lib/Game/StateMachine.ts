@@ -460,7 +460,7 @@ class GameStateMachine {
 		const paddle_vy = this.ball.speed + 0.5 * paddle.getMoveDirection();
 		let ball_vy = Math.cos(ball_dir) * this.ball.speed + 0.25 * paddle_vy;
 		let ball_vx = -Math.sin(ball_dir) * this.ball.speed;
-		this.ball.dx = ball_vx + (ball_vx < 0 ? -1 : 1); // Ternary to make sure the ball is not going straight up or down
+		this.ball.dx = ball_vx + (Math.abs(ball_vx) < 3 ? (ball_vx < 0 ? -3 : 3) : 0); // Ternary to make sure the ball is not going straight up or down
 		this.ball.dy = ball_vy;
 
 		// Move the ball to the game side of the paddle to prevent clipping
