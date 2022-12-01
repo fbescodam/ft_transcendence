@@ -233,7 +233,8 @@ export class GameService {
 		}
 		const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);
 		console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
-		this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
+		// this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
+		this.gameGateway.server.to(this._gameCache[gameId].roomId).emit('serverGameState', gameState);
 	}
 
 	/**
