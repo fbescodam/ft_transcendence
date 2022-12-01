@@ -6,9 +6,9 @@ import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
 import { FriendsService } from "./friends.service";
 
-// do not set origin to *, is unsafe
-// use localhost domain to connect to BreadPong instead of IP addresses.
-@WebSocketGateway({ cors: { origin: "http://localhost:5173", credentials: false } })
+// normally we do not set origin to *, is unsafe
+// however here we don't really have a domain, so we do not care
+@WebSocketGateway({ cors: { origin: "*", credentials: false } })
 export class FriendsGateway {
 
 	@Inject(PrismaService)
