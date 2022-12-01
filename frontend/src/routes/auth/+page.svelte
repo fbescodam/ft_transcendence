@@ -6,7 +6,7 @@ import { onMount } from "svelte";
 import { authSocket, initSocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import Button from "$lib/Components/Button/Button.svelte";
-import { state, JWT, displayName, avatar } from "$lib/Stores/User";
+import { state, JWT, displayName, intraName, avatar } from "$lib/Stores/User";
 import { PUBLIC_INTRA_APP_ID } from "$env/static/public";
 import { generateRandomString } from "$lib/Utils/Basic";
 import Logo42 from "$lib/Assets/42Logo.svg";
@@ -40,6 +40,7 @@ onMount(() => {
 
 			$JWT = answer.token;
 			$displayName = answer.displayName;
+			$intraName = answer.intraName;
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 

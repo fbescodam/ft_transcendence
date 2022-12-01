@@ -26,7 +26,8 @@ export interface OnlineGameState {
 	paused: PausedReasonObject | null;
 
 	players: {
-		[key: string]: OnlinePlayerState
+		player1: OnlinePlayerState,
+		player2: OnlinePlayerState
 	};
 
 	ball: {

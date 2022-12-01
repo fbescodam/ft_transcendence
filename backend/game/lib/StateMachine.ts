@@ -329,13 +329,15 @@ export class Player {
 	avatar: string;
 	paddle: Paddle;
 	private _ready: boolean;
+	private _onReady: (player: Player) => void;
 
-	constructor(intraName: string, name: string, avatar: string, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void) {
+	constructor(intraName: string, name: string, avatar: string, position: "left" | "right", gameSize: Dimensions, onPaddleMoveChange: (paddleState: OnlinePaddleState) => void, onPlayerReady: (player: Player) => void) {
 		this.score = 0;
 		this.intraName = intraName;
 		this.name = name;
 		this.avatar = avatar;
 		this._ready = false;
+		this._onReady = onPlayerReady;
 
 		// Initialize paddle
 		this.paddle = new Paddle(position, gameSize, onPaddleMoveChange);
@@ -344,8 +346,11 @@ export class Player {
 	//= Public =//
 
 	markReady = () => {
-		console.warn(`Player ${this.name} is ready!`);
-		this._ready = true;
+		if (!this._ready) {
+			console.warn(`Player ${this.name} is ready!`);
+			this._ready = true;
+			this._onReady(this);
+		}
 	}
 
 	isReady = () => {
@@ -379,23 +384,22 @@ export class PausedReason {
 	 * @returns True if the reason was defined by this class, false otherwise.
 	 */
 	public static isValidReason(pausedReason: PausedReasonObject) {
-		return pausedReason.id >= 0 && pausedReason.id <= 13;
+		return pausedReason.id >= 0 && pausedReason.id <= 12;
 	}
 
-	public static readonly PAUSED_BY_PLAYER: PausedReasonObject = { id: 0, text: "Game paused", reason: "You paused the game" };
-	public static readonly PAUSED_BY_OPPONENT: PausedReasonObject = { id: 1, text: "Game paused", reason: "Your opponent paused the game" };
-	public static readonly PAUSED_BY_SERVER: PausedReasonObject = { id: 2, text: "Game paused", reason: "The server paused the game" };
+	public static readonly PAUSED_P1: PausedReasonObject = { id: 0, text: "Game paused", reason: "Player 1 paused the game" };
+	public static readonly PAUSED_P2: PausedReasonObject = { id: 1, text: "Game paused", reason: "Player 2 paused the game" };
+	public static readonly PAUSED_BY_SERVER: PausedReasonObject = { id: 2, text: "Game paused", reason: "The server paused the game" }; // unused
 	public static readonly CONNECTION_LOST_RECON: PausedReasonObject = { id: 3, text: "Connection lost", reason: "Trying to reconnect..." };
 	public static readonly CONNECTION_LOST_FINAL: PausedReasonObject = { id: 4, text: "Connection lost", reason: "Gave up on trying to reconnect. This game is now over." };
-	public static readonly WAITING_FOR_OPPONENT: PausedReasonObject = { id: 5, text: "Please wait...", reason: "Waiting for your opponent to join the game" };
-	public static readonly INITIALIZING_GAME: PausedReasonObject = { id: 6, text: "Please wait...", reason: "Setting up the game..." };
-	public static readonly READY_SET_GO: PausedReasonObject = { id: 7, text: "Ready to play?", reason: "Press SPACE to start." };
-	public static readonly GAME_OVER: PausedReasonObject = { id: 8, text: "Game over", reason: "You lost. Better luck next time!" };
-	public static readonly GAME_WON: PausedReasonObject = { id: 9, text: "Congratulations", reason: "You won! Well done." };
-	public static readonly GAME_WON_LOCAL_P1: PausedReasonObject = { id: 10, text: "Game over", reason: "Player 1 has won the game." };
-	public static readonly GAME_WON_LOCAL_P2: PausedReasonObject = { id: 11, text: "Game over", reason: "Player 2 has won the game." };
-	public static readonly GAME_TIED: PausedReasonObject = { id: 12, text: "Game over", reason: "The game ended in a tie." };
-	public static readonly GAME_OPPONENT_LEFT: PausedReasonObject = { id: 13, text: "Congratulations", reason: "Your opponent has given up, you win!" };
+	public static readonly WAITING_FOR_P1: PausedReasonObject = { id: 5, text: "Setting up...", reason: "Waiting player 1 to connect..." };
+	public static readonly WAITING_FOR_P2: PausedReasonObject = { id: 6, text: "Setting up...", reason: "Waiting for player 2 to connect..." };
+	public static readonly WAITING_FOR_BOTH: PausedReasonObject = { id: 7, text: "Setting up...", reason: "Waiting for both players to connect..." };
+	public static readonly GAME_WON_P1: PausedReasonObject = { id: 8, text: "Game over", reason: "Player 1 has won the game." };
+	public static readonly GAME_WON_P2: PausedReasonObject = { id: 9, text: "Game over", reason: "Player 2 has won the game." };
+	public static readonly GAME_TIED: PausedReasonObject = { id: 10, text: "Game over", reason: "The game ended in a tie." };
+	public static readonly GAME_WON_P1_OPPONENT_LEFT: PausedReasonObject = { id: 11, text: "Game over", reason: "Player 2 left the game. This means player 1 wins!" };
+	public static readonly GAME_WON_P2_OPPONENT_LEFT: PausedReasonObject = { id: 12, text: "Game over", reason: "Player 1 left the game. This means player 2 wins!" };
 	// When adding a reason here, make sure to update the isValidReason function above
 }
 
@@ -472,7 +476,7 @@ class GameStateMachine {
 	private _gameId: number;
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
-	private _paused: PausedReasonObject | null = PausedReason.READY_SET_GO;
+	private _paused: PausedReasonObject | null = PausedReason.WAITING_FOR_BOTH;
 	private _secondsPlayed: number = 0;
 	private _gameDuration: number = 180; // 3 minutes
 
@@ -491,8 +495,8 @@ class GameStateMachine {
 		this._isHost = isHost;
 
 		this.ball = new Ball({ x: gameSize.w * 0.5, y: gameSize.h * 0.5 });
-		this.player1 = new Player(players.p1.intraName, players.p1.name, players.p1.avatar, "left", this._gameSize, this._gameStateHandlers.onPaddleMoveChange);
-		this.player2 = new Player(players.p2.intraName, players.p2.name, players.p2.avatar, "right", this._gameSize, this._gameStateHandlers.onPaddleMoveChange);
+		this.player1 = new Player(players.p1.intraName, players.p1.name, players.p1.avatar, "left", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
+		this.player2 = new Player(players.p2.intraName, players.p2.name, players.p2.avatar, "right", this._gameSize, this._gameStateHandlers.onPaddleMoveChange, this._gameStateHandlers.onPlayerReady);
 
 		// Run the game state machine every tick
 		gameTicker.add(this.getTickerId(), this._update);
@@ -530,22 +534,12 @@ class GameStateMachine {
 	}
 
 	private _gameEnd = () => {
-		if (this._gameMode == LOCAL_MULTIPL_MODE_ID) {
-			if (this.player1.score > this.player2.score)
-				this._paused = PausedReason.GAME_WON_LOCAL_P1;
-			else if (this.player1.score == this.player2.score)
-				this._paused = PausedReason.GAME_TIED;
-			else
-				this._paused = PausedReason.GAME_WON_LOCAL_P2;
-		}
-		else {
-			if (this.player1.score > this.player2.score)
-				this._paused = PausedReason.GAME_WON;
-			else if (this.player1.score == this.player2.score)
-				this._paused = PausedReason.GAME_TIED;
-			else
-				this._paused = PausedReason.GAME_OVER;
-		}
+		if (this.player1.score > this.player2.score)
+			this._paused = PausedReason.GAME_WON_P1;
+		else if (this.player1.score == this.player2.score)
+			this._paused = PausedReason.GAME_TIED;
+		else
+			this._paused = PausedReason.GAME_WON_P2;
 	}
 
 	/**
@@ -554,6 +548,19 @@ class GameStateMachine {
 	 * @param deltaTick The time since the last tick in milliseconds.
 	 */
 	private _update = (tps: number, deltaTick: number) => {
+		// Check if we're still waiting for players...
+		if (this._waitingForPlayers()) {
+			if (this.player1.isReady() && !this.player2.isReady())
+				this._paused = PausedReason.WAITING_FOR_P2;
+			else if (!this.player1.isReady() && this.player2.isReady())
+				this._paused = PausedReason.WAITING_FOR_P1;
+			else if (!this.player1.isReady() && !this.player2.isReady())
+				this._paused = PausedReason.WAITING_FOR_BOTH;
+			else
+				this._paused = null;
+		}
+
+		// Check if we're paused...
 		if (this.isPaused()) {
 			return;
 		}
@@ -623,6 +630,10 @@ class GameStateMachine {
 
 		this.player1.paddle.move();
 		this.player2.paddle.move();
+	}
+
+	private _waitingForPlayers = (): boolean => {
+		return (this._paused == PausedReason.WAITING_FOR_BOTH || this._paused == PausedReason.WAITING_FOR_P1 || this._paused == PausedReason.WAITING_FOR_P2)
 	}
 
 	//= Public =//
@@ -696,9 +707,6 @@ class GameStateMachine {
 			player.paddle.size.w = onlinePlayerState.paddle.size.w;
 			player.paddle.setHeight(onlinePlayerState.paddle.size.h);
 			player.score = onlinePlayerState.score;
-			console.log("Updated player state: ", player, onlinePlayerState);
-			console.log(`Player ${player.name} is ready locally? `, player.isReady());
-			console.log(`Player ${player.name} is ready remote? `, onlinePlayerState.ready);
 			if (!player.isReady() && onlinePlayerState.ready) {
 				console.log(`Player ${player.name} is ready!`);
 				player.markReady();
@@ -706,29 +714,18 @@ class GameStateMachine {
 		}
 
 		// Update the "left" player
-		updatePlayerState(this.player1, state.players[this.player1.intraName]);
+		updatePlayerState(this.player1, state.players.player1);
 
 		// Update the "right" player
-		updatePlayerState(this.player2, state.players[this.player2.intraName]);
+		updatePlayerState(this.player2, state.players.player2);
 
 		// Update the paused state
-		// @ts-ignore no typescript, fuck you
-		if (state.paused && state.paused.id != PausedReason.WAITING_FOR_OPPONENT.id)
+		if (state.paused)
 			this._paused = state.paused;
-
-		// Check if both players are ready and start the game if it hasn't yet
-		console.log(this._paused);
-		console.log(this.player1.isReady(), this.player2.isReady());
-		if (this._paused == PausedReason.WAITING_FOR_OPPONENT && this.player1.isReady() && this.player2.isReady()) {
-			this.startGame();
-		}
 
 		// Update the time
 		this._secondsPlayed = state.time.secondsPlayed;
 		this._gameDuration = state.time.gameDuration;
-
-		console.log(`Left player name locally after state change: ${this.player1.name}`);
-		console.log(`Right player name locally after state change: ${this.player2.name}`);
 	}
 
 	/**
@@ -744,8 +741,8 @@ class GameStateMachine {
 			},
 			paused: this._paused,
 			players: {
-				[this.player1.intraName]: this.player1.getOnlineState(),
-				[this.player2.intraName]: this.player2.getOnlineState()
+				player1: this.player1.getOnlineState(),
+				player2: this.player2.getOnlineState()
 			},
 			ball: {
 				pos: this.ball.pos,
@@ -763,43 +760,6 @@ class GameStateMachine {
 	 */
 	public getGameMode = () => {
 		return this._gameMode;
-	}
-
-	/**
-	 * Start the game: mark player 1 as ready.
-	 * Note: in local multiplayer, it marks both players as ready and starts the game.
-	 */
-	public startGame = () => {
-		console.log("Starting game?");
-		console.log(this.getPausedReason());
-		console.log(this.player1.isReady());
-		if (this.getPausedReason() == PausedReason.READY_SET_GO || this.getPausedReason() == PausedReason.WAITING_FOR_OPPONENT) {
-			this.player1.markReady();
-			this._gameStateHandlers.onPlayerReady(this.player1);
-
-			// If we're in local multiplayer, mark player 2 as ready as well
-			if (this.getGameMode() == LOCAL_MULTIPL_MODE_ID) {
-				this.player2.markReady();
-			}
-
-			// Check if player 2 is ready
-			// Always perform this check: in singleplayer, the AI needs to be ready too!
-			if (!this.player2.isReady()) {
-				console.log("Still waiting for opponent", this.player1.isReady(), this.player2.isReady());
-				this._paused = PausedReason.WAITING_FOR_OPPONENT;
-			}
-			else {
-				console.log("Started game");
-				this._paused = null;
-			}
-
-			// If this state machine is acting as the host, send the new state to the listening clients
-			if (this._isHost)
-				this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
-		}
-		else {
-			console.error("GODVERDOMME");
-		}
 	}
 
 	/**

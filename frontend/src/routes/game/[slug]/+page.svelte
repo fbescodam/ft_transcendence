@@ -14,7 +14,7 @@ import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from "$lib/Game/Modes";
 import type { User } from "$lib/Types";
-import { JWT, displayName, avatar } from "$lib/Stores/User";
+import { JWT, displayName, avatar, intraName } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
 // @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
@@ -79,21 +79,15 @@ async function initGame() {
 	}
 
 	// Populate user data and initialize multiplayer socket if required
-	const player1: User = createPlaceholderUser("TODO", ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
+	const player1: User = createPlaceholderUser(($intraName ? $intraName : "player1"), ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
 	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
 		io = initSocket($page.url.hostname, $JWT!);
 		const gameData: any = await getGameData(gameId);
 		if (gameData.players.length != 2)
 			throw new Error("Invalid number of players in game");
-		if (gameData.players[0].name == $displayName) {
-			populateUser(player1, gameData.players[0]);
-			populateUser(player2, gameData.players[1]);
-		}
-		else {
-			populateUser(player1, gameData.players[1]);
-			populateUser(player2, gameData.players[0]);
-		}
+		populateUser(player1, gameData.players[0]);
+		populateUser(player2, gameData.players[1]);
 	}
 
 	// Set up the game engine
@@ -118,12 +112,15 @@ async function initGame() {
 			if (gameNetworkHandler)
 				gameNetworkHandler.sendPaddleState(paddleState);
 		},
-		onPlayerReady: (player: Player) => {
-			if (gameNetworkHandler)
-				gameNetworkHandler.sendPlayerReady(player.intraName);
+		onPlayerReady: async (player: Player) => {
+			console.log("Player ready callback called", gameNetworkHandler);
+			while (!gameNetworkHandler) {
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+			gameNetworkHandler.sendPlayerReady(player.intraName);
 		}
 	});
-	gameController = new GameController(gameTicker, gameState);
+	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
 	// Set up additional extensions of the game mode that only apply to certain game modes
@@ -154,8 +151,6 @@ const keyDownHandler = (event: KeyboardEvent) => {
 
 	if (event.code === "Escape")
 		gameController.togglePause();
-	if (event.code === "Space")
-		gameController.amReady();
 };
 
 </script>
