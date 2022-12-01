@@ -55,27 +55,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage('gameState')
-	async handleClientGameState(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		console.log("Received game state from client");
-		// try {
-		// 	await this.gameService.sendGameState(data["user"]["intraName"], data["game"]["id"], data["game"]["state"]);
-		// 	console.log("Sent game state to other client");
-		// 	return { status: true };
-		// }
-		// catch (e) {
-		// 	console.error(e);
-		// 	return { error: e.toString() };
-		// }
-	}
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage('finishGame')
-	async finishGame() {
-
-	}
-
-	@UseGuards(JwtGuard)
 	@SubscribeMessage('paddleGameState')
 	async handlePaddleGameState(@MessageBody() data: Object) {
 		try {

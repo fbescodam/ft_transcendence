@@ -1,10 +1,13 @@
 import type { PausedReasonObject, Dimensions, Direction, Vec2 } from "./StateMachine";
 
+export type OnlineGameSound = "beep" | "boop" | null;
+
 export interface OnlinePaddleState {
 	position: string;
 	pos: Vec2;
 	size: Dimensions;
 	dy: Direction;
+	timestamp: number;
 }
 
 export interface OnlinePlayerState {
@@ -38,4 +41,6 @@ export interface OnlineGameState {
 		dx: Direction;
 		speed: number;
 	};
+
+	sound: OnlineGameSound;
 }

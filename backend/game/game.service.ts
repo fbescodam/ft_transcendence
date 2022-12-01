@@ -234,8 +234,8 @@ export class GameService {
 				console.log(`Sending game state update for game ${gameId} to room ${game.roomId} (players: ${game.players.map(p => p.intraName).join(', ')})`);
 				this.gameGateway.server.to(game.roomId).emit('gameState', state);
 			},
-			onPaddleMoveChange(paddleState: OnlinePaddleState) {
-				// TODO?
+			onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
+				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());
 			},
 			onPlayerReady: (player: Player) => {
 				this.gameGateway.server.to(game.roomId).emit('gameState', this._games[gameId].stateMachine.getOnlineState());

@@ -1,6 +1,6 @@
 import type GameTicker from "./Ticker";
-import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, type GameMode } from "./Modes";
-import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkTypes";
+import { ONLINE_MULTIPL_MODE_ID, type GameMode } from "./Modes";
+import type { OnlineGameSound, OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkTypes";
 
 // Basic types
 export type Vec2 = { x: number; y: number };
@@ -293,12 +293,13 @@ export class Paddle extends GameObject {
 		return newSize;
 	}
 
-	public getOnlineState = () => {
+	public getOnlineState = (): OnlinePaddleState => {
 		return {
 			pos: this.pos,
 			size: this.size,
 			position: this.getPosition(),
-			dy: this.getMoveDirection()
+			dy: this.getMoveDirection(),
+			timestamp: Date.now()
 		};
 	}
 
@@ -369,7 +370,7 @@ export class Player {
 			id: this._id,
 			intraName: this.intraName,
 			avatar: this.avatar,
-			paddle: this.paddle.getOnlineState()
+			paddle: this.paddle.getOnlineState(),
 		};
 	}
 }
@@ -536,12 +537,13 @@ class GameStateMachine {
 		else
 			this.ball.pos.x = this.player2.paddle.pos.x - this.ball.size.w;
 
-		// Play a beeping sound
-		this._gameStateHandlers.onBeepSound();
+		// Play a beeping sound (only if this is the host)
+		if (this._isHost)
+			this._gameStateHandlers.onBeepSound();
 
 		// If this state machine is acting as the host, send the new state to the listening clients
 		if (this._isHost)
-			this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+			this._gameStateHandlers.onImportantStateChange(this.getOnlineState("beep"));
 	}
 
 	private _gameEnd = () => {
@@ -553,7 +555,7 @@ class GameStateMachine {
 			this._paused = PausedReason.GAME_WON_P2;
 
 		// Call the game over handler
-		this._gameStateHandlers.onGameOver(this.getOnlineState());
+		this._gameStateHandlers.onGameOver(this.getOnlineState(null));
 	}
 
 	/**
@@ -631,12 +633,13 @@ class GameStateMachine {
 					this.ball.pos.y + this.ball.dy < 0) {
 			this.ball.dy *= -1;
 
-			// Play a beeping sound
-			this._gameStateHandlers.onBoopSound();
+			// Play a beeping sound (only when this is the host)
+			if (this._isHost)
+				this._gameStateHandlers.onBoopSound();
 
 			// If this state machine is acting as the host, send the new state to the listening clients
 			if (this._isHost)
-				this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+				this._gameStateHandlers.onImportantStateChange(this.getOnlineState("boop"));
 		}
 
 		// Update positions
@@ -669,15 +672,18 @@ class GameStateMachine {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
 		}
 
-		// TODO: handle timestamp
-
 		if (paddleState) {
+			// TODO: handle timestamp
+			console.log(`${paddleState.position} paddle is now moving by ${paddleState.dy} pixels per second`);
+			console.log("Timestamp difference for paddle movement:", Date.now() - paddleState.timestamp + "ms");
+
 			// Update the correct paddle
 			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
 			paddle.pos.y = paddleState.pos.y;
 			paddle.pos.x = paddleState.pos.x;
 			paddle.size.w = paddleState.size.w;
 			paddle.setHeight(paddleState.size.h);
+			paddle.setMoveDirection(paddleState.dy);
 		}
 
 		if (playerReady) {
@@ -705,6 +711,16 @@ class GameStateMachine {
 
 		// TODO: handle timestamp
 		console.log("Timestamp difference:", Date.now() - state.time.timestamp + "ms");
+
+		// Play a sound if the host told us to
+		switch (state.sound) {
+			case "boop":
+				this._gameStateHandlers.onBoopSound();
+				break;
+			case "beep":
+				this._gameStateHandlers.onBeepSound();
+				break;
+		}
 
 		// Update the ball position
 		this.ball.pos.x = state.ball.pos.x;
@@ -748,7 +764,7 @@ class GameStateMachine {
 	 * Get the current game state used for online multiplayer.
 	 * @returns The full current game state.
 	 */
-	public getOnlineState = (): OnlineGameState => {
+	public getOnlineState = (sound: OnlineGameSound = null): OnlineGameState => {
 		return {
 			time: {
 				timestamp: Date.now(),
@@ -766,7 +782,8 @@ class GameStateMachine {
 				dx: this.ball.dx,
 				dy: this.ball.dy,
 				speed: this.ball.speed
-			}
+			},
+			sound: sound
 		};
 	}
 
