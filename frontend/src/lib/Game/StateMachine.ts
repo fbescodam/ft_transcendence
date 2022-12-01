@@ -260,12 +260,12 @@ export class Paddle extends GameObject {
 
 	/**
 	 * Set the height of the paddle. This will also update the paddle's maximum off-screen movement.
-	 * Only making the paddle smaller was tested, but it might work for making it bigger too.
+	 * Only making the paddle smaller actually works. This is to prevent cheating.
 	 * @param newHeight The new height of the paddle.
 	 * @returns True if the height was changed, false if the new height is the same as the current one.
 	 */
 	public setHeight = (newHeight: number) => {
-		if (newHeight != this.size.h) {
+		if (newHeight < this.size.h) {
 			const oldHeight = this.size.h;
 			this.size.h = newHeight;
 			this._updateMaxOffscreen();
@@ -691,9 +691,9 @@ class GameStateMachine {
 
 			// Update the correct paddle
 			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
-			paddle.pos.y = paddleState.pos.y;
-			paddle.pos.x = paddleState.pos.x;
-			paddle.size.w = paddleState.size.w;
+			// paddle.pos.y = paddleState.pos.y; // Commented out because we don't want to update the position directly - this is an anti-cheat!
+			// paddle.pos.x = paddleState.pos.x; // If the client tries to cheat, the server will just ignore it. We only modify the dy value, which cannot go over the max speed.
+			// paddle.size.w = paddleState.size.w; // No need for this here.
 			paddle.setHeight(paddleState.size.h);
 			paddle.setMoveDirection(paddleState.dy, true);
 		}
