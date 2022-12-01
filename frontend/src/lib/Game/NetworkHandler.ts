@@ -1,6 +1,6 @@
 import type { Dimensions, Direction, Vec2 } from "$lib/Types";
 import type { Socket } from "socket.io-client";
-import type { PausedReasonObject } from "./StateMachine";
+import { PausedReason, type PausedReasonObject } from "./StateMachine";
 
 export interface OnlinePlayerState {
 	avatar: string;
@@ -53,8 +53,10 @@ class GameNetworkHandler {
 		this._io.on("serverGameState", (state: OnlineGameState) => {
 			if (state.sourceSocketId == this._io.id)
 				return;
-			console.log("Received game state from server", state);
-			this._stateHandler(state);
+			console.log("Received game state from server:", state);
+			const invertedState = this._invertGameState(state);
+			console.log("Inverted game state:", invertedState)
+			this._stateHandler(invertedState);
 		});
 
 		this._io.emit("setupGameConnection", {}, (ret: any) => {
@@ -62,6 +64,21 @@ class GameNetworkHandler {
 				console.warn("Failed to connect to game: user is probably not in any game", ret);
 			}
 		});
+	}
+
+	private _invertGameState = (gameState: OnlineGameState): OnlineGameState => {
+		const tempLeft: OnlinePlayerState = gameState.players.left;
+		gameState.players.left = gameState.players.right;
+		gameState.players.right = tempLeft;
+		if (gameState.paused == PausedReason.PAUSED_BY_PLAYER)
+			gameState.paused = PausedReason.PAUSED_BY_OPPONENT;
+		else if (gameState.paused == PausedReason.PAUSED_BY_OPPONENT)
+			gameState.paused = PausedReason.PAUSED_BY_PLAYER;
+		else if (gameState.paused == PausedReason.GAME_WON)
+			gameState.paused = PausedReason.GAME_OVER;
+		else if (gameState.paused == PausedReason.GAME_OVER)
+			gameState.paused = PausedReason.GAME_WON;
+		return gameState;
 	}
 
 	public sendState = (state: OnlineGameState) => {

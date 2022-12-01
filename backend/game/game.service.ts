@@ -222,19 +222,22 @@ export class GameService {
 	 * @param gameState The state to send over
 	 */
 	async sendGameState(sourceUser, gameId, gameState) {
-		if (!this._gameCache[gameId]) {
-			// game does not exist in cache, add it again. Could be a game from an invite or something.
-			console.warn(`User ${sourceUser} tried to send a game state for a non-cached game`);
-			this._addGameToCacheAgain(gameId);
-		}
-		if (!this._gameCache[gameId].players.includes(sourceUser)) {
-			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].players}`);
-			throw new Error('Unauthorized');
-		}
-		const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);
-		console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
-		// this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
-		this.gameGateway.server.to(this._gameCache[gameId].roomId).emit('serverGameState', gameState);
+		return new Promise<void>(async (resolve, reject) => {
+			if (!this._gameCache[gameId]) {
+				// game does not exist in cache, add it again. Could be a game from an invite or something.
+				console.warn(`User ${sourceUser} tried to send a game state for a non-cached game`);
+				await this._addGameToCacheAgain(gameId);
+			}
+			if (!this._gameCache[gameId].players.includes(sourceUser)) {
+				console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].players}`);
+				return reject('Unauthorized');
+			}
+			const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);
+			console.log(`Sending game state to ${otherSocketId} (from ${sourceUser})`);
+			// this.gameGateway.server.to(otherSocketId).emit('serverGameState', gameState);
+			this.gameGateway.server.to(this._gameCache[gameId].roomId).emit('serverGameState', gameState);
+			return resolve();
+		});
 	}
 
 	/**
