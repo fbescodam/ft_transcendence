@@ -18,6 +18,9 @@ class GameController {
 
 		// mark main user as ready
 		this._getMainUser().markReady();
+
+		if (this._gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID)
+			this._getOtherUser().markReady();
 	}
 
 	private _getMainUser() {
