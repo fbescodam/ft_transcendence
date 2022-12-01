@@ -59,7 +59,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleClientGameState(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
 		console.log("Received game state from client");
 		try {
-			this.gameService.sendGameState(data["user"]["id"], data["game"]["id"], data["game"]["state"]);
+			this.gameService.sendGameState(data["user"]["intraName"], data["game"]["id"], data["game"]["state"]);
 			console.log("Sent game state to other client");
 			return { status: true };
 		}
