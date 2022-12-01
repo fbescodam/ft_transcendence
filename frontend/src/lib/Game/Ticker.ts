@@ -1,7 +1,9 @@
 export class GameTicker {
 	private _tps: number;
 	private _lastTick: number = 0;
-	private _tickers: ((tps: number, deltaTick: number) => void)[] = [];
+	private _tickers: {
+		[key: string]: (tps: number, deltaTick: number) => void;
+	} = {};
 
 	constructor(ticksPerSecond: number = 60) {
 		this._tps = ticksPerSecond;
@@ -18,9 +20,9 @@ export class GameTicker {
 	private _tick = () => {
 		const now = Date.now();
 		const deltaTick = now - this._lastTick;
-		for (let ticker of this._tickers) {
+		for (let ticker in this._tickers) {
 			(async () => {
-				ticker(this._tps, deltaTick);
+				this._tickers[ticker](this._tps, deltaTick);
 			})();
 		}
 		this._lastTick = now;
@@ -38,19 +40,27 @@ export class GameTicker {
 
 	/**
 	 * Add a function to the ticker. This function will then be run every game tick.
+	 * @param tickerId The id of the ticker. This is used to be able to remove the ticker later.
 	 * @param ticker The function to call every tick.
 	 *               It will be called with the current tick rate and the time since the last tick in milliseconds.
 	 */
-	public add = (ticker: (tps: number, deltaTick: number) => void) => {
-		this._tickers.push(ticker);
+	public add = (tickerId: string, ticker: (tps: number, deltaTick: number) => void) => {
+		this._tickers[tickerId] = ticker;
 	}
 
 	/**
 	 * Remove a function from the ticker. This function was never properly tested but could in essence work.
-	 * @param ticker The function to remove from the ticker.
+	 * @param tickerId The id of the function to remove. It will not be called again.
 	 */
-	public remove = (ticker: () => void) => {
-		this._tickers = this._tickers.filter(t => t != ticker);
+	public remove = (tickerId: string) => {
+		delete this._tickers[tickerId];
+	}
+
+	/**
+	 * Remove all tickers.
+	 */
+	public clear = () => {
+		this._tickers = {};
 	}
 }
 

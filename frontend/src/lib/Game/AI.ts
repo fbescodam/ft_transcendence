@@ -1,7 +1,6 @@
 import type GameTicker from "./Ticker";
-import type { Player, Paddle } from "./StateMachine";
+import type { Player, Paddle, Direction } from "./StateMachine";
 import type GameStateMachine from "./StateMachine";
-import type { Direction } from "$lib/Types";
 import { getRandomArbitrary } from "$lib/Utils/Basic";
 
 class GameAI {
@@ -21,7 +20,7 @@ class GameAI {
 		this._player.paddle.limitMoveSpeed();
 
 		// run controller update every tick
-		gameTicker.add(this._think);
+		gameTicker.add('ai', this._think);
 
 		// mark AI player as ready
 		this._player.markReady();

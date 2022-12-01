@@ -101,7 +101,7 @@ async function initGame() {
 	gameTicker = new GameTicker();
 	gameSoundEngine = new GameSoundEngine();
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
-	gameState = new GameStateMachine(gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
+	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
 		onScoreUpdated: (p1Score: number, p2Score: number) => {
 			scores.innerText = `${p1Score} : ${p2Score}`;
 		},

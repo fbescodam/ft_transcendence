@@ -12,7 +12,7 @@ class GameController {
 		this._gameState = gameState;
 
 		// run controller update every tick
-		gameTicker.add(this._update);
+		gameTicker.add('controller', this._update);
 	}
 
 	/**

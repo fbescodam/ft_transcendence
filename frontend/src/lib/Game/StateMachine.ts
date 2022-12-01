@@ -440,6 +440,7 @@ export interface Players {
  * smoothing out stuff. Server will overwrite everything.
  */
 class GameStateMachine {
+	private _gameId: number;
 	private _gameSize: Dimensions;
 	private _gameMode: GameMode;
 	private _paused: PausedReasonObject | null = PausedReason.READY_SET_GO;
@@ -453,7 +454,8 @@ class GameStateMachine {
 	player2: Player;
 	ball: Ball;
 
-	constructor(gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, players: Players, gameStateHandlers: GameStateHandlers, isHost: boolean = false) {
+	constructor(gameId: number, gameTicker: GameTicker, gameSize: Dimensions, gameMode: GameMode, players: Players, gameStateHandlers: GameStateHandlers, isHost: boolean = false) {
+		this._gameId = gameId;
 		this._gameSize = { w: gameSize.w, h: gameSize.h };
 		this._gameMode = gameMode;
 		this._gameStateHandlers = gameStateHandlers;
@@ -464,7 +466,7 @@ class GameStateMachine {
 		this.player2 = new Player(players.p2.name, players.p2.avatar, "right", this._gameSize);
 
 		// Run the game state machine every tick
-		gameTicker.add(this._update);
+		gameTicker.add(this.getTickerId(), this._update);
 	}
 
 	/**
@@ -593,6 +595,12 @@ class GameStateMachine {
 		this.player2.paddle.move();
 	}
 
+	//= Public =//
+
+	public getTickerId = () => {
+		return `sm-${this._gameId}`;
+	}
+
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
@@ -675,8 +683,6 @@ class GameStateMachine {
 		console.log(`Left player name locally after state change: ${this.player1.name}`);
 		console.log(`Right player name locally after state change: ${this.player2.name}`);
 	}
-
-	//= Public =//
 
 	/**
 	 * Get the current game state used for online multiplayer.
