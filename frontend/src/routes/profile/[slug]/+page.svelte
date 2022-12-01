@@ -78,10 +78,14 @@ const getRandomEmoji = () => {
 				</summary>
 				{#if user.games.length > 0}
 					{#each user.games as game}
-						{#if game.players.length > 1}
-							<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
+						{#if game.players != undefined}
+							{#if game.players.length > 1}
+								<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
+							{:else}
+								<p><b>The game here has no players... What?</b></p>
+							{/if}
 						{:else}
-							<p><blink><b>Yo Leon fix this, the game it tried to display here has no players... What?</b></blink></p>
+							<p><b>Yo Leon fix this, game is undefined</b></p>
 						{/if}
 					{/each}
 				{:else}
