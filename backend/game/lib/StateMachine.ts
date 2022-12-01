@@ -1,6 +1,6 @@
 import type GameTicker from "./Ticker";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, type GameMode } from "./Modes";
-import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkHandler";
+import type { OnlineGameState, OnlinePlayerState } from "./NetworkHandler";
 
 // Basic types
 export type Vec2 = { x: number; y: number };
@@ -591,21 +591,6 @@ class GameStateMachine {
 		this.ball.move();
 		this.player1.paddle.move();
 		this.player2.paddle.move();
-	}
-
-	public handleOnlinePaddleState = (paddleState: OnlinePaddleState) => {
-		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
-			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
-		}
-
-		// TODO: handle timestamp
-
-		// Update the correct paddle
-		const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
-		paddle.pos.y = paddleState.pos.y;
-		paddle.pos.x = paddleState.pos.x;
-		paddle.size.w = paddleState.size.w;
-		paddle.setHeight(paddleState.size.h);
 	}
 
 	/**

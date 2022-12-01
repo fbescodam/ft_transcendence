@@ -5,18 +5,23 @@ import { onMount, onDestroy } from "svelte";
 import { page } from '$app/stores';
 import { goto } from "$app/navigation";
 import GameTicker from "$lib/Game/Ticker";
-import GameStateMachine from "$lib/Game/StateMachine";
+import GameStateMachine, { type Dimensions } from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
+import GameSoundEngine from "$lib/Game/SoundEngine";
 import type { GameMode } from "$lib/Game/Modes";
 import GameAI from "$lib/Game/AI";
 import Container from "$lib/Components/Container/Container.svelte";
 import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from "$lib/Game/Modes";
-import type { User, Dimensions } from "$lib/Types";
-import { createPlaceholderUser } from "$lib/Utils/Placeholders";
+import type { User } from "$lib/Types";
 import { JWT, displayName, avatar } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
+
+// @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
+import { createPlaceholderUser } from "$lib/Utils/Placeholders";
+import type { OnlineGameState } from "$lib/Game/NetworkHandler";
+import GameNetworkHandler from "$lib/Game/NetworkHandler";
 
 let canvas: HTMLCanvasElement;
 let scores: HTMLElement;
@@ -24,10 +29,12 @@ let timer: HTMLElement;
 let avatar1: HTMLImageElement;
 let avatar2: HTMLImageElement;
 
+let gameSoundEngine: GameSoundEngine;
 let gameTicker: GameTicker;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
 let gameState: GameStateMachine;
+let gameNetworkHandler: GameNetworkHandler;
 let gameAI: GameAI;
 let io: Socket;
 
@@ -55,6 +62,7 @@ function populateUser(user: User, gameUserData: any) {
 }
 
 async function initGame() {
+	// Retrieve the game mode
 	const gameId: number = parseInt($page.params.slug);
 	let gameMode: GameMode = ONLINE_MULTIPL_MODE_ID;
 	if (isNaN(gameId)) {
@@ -71,9 +79,9 @@ async function initGame() {
 		}
 	}
 
+	// Populate user data and initialize multiplayer socket if required
 	const player1: User = createPlaceholderUser("TODO", ($displayName ? $displayName : "Player 1"), ($avatar ? $avatar : null), $page.url);
 	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
-
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
 		io = initSocket($page.url.hostname, $JWT!);
 		const gameData: any = await getGameData(gameId);
@@ -89,15 +97,33 @@ async function initGame() {
 		}
 	}
 
+	// Set up the game engine
 	gameTicker = new GameTicker();
+	gameSoundEngine = new GameSoundEngine();
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
-	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, player1, player2, io);
+	gameState = new GameStateMachine(gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
+		onScoreUpdated: (p1Score: number, p2Score: number) => {
+			scores.innerText = `${p1Score} : ${p2Score}`;
+		},
+		onBeepSound: () => {
+			gameSoundEngine.playBeep();
+		},
+		onBoopSound: () => {
+			gameSoundEngine.playBoop();
+		},
+		onImportantStateChange: (state: OnlineGameState) => {
+			// gameNetworkHandler.sendState(state);
+			// do nothing here: the state is only sent by the host, which is the server
+		},
+	});
 	gameController = new GameController(gameTicker, gameState);
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
-	if (gameMode === SINGLEPL_MODE_ID) {
+	// Set up additional extensions of the game mode that only apply to certain game modes
+	if (gameMode === SINGLEPL_MODE_ID)
 		gameAI = new GameAI(gameTicker, gameState, gameState.player2);
-	}
+	else if (gameMode == ONLINE_MULTIPL_MODE_ID)
+		gameNetworkHandler = new GameNetworkHandler(gameId, io, gameState.handleOnlineState)
 }
 
 onMount(() => {

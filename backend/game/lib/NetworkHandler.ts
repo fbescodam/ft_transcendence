@@ -1,5 +1,5 @@
 import { PausedReason, type PausedReasonObject, type Dimensions, type Direction, type Vec2 } from "./StateMachine";
-import type { Socket } from "socket.io-client";
+import type { Socket } from "socket.io";
 
 export interface OnlinePaddleState {
 	position: string;

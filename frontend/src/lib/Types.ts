@@ -1,7 +1,3 @@
-export type Vec2 = { x: number; y: number };
-export type Direction = number;
-export type Dimensions = { w: number; h: number };
-
 // if you change User, please also update createPlaceholderUser in Placeholders.ts
 export type User = {
 	id: number;

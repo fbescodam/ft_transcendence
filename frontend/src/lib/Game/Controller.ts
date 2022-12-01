@@ -1,8 +1,8 @@
-import type { Direction } from "../Types";
 import type GameTicker from "./Ticker";
 import type GameStateMachine from "./StateMachine";
-import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
+import type { Direction } from "./StateMachine";
 import { PausedReason } from "./StateMachine";
+import { LOCAL_MULTIPL_MODE_ID } from "./Modes";
 
 class GameController {
 	private _gameState: GameStateMachine;
