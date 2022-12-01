@@ -22,6 +22,7 @@ let authCode = $page.url.searchParams.get("code");
 let stateMismatch = $page.url.searchParams.get("state") == $state;
 let hasTFA: boolean = false;
 let tfaCodeField: HTMLInputElement;
+let jwt: string;
 let io: Socket;
 
 //====//
@@ -38,14 +39,15 @@ onMount(() => {
 				alert(`Error: ${answer.error}`);
 			}
 
-			$JWT = answer.token;
 			$displayName = answer.displayName;
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
-			io = initSocket($page.url.hostname, $JWT!)
-			if (!hasTFA)
+			jwt = answer.token
+			if (!hasTFA) {
+				$JWT = answer.token;
 				goto(`${$page.url.origin}/`, { replaceState: true })
+			}
 		});
 
 	}
@@ -54,13 +56,15 @@ onMount(() => {
 function checkCode(e: SubmitEvent) {
 	e.preventDefault();
 
+	io = initSocket($page.url.hostname, jwt)
+
 	io.emit("checkCode", { authCode: tfaCodeField.value }, (answer: any) => {
 		if ("error" in answer) {
-
-			tfaCodeField.setCustomValidity("Invalid code!");
-			tfaCodeField.reportValidity();
+			alert("Wrong code bitch");
 			return;
 		}
+		$JWT = jwt
+
 		goto('http://localhost:5173', { replaceState: true })
 	});
 }

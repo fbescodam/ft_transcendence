@@ -3,10 +3,11 @@ export type Direction = number;
 export type Dimensions = { w: number; h: number };
 
 // if you change User, please also update createPlaceholderUser in Placeholders.ts
+// no i wont lol fuck you
 export type User = {
 	id: number;
 	wins: number;
-	loss: number;
+	losses: number;
 	name: string;
 	intraName: string;
 	avatar: string;

@@ -22,7 +22,8 @@ import { GameModule } from 'game/game.module';
 			secret: process.env.JWT_SECRET,
 		}),
 		ServeStaticModule.forRoot({
-			rootPath: join(__dirname, '..', 'static')
+			rootPath: join(__dirname, '..', 'static'),
+			exclude: ['/avatar']
 		}),
 		CacheModule.register({
 			isGlobal: true,

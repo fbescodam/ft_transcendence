@@ -66,15 +66,16 @@ function changeUsername(e: SubmitEvent) {
 
 	const id = $avatar?.split("/")[1];
 	console.log(id);
-	newAvatar.files![0].arrayBuffer().then((data) => {
-		io.emit('changeAvatar', { id: id, raw: data }, (answer: any) => {
-			if ("error" in answer){
-				newAvatar.setCustomValidity(answer.error);
-				return console.log("error: %s", answer.error);
-			}
-	
-		});
-	});
+
+	const formData = new FormData()
+	formData.append('file', newAvatar.files![0])
+
+
+	fetch('http://localhost:3000/avatar', {
+		method: 'POST',
+		headers: {"Authorization": `Bearer ${$JWT!}`},
+		body: formData
+	}).catch((err) => alert(err));
 }
 
 function logOut() {

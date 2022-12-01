@@ -43,7 +43,7 @@ export class MainGateway {
 	//= Methods =//
 	@UseGuards(JwtGuard)
 	OnGatewayConnection() {
-
+		console.log("new socket connected")
 	}
 
 	@UseGuards(JwtGuard)
@@ -57,8 +57,23 @@ export class MainGateway {
 			select: {
 				name: true,
 				intraName: true,
+				wins: true,
+				losses: true,
 				avatar: true,
-				games: true,
+				games: {
+					select: {
+						players: {
+							select: {
+								avatar: true,
+								name: true
+							}
+						},
+						loserScore: true,
+						winnerId: true,
+						victorScore: true,
+						createdAt: true
+					}
+				},
 				friends: true,
 			}
 		});
@@ -483,8 +498,6 @@ export class MainGateway {
 				intraId: userResponse["id"],
 				intraName: userResponse["login"],
 				avatar: avatarFile,
-				wins: 0,
-				losses: 0,
 				channels: {
 					create: {
 						role: Role.USER,

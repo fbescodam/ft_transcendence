@@ -5,6 +5,7 @@ import { WsException } from '@nestjs/websockets';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { Cache } from 'cache-manager'
+import { Request } from 'express'
 
 
 /*==========================================================================*/
