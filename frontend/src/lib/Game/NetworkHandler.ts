@@ -29,7 +29,7 @@ class GameNetworkHandler {
 
 	public sendPaddleState = (paddleState: OnlinePaddleState) => {
 		console.log("Sending paddle state", paddleState);
-		this._io.emit("paddleGameState", { game: { id: this._gameState.getGameId(), state: paddleState}}, (ret: any) => {
+		this._io.emit("paddleGameState", { game: { id: this._gameState.getGameId(), paddleState: paddleState}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
 			}

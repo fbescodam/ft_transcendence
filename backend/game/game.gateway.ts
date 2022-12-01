@@ -79,7 +79,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('paddleGameState')
 	async handlePaddleGameState(@MessageBody() data: Object) {
 		try {
-			return this.gameService.handlePlayerReady(data["game"]["id"], data["paddleState"]);
+			return this.gameService.handlePaddleMovement(data["game"]["id"], data["user"]["intraName"], data["game"]["paddleState"]);
 		}
 		catch (e) {
 			console.error(e);
