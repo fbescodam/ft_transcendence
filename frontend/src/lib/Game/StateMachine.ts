@@ -221,12 +221,13 @@ export class Paddle extends GameObject {
 	 * @param dir The amount of pixels to move the paddle, every frame.
 	 * @returns True if the movedirection was different than before.
 	 */
-	public setMoveDirection = (dir: Direction) => {
+	public setMoveDirection = (dir: Direction, callMoveChange: boolean = true) => {
 		if (Math.abs(dir) > this._maxMove)
 			dir = (dir < 0 ? -this._maxMove: this._maxMove);
 		if (this._dy != dir) {
 			this._dy = dir;
-			this._onPaddleMoveChange(this.getOnlineState());
+			if (callMoveChange)
+				this._onPaddleMoveChange(this.getOnlineState());
 			return true;
 		}
 		return false;
@@ -694,7 +695,7 @@ class GameStateMachine {
 			paddle.pos.x = paddleState.pos.x;
 			paddle.size.w = paddleState.size.w;
 			paddle.setHeight(paddleState.size.h);
-			paddle.setMoveDirection(paddleState.dy);
+			paddle.setMoveDirection(paddleState.dy, true);
 		}
 
 		if (playerReady) {
@@ -747,6 +748,7 @@ class GameStateMachine {
 			player.paddle.pos.y = onlinePlayerState.paddle.pos.y;
 			player.paddle.size.w = onlinePlayerState.paddle.size.w;
 			player.paddle.setHeight(onlinePlayerState.paddle.size.h);
+			player.paddle.setMoveDirection(onlinePlayerState.paddle.dy, false);
 			if (player.score != onlinePlayerState.score) {
 				player.score = onlinePlayerState.score;
 				this._gameStateHandlers.onScoreUpdated(this.player1.score, this.player2.score);
