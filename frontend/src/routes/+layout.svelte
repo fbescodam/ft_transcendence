@@ -7,7 +7,6 @@ import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
-import { initSocket } from "$lib/socketIO";
 
 let navitems = [
 	{
@@ -92,9 +91,9 @@ let navitems = [
 .fuck-off {
 	display: flex;
 	gap: 1rem;
-	justify-content: center; 
-	align-items: center; 
-	height: 100%; 
+	justify-content: center;
+	align-items: center;
+	height: 100%;
 	flex-direction: column;
 }
 

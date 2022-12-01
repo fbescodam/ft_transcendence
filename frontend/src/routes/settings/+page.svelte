@@ -12,6 +12,7 @@ import { initSocket } from "$lib/socketIO";
 import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
+import { page } from "$app/stores";
 
 let io: Socket;
 let qrcode: string;
@@ -22,7 +23,7 @@ let newUsername: HTMLInputElement;
 let authCode: HTMLInputElement;
 
 onMount(() => {
-	io = initSocket($JWT!)
+	io = initSocket($page.url.hostname, $JWT!)
 	io.emit("isTfaEnabled", {}, (data: { tfaEnabled: boolean }) => {
 		tfaEnabled = data.tfaEnabled;
 		console.log(tfaEnabled);
@@ -120,7 +121,7 @@ function getQRCode() {
 						Disable 2FA
 					{/if}
 				</Button>
-				
+
 				{#if !tfaEnabled}
 					<hr/>
 					{#if qrcode === undefined}
@@ -132,7 +133,7 @@ function getQRCode() {
 					<!-- svelte-ignore a11y-label-has-associated-control -->
 					<label>Please enter the code by scanning the QR:</label>
 					<input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code" bind:this={authCode}/>
-					
+
 					<hr/>
 					<Button type="submit">Send Code</Button>
 					<Button on:click={() => getQRCode()}>Get QRCode</Button>
@@ -171,7 +172,7 @@ function getQRCode() {
 
 	fieldset {
 		border-radius: 8px;
-		padding: 8px; 
+		padding: 8px;
 		border: 2px solid var(--component-border);
 	}
 </style>

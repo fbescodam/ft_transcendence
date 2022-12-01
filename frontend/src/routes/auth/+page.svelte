@@ -25,7 +25,7 @@ let timeout: boolean = false;
 //TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
-		const io = authSocket()
+		const io = authSocket($page.url.hostname)
 
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state, redirectUrl: `${$page.url.origin}${$page.url.pathname}` },  function (answer: any) {
@@ -43,7 +43,7 @@ onMount(() => {
 				timeout = true;
 			}, 5000);
 
-			goto('http://localhost:5173', { replaceState: true })
+			goto(`${$page.url.origin}/`, { replaceState: true })
 		});
 	}
 });

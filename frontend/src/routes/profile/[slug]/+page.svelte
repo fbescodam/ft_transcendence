@@ -28,7 +28,7 @@ let socket: Socket;
 let user: User | null = null;
 
 onMount(() => {
-	socket = initSocket($JWT!);
+	socket = initSocket($page.url.hostname, $JWT!);
 	console.log($page.params.slug)
 	socket.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
 		if ("error" in data) {

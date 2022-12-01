@@ -2,6 +2,7 @@
 <script context="module" lang="ts">
 import {  Globe, Chat, Plus } from "svelte-hero-icons";
 import { onMount } from "svelte";
+import { page } from '$app/stores';
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import { initSocket } from "$lib/socketIO";
@@ -19,7 +20,7 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	let currentUser = $displayName
 
 	onMount(() => {
-		io = initSocket($JWT!)
+		io = initSocket($page.url.hostname, $JWT!)
 		updateMessages("Global");
 
 		io.on("sendMsg", function (message: any) { // Listen to the message event

@@ -75,7 +75,7 @@ async function initGame() {
 	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
 
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
-		io = initSocket($JWT!);
+		io = initSocket($page.url.hostname, $JWT!);
 		const gameData: any = await getGameData(gameId);
 		if (gameData.players.length != 2)
 			throw new Error("Invalid number of players in game");
