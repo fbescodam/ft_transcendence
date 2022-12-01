@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Logger, UseGuards } from "@nestjs/common";
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, OnGatewayDisconnect } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, OnGatewayDisconnect, OnGatewayConnection } from "@nestjs/websockets";
 import { PrismaClient } from "@prisma/client";
 import { Socket } from "socket.io";
 import { JwtGuard } from "auth/Guard";
@@ -9,7 +9,7 @@ import { GameService } from "./game.service";
 // do not set origin to *, is unsafe
 // use localhost domain to connect to BreadPong instead of IP addresses.
 @WebSocketGateway({ cors: { origin: "http://localhost:5173", credentials: false } })
-export class GameGateway implements OnGatewayDisconnect {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
@@ -59,7 +59,7 @@ export class GameGateway implements OnGatewayDisconnect {
 	async handleClientGameState(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
 		console.log("Received game state from client");
 		try {
-			this.gameService.sendGameState(socket.id, data["game"]["id"], data["game"]["state"]);
+			this.gameService.sendGameState(data["user"]["id"], data["game"]["id"], data["game"]["state"]);
 			console.log("Sent game state to other client");
 			return { status: true };
 		}
@@ -72,6 +72,18 @@ export class GameGateway implements OnGatewayDisconnect {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('finishGame')
 	async finishGame() {
+
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('setupGameConnection')
+	async setupGameConnection(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
+		if (this.gameService.connectUserToGames(socket.id, data["user"]["intraName"]))
+			return { connectedToGame: true };
+		return { connectedToGame: false };
+	}
+
+	handleConnection(@ConnectedSocket() socket: Socket) {
 
 	}
 

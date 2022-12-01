@@ -13,7 +13,7 @@ interface QueuedUser {
 interface GameCache {
 	[gameId: string]: {
 		roomId: string;
-		players: [string, string];
+		players: [string, string]; // intraNames
 	}
 }
 
@@ -121,11 +121,10 @@ export class GameService {
 	 * @param user2 The second player
 	 */
 	async startGame(game: Game, user1: QueuedUser, user2: QueuedUser) {
-		// TODO: use rooms?
-		// this.gameGateway.server
-		// 	.to(user1.socketId)
-		// 	.to(user2.socketId)
-		// 	.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
+		this.gameGateway.server
+			.to(user1.socketId)
+			.to(user2.socketId)
+			.socketsJoin(game.roomId); //cant find any docs about this function but i guess it does what the name implies
 
 		// Set up game cache for multiplayer events
 		this._gameCache[game.id] = {
@@ -171,17 +170,65 @@ export class GameService {
 	}
 
 	/**
+	 * Add a connected user to any running games they are in.
+	 * @param socketId The socket id of the user
+	 * @param intraName The intra name of the user
+	 * @returns Returns true if the user was added to any running games
+	 */
+	connectUserToGames(socketId, intraName) {
+		let addedToAny: boolean = false;
+		for (const gameId in this._gameCache) {
+			if (this._gameCache[gameId].players.includes(intraName)) {
+				this.gameGateway.server.to(socketId).socketsJoin(this._gameCache[gameId].roomId);
+				addedToAny = true;
+			}
+		}
+		return addedToAny;
+	}
+
+	/**
+	 * Add a game to the cache in this service.
+	 * @param gameId The id of the game to add to the cache.
+	 * @returns The cached game object.
+	 */
+	private async _addGameToCacheAgain(gameId: number) {
+		const game = await this.prismaService.game.findFirst({
+			where: { id: gameId },
+			include: { players: true }
+		});
+		if (!game) {
+			console.warn(`Game ${gameId} does not exist`);
+			throw new Error(`Game ${gameId} does not exist`);
+		}
+		if (game.status === GameStatus.ENDED) {
+			console.warn(`Game ${gameId} has already ended`);
+			throw new Error(`Game ${gameId} has already ended`);
+		}
+		if (game.players.length !== 2) {
+			console.warn(`Game ${gameId} does not have exactly 2 players`);
+			throw new Error(`Game ${gameId} does not have exactly 2 players`);
+		}
+		this._gameCache[gameId] = {
+			roomId: game.roomId,
+			players: [ game.players[0].intraName, game.players[1].intraName ]
+		}
+		return this._gameCache[gameId];
+	}
+
+	/**
 	 * Send a game state to the opponent of a player.
-	 * @param sourceUser The username of the source
+	 * @param sourceUser The intraName of the source user
 	 * @param gameId The game's gameID
 	 * @param gameState The state to send over
 	 */
-	sendGameState(sourceUser, gameId, gameState) {
-		if (!this._gameCache[gameId])
-			throw new Error('Game not found');
-		if (!this._gameCache[gameId].players.includes(sourceUser))
-		{
-			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].sockets}`);
+	async sendGameState(sourceUser, gameId, gameState) {
+		if (!this._gameCache[gameId]) {
+			// game does not exist in cache, add it again. Could be a game from an invite or something.
+			console.warn(`User ${sourceUser} tried to send a game state for a non-cached game`);
+			this._addGameToCacheAgain(gameId);
+		}
+		if (!this._gameCache[gameId].players.includes(sourceUser)) {
+			console.warn(`User ${sourceUser} tried to send a game state for game ${gameId} but they are not in this game. In game: ${this._gameCache[gameId].players}`);
 			throw new Error('Unauthorized');
 		}
 		const otherSocketId = this._gameCache[gameId].players.find((id) => id !== sourceUser);

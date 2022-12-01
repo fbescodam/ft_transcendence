@@ -51,6 +51,12 @@ class GameNetworkHandler {
 		this._io.on("serverGameState", (state: OnlineGameState) => {
 			this._stateHandler(state);
 		});
+
+		this._io.emit("setupGameConnection", {}, (ret: any) => {
+			if (ret.connectedToGame !== true) {
+				console.warn("Failed to connect to game: user is probably not in any game", ret);
+			}
+		});
 	}
 
 	public sendState(state: OnlineGameState) {
