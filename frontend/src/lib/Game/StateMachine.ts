@@ -321,6 +321,7 @@ export class Player {
 	//= Public =//
 
 	markReady = () => {
+		console.warn(`Player ${this.name} is ready!`);
 		this._ready = true;
 	}
 
@@ -577,13 +578,17 @@ class GameStateMachine {
 
 		// TODO: handle timestamp
 
+		// Debug
+		console.log(`Left player name locally before state change: ${this.player1.name}`);
+		console.log(`Right player name locally before state change: ${this.player2.name}`);
+
 		// Update the ball position
 		this.ball.pos.x = state.ball.pos.x;
 		this.ball.pos.y = state.ball.pos.y;
 
 		// Match left and right with the correct player
-		const playerLeft = (state.players.left.paddle.position == "left" ? this.player1 : this.player2);
-		const playerRight = (state.players.left.paddle.position == "right" ? this.player2 : this.player1);
+		const playerLeft = (state.players.left.paddle.position == "right" ? this.player1 : this.player2);
+		const playerRight = (state.players.right.paddle.position == "left" ? this.player2 : this.player1);
 
 		const updatePlayerState = (player: Player, onlinePlayerState: OnlinePlayerState) => {
 			player.avatar = onlinePlayerState.avatar;
@@ -593,8 +598,13 @@ class GameStateMachine {
 			player.paddle.size.w = onlinePlayerState.paddle.size.w;
 			player.paddle.setHeight(onlinePlayerState.paddle.size.h);
 			player.score = onlinePlayerState.score;
-			if (!player.isReady() && onlinePlayerState.ready)
+			console.log("Updated player state: ", player, onlinePlayerState);
+			console.log(`Player ${player.name} is ready locally? `, player.isReady());
+			console.log(`Player ${player.name} is ready remote? `, onlinePlayerState.ready);
+			if (!player.isReady() && onlinePlayerState.ready) {
+				console.log(`Player ${player.name} is ready!`);
 				player.markReady();
+			}
 		}
 
 		// Update the "left" player
@@ -603,9 +613,25 @@ class GameStateMachine {
 		// Update the "right" player
 		updatePlayerState(playerRight, state.players.right);
 
+		// Update the paused state
+		// @ts-ignore no typescript, fuck you
+		if (state.paused && state.paused.id != PausedReason.WAITING_FOR_OPPONENT.id)
+			this._paused = state.paused;
+
+		// Check if both players are ready and start the game if it hasn't yet
+		console.log(this._paused);
+		console.log(playerLeft.isReady(), playerRight.isReady());
+		console.log(this.player1.isReady(), this.player2.isReady());
+		if (this._paused == PausedReason.WAITING_FOR_OPPONENT && this.player1.isReady() && this.player2.isReady()) {
+			this.startGame();
+		}
+
 		// Update the time
 		this._secondsPlayed = state.time.secondsPlayed;
 		this._gameDuration = state.time.gameDuration;
+
+		console.log(`Left player name locally after state change: ${this.player1.name}`);
+		console.log(`Right player name locally after state change: ${this.player2.name}`);
 	}
 
 	//= Public =//
@@ -616,6 +642,7 @@ class GameStateMachine {
 	 */
 	public getOnlineState = (): OnlineGameState => {
 		return {
+			sourceSocketId: this._networkHandler?.getSocketId() ?? "",
 			time: {
 				timestamp: Date.now(),
 				secondsPlayed: this._secondsPlayed,
@@ -649,27 +676,30 @@ class GameStateMachine {
 	 * Note: in local multiplayer, it marks both players as ready and starts the game.
 	 */
 	public startGame = () => {
-		if (this.getPausedReason() != PausedReason.READY_SET_GO)
-			return;
+		console.log("Starting game?");
+		console.log(this.getPausedReason());
+		if (this.getPausedReason() == PausedReason.READY_SET_GO || this.getPausedReason() == PausedReason.WAITING_FOR_OPPONENT) {
+			this.player1.markReady();
 
-		this.player1.markReady();
+			// If we're in local multiplayer, mark player 2 as ready as well
+			if (this.getGameMode() == LOCAL_MULTIPL_MODE_ID) {
+				this.player2.markReady();
+			}
 
-		// If we're in local multiplayer, mark player 2 as ready as well
-		if (this.getGameMode() == LOCAL_MULTIPL_MODE_ID) {
-			this.player2.markReady();
+			// Check if player 2 is ready
+			// Always perform this check: in singleplayer, the AI needs to be ready too!
+			if (!this.player2.isReady()) {
+				console.log("Still waiting for opponent", this.player1.isReady(), this.player2.isReady());
+				this._paused = PausedReason.WAITING_FOR_OPPONENT;
+			}
+			else {
+				console.log("Started game");
+				this._paused = null;
+			}
+
+			// Send game state to server
+			this._networkHandler?.sendState(this.getOnlineState());
 		}
-
-		// Check if player 2 is ready
-		// Always perform this check: in singleplayer, the AI needs to be ready too!
-		if (!this.player2.isReady()) {
-			this._paused = PausedReason.WAITING_FOR_OPPONENT;
-		}
-		else {
-			this._paused = null;
-		}
-
-		// Send game state to server
-		this._networkHandler?.sendState(this.getOnlineState());
 	}
 
 	/**

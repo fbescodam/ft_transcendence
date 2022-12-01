@@ -16,6 +16,8 @@ export interface OnlinePlayerState {
 }
 
 export interface OnlineGameState {
+	sourceSocketId: string,
+
 	time: {
 		timestamp: number;
 		secondsPlayed: number;
@@ -49,6 +51,9 @@ class GameNetworkHandler {
 		this._stateHandler = stateHandler;
 
 		this._io.on("serverGameState", (state: OnlineGameState) => {
+			if (state.sourceSocketId == this._io.id)
+				return;
+			console.log("Received game state from server", state);
 			this._stateHandler(state);
 		});
 
@@ -59,7 +64,8 @@ class GameNetworkHandler {
 		});
 	}
 
-	public sendState(state: OnlineGameState) {
+	public sendState = (state: OnlineGameState) => {
+		console.log("Sending game state to server", state);
 		this._io.emit("clientGameState", { game: { id: this._gameId, state: state}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
@@ -68,6 +74,10 @@ class GameNetworkHandler {
 				console.warn("Failed to send game state to server");
 			}
 		});
+	}
+
+	public getSocketId = (): string => {
+		return this._io.id;
 	}
 }
 
