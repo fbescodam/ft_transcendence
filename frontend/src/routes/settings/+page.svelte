@@ -11,7 +11,7 @@ import Container from "$lib/Components/Container/Container.svelte";
 import Disable2FaModal from "$lib/Components/Modal/Disable2FAModal.svelte";
 import Enable2FaModal from "$lib/Components/Modal/Enable2FAModal.svelte";
 import { initSocket } from "$lib/socketIO";
-import { displayName, JWT } from "$lib/Stores/User";
+import { displayName, JWT, avatar } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount } from "svelte";
 
@@ -24,6 +24,7 @@ let showDis2FAModal: boolean = false;
 let tfaEnabled: boolean = false;
 let newUsername: HTMLInputElement;
 let authCode: HTMLInputElement;
+let newAvatar: HTMLInputElement;
 
 onMount(() => {
 	io = initSocket($JWT!)
@@ -51,6 +52,28 @@ function changeUsername(e: SubmitEvent) {
 		$JWT = answer["token"]
 		newUsername.value = '';
 	})
+}
+
+/**
+ * Change the name of the user
+ * @param e The submit event
+ */
+ async function changeUserAvatar(e: SubmitEvent) {
+	e.preventDefault()
+
+	// TODO: Get user ID somehow, we need to update our store...
+
+	const id = $avatar?.split("/")[1];
+	console.log(id);
+	newAvatar.files![0].arrayBuffer().then((data) => {
+		io.emit('changeAvatar', { id: id, raw: data }, (answer: any) => {
+			if ("error" in answer){
+				newAvatar.setCustomValidity(answer.error);
+				return console.log("error: %s", answer.error);
+			}
+	
+		});
+	});
 }
 
 function logOut() {
@@ -94,11 +117,20 @@ function checkCode(e: SubmitEvent) {
 		<!-- TODO: Any extra settings ? -->
 		<form on:submit={(e) => { changeUsername(e); }}>
 			<fieldset>
-				<legend>User Data</legend>
+				<legend>Name</legend>
 
 				<!-- svelte-ignore a11y-label-has-associated-control -->
 				<label>Username:</label>
 				<input type="text" bind:this={newUsername} placeholder={$displayName} required/>
+				<hr/>
+				<Button type="submit">Submit</Button>
+			</fieldset>
+		</form>
+
+		<form on:submit={(e) => { changeUserAvatar(e); }}>
+			<fieldset>
+				<legend>Avatar</legend>
+				<input type="file" accept="*.png" required bind:this={newAvatar}/>
 				<hr/>
 				<Button type="submit">Submit</Button>
 			</fieldset>

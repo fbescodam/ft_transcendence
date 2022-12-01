@@ -386,6 +386,32 @@ export class MainGateway {
 		return { token: jwtToken }
 	}
 
+	/**
+	 * Sets the profile picture for a user.
+	 * @param data Data.
+	 * @param socket The websocket.
+	 * @returns
+	 */
+	@SubscribeMessage("changeAvatar")
+	public async changeAvatar(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+		this.logger.log(`User: ${data['id']} is trying to change avatar.`);
+
+		if (!await this.prismaService.user.count({ where: { intraId: data["id"] }}))
+			return { error: "User does not exist" };
+
+		const avatarFile = `avatars/${data["id"]}`;
+		const fileStream = fs.createWriteStream(`static/${avatarFile}`);
+		await new Promise((resolve, reject) => {
+			fileStream.on("finish", resolve);
+			fileStream.on("error", reject);
+			fileStream.write(Buffer.from(data["raw"]));
+		}).catch((err) => {
+			this.logger.log(`User: ${data['id']} failed to change avatar: ${err}`);
+		}).then(() => {
+			this.logger.log(`User: ${data['id']} changed avatar.`);
+		});
+		fileStream.close();
+	}
 
 	/**
 	 * Main authenticaton function to authenticate a user with the 42 OAuth webflow.
