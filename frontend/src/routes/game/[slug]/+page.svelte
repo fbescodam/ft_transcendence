@@ -122,7 +122,7 @@ async function initGame() {
 		onGameOver: (state: OnlineGameState) => {
 			console.log("The game is over! Final state:", state);
 		}
-	});
+	}, (gameMode != ONLINE_MULTIPL_MODE_ID));
 	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
 	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
 
