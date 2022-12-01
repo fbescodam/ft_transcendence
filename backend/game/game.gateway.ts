@@ -55,13 +55,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage('clientGameState')
-	async handleClientGameState(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		console.log("Received game state from client");
+	@SubscribeMessage('paddleGameState')
+	async handlePaddleGameState(@MessageBody() data: Object) {
 		try {
-			this.gameService.sendGameState(data["user"]["intraName"], data["game"]["id"], data["game"]["state"]);
-			console.log("Sent game state to other client");
-			return { status: true };
+			return this.gameService.handlePaddleMovement(data["game"]["id"], data["user"]["intraName"], data["game"]["paddleState"]);
 		}
 		catch (e) {
 			console.error(e);
@@ -70,10 +67,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@UseGuards(JwtGuard)
-	@SubscribeMessage('finishGame')
-	async finishGame() {
-
+	@SubscribeMessage('playerReady')
+	async handlePlayerReady(@MessageBody() data: Object) {
+		try {
+			return this.gameService.handlePlayerReady(data["game"]["id"], data["user"]["intraName"]);
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
+
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('setupGameConnection')

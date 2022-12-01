@@ -1,59 +1,23 @@
-import type { Dimensions, Direction, Vec2 } from "$lib/Types";
+import type GameStateMachine from "./StateMachine";
+import type { OnlineGameState, OnlinePaddleState, OnlinePlayerState } from "./NetworkTypes";
 import type { Socket } from "socket.io-client";
-import type { PausedReasonObject } from "./StateMachine";
-
-export interface OnlinePlayerState {
-	avatar: string;
-	name: string;
-	paddle: {
-		position: string;
-		pos: Vec2;
-		size: Dimensions;
-		dy: Direction;
-	}
-	score: number;
-	ready: boolean;
-}
-
-export interface OnlineGameState {
-	sourceSocketId: string,
-
-	time: {
-		timestamp: number;
-		secondsPlayed: number;
-		gameDuration: number;
-	}
-
-	paused: PausedReasonObject | null;
-
-	players: {
-		left: OnlinePlayerState,
-		right: OnlinePlayerState
-	};
-
-	ball: {
-		pos: Vec2;
-		size: Dimensions;
-		dy: Direction;
-		dx: Direction;
-		speed: number;
-	};
-}
+// server: change above to socket.io. client: change above to socket.io-client
 
 class GameNetworkHandler {
 	private _io: Socket;
-	private _gameId: number;
+	private _gameState: GameStateMachine;
 	private _stateHandler: (state: OnlineGameState) => void;
+	private _lastResponseTime: number = Infinity;
 
-	constructor(gameId: number, io: Socket, stateHandler: (state: OnlineGameState) => void) {
-		this._gameId = gameId;
+	constructor(gameState: GameStateMachine, io: Socket, stateHandler: (state: OnlineGameState) => void) {
+		this._gameState = gameState;
 		this._io = io;
 		this._stateHandler = stateHandler;
 
-		this._io.on("serverGameState", (state: OnlineGameState) => {
-			if (state.sourceSocketId == this._io.id)
-				return;
-			console.log("Received game state from server", state);
+		console.log("Registering client state handler");
+		this._io.on("gameState", (state: OnlineGameState) => {
+			console.log("Received game state from host", state);
+			this._lastResponseTime = Date.now() - state.time.timestamp;
 			this._stateHandler(state);
 		});
 
@@ -64,20 +28,37 @@ class GameNetworkHandler {
 		});
 	}
 
-	public sendState = (state: OnlineGameState) => {
-		console.log("Sending game state to server", state);
-		this._io.emit("clientGameState", { game: { id: this._gameId, state: state}}, (ret: any) => {
+	public sendPaddleState = (paddleState: OnlinePaddleState) => {
+		console.log("Sending paddle state", paddleState);
+		this._io.emit("paddleGameState", { game: { id: this._gameState.getGameId(), paddleState: paddleState}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
 			}
-			else if (ret.status !== true) {
-				console.warn("Failed to send game state to server");
+		});
+	}
+
+	/**
+	 * Mark a player as ready in an online multiplayer game
+	 * @param playerReady The intraName of the player that is ready
+	 */
+	public sendPlayerReady = (playerReady: string) => {
+		console.log("Sending player ready");
+		this._io.emit("playerReady", { game: { id: this._gameState.getGameId(), playerReady: playerReady }}, (ret: any) => {
+			if ("error" in ret)
+				console.error(ret.error);
+			else {
+				console.log("Player ready sent", ret);
+				this._gameState.handleOnlineState(ret);
 			}
 		});
 	}
 
 	public getSocketId = (): string => {
 		return this._io.id;
+	}
+
+	public getResponseTime = (): number => {
+		return this._lastResponseTime;
 	}
 }
 
