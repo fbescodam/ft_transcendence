@@ -83,7 +83,7 @@ let navitems = [
 	gap: 10px;
 
 	& img {
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 		object-fit: cover;
 	}
 }

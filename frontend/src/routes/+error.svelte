@@ -24,7 +24,7 @@
 
 	img {
 		height: 20vw;
-		border-radius: 1em;
+		border-radius: var(--border-radius);
 	}
 
 	h1 {

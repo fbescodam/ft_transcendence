@@ -43,7 +43,7 @@ let ratio = wins / loss;
 	flex-direction: column;
 	justify-content: center;
 	
-	border-radius: 10px;
+	border-radius: var(--border-radius);
 	backdrop-filter: blur(4px);
 }
 

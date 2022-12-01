@@ -1,8 +1,8 @@
 <!-- Scripting -->
 <script context="module" lang="ts">
 import {  Globe, Chat, Plus } from "svelte-hero-icons";
-import { onMount } from "svelte";
 import { page } from '$app/stores';
+import { afterUpdate, beforeUpdate, onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import { initSocket } from "$lib/socketIO";
@@ -18,22 +18,34 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	let messages: Array<any> = [];
 	let openChannel = "Global";
 	let currentUser = $displayName
+	let chat: HTMLDivElement;
+	let autoscroll: boolean;
+
+	beforeUpdate(() => {
+		autoscroll = chat && (chat.offsetHeight + chat.scrollTop) > (chat.scrollHeight - 20);
+	});
+
+	afterUpdate(() => {
+		if (autoscroll)
+			chat.scrollTo(0, chat.scrollHeight);
+	});
 
 	onMount(() => {
 		io = initSocket($page.url.hostname, $JWT!)
 		updateMessages("Global");
 
-		io.on("sendMsg", function (message: any) { // Listen to the message event
+		// Listen to the message event
+		io.on("sendMsg", function (message: any) {
 			if (message.channel == openChannel)
 				messages = [...messages, { senderName: message.user, text: message.text}]
-		})
+		});
 
+		// Get channels from the user
 		io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 			$channels = answer;
 			io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 		});
-
-	})
+	});
 
 	function updateMessages(channelName: string) {
 		io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
@@ -88,18 +100,22 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	<Container style="flex: 1;">
 		<div class="chat">
 			<h1>{openChannel}</h1>
-			<section class="messages">
+			<div class="messages" bind:this={chat}>
 				{#if messages.length == 0}
 					<b> No messages...</b>
 				{:else}
 					{#each messages as message}
-						<article id={message.senderName == currentUser ? "user" : "other"}>
+						<article>
+							<a href="/profile/{message.senderName}">
+								<b>
+									{message.senderName}:
+								</b>
+							</a>
 							<span>{message.text}</span>
-							<b>{message.senderName}</b>
 						</article>
 					{/each}
 				{/if}
-			</section>
+			</div>
 			<TextInput on:key={onSend}/>
 		</div>
 	</Container>
@@ -137,11 +153,22 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 		gap: 10px;
 		max-height: 400px;
 		overflow-y: auto;
+		scroll-behavior: smooth;
 		min-height: 400px;
 		padding: 0 10px;
 
-		& #user {
-			text-align: right;
+		background: linear-gradient(var(--component-background) 30%,rgba(255,255,255,0)),linear-gradient(rgba(255,255,255,0),var(--component-background) 70%) 0 100%,radial-gradient(farthest-side at 50% 0,rgba(0,0,0,.2),rgba(0,0,0,0)),radial-gradient(farthest-side at 50% 100%,rgba(0,0,0,.2),rgba(0,0,0,0)) 0 100%;
+		background-repeat: no-repeat;
+		background-size: 100% 40px,100% 40px,100% 14px,100% 14px;
+		background-attachment: local,local,scroll,scroll;
+
+		a {
+			text-decoration: none;
+			color: #9fa0f9;
+		}
+
+		&::-webkit-scrollbar {
+			display: none;
 		}
 	}
 

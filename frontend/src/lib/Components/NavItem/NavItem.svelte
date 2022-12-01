@@ -6,18 +6,18 @@
 <!-- Navbar item for navigation -->
 
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { Icon } from "svelte-hero-icons";
-	import type { IconSource } from "svelte-hero-icons";
+import { page } from '$app/stores';
+import { Icon } from "svelte-hero-icons";
+import type { IconSource } from "svelte-hero-icons";
 
-	/** The HREF to navigate to. */
-	export let href: string;
-	/** The Icon to use for the button. */
-	export let icon: IconSource;
-	/** The Button text to display. */
-	export let text: string;
-	/** The color when the element is hovered or selected */
-	export let color: string;
+/** The HREF to navigate to. */
+export let href: string;
+/** The Icon to use for the button. */
+export let icon: IconSource;
+/** The Button text to display. */
+export let text: string;
+/** The color when the element is hovered or selected */
+export let color: string;
 </script>
 
 {#if $page.routeId == href}
@@ -47,7 +47,7 @@ a {
 
 	padding: 6px;
 	margin: 0 0 0.5rem 0;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	text-align: center;
 
 	color: white;

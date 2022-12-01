@@ -26,7 +26,7 @@ export let style: string = "";
 	div {
 		padding: 1rem;
 
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 		border: 1px var(--component-border) solid;
 		background-color: var(--component-background);
 		box-shadow: 10px 20px 30px -20px rgba(0, 0, 0, 0.30);

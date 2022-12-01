@@ -21,62 +21,76 @@ export class FriendsGateway {
 
 	private readonly logger = new Logger("friends");
 
-
 	@UseGuards(JwtGuard)
-	@SubscribeMessage("getUserFriends")
-	public async getUserRelations(@MessageBody() data: Object) {
+	@SubscribeMessage("addFriend")
+	public async addFriend(@MessageBody() data: Object) {
 
-		// const relations = this.prismaService.user.findFirst({
-		// 	where: {
-		// 		intraName: data["user"].intraName
-		// 	},
-		// 	include: {
-		// 		relations: true
-		// 	}
-		// })
+		const otherUser = await this.prismaService.user.findFirst({
+			where: {intraName: data["newFriend"]},
+			include: {blocked: true}
+		});
 
-	}
+		if (otherUser.blocked.map((item) => item['intraName']).includes(data["user"].intraName))
+			return {error: "you got blocked bitch"}
+		
+		const checkBlocked = await this.prismaService.user.findFirst({
+			where: {intraName: data["user"].intraName},
+			include: {blocked: true}
+		});
 
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("sendFriendRequest")
-	public async sendFriendRequest() {
+		if (checkBlocked.blocked.map((item) => item['intraName']).includes(data["newFriend"]))
+			await this.friendsService.unBlockUser(data["user"].intraName, data["newFriend"])
 
-	}
+		await this.prismaService.user.update({
+			where: {intraName: data["user"].intraName},
+			data: {
+				friends: {
+					connect: {
+						intraName: data["newFriend"]
+					}
+				}
+			}
+		});
 
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("cancelFriendRequest")
-	public async cancelFriendRequest() {
-
+		return {succes:"friend added"}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("removeFriend")
-	public async removeFriend() {
-
-	}
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("acceptFriendRequest")
-	public async acceptFriendRequest() {
-
-	}
-
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("denyFriendRequest")
-	public async denyFriendRequest() {
-
+	public async removeFriend(@MessageBody() data: Object) {
+		await this.friendsService.removeFriend(data["user"].intraName, data["removeFriend"])
+		return {succes:"friend removed"}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("BlockUser")
-	public async BlockUser() {
+	public async BlockUser(@MessageBody() data: Object) {
+		
+		const checkFriend = await this.prismaService.user.findFirst({
+			where: {intraName: data["blockUser"]},
+			include: {friends: true}
+		})
+		
+		if (checkFriend.friends.map((item) => item['intraName']).includes(data["blockUser"]))
+			await this.friendsService.removeFriend(data["user"].intraName, data["blockUser"])
 
+		await this.prismaService.user.update({
+			where: { intraName: data["user"].intraName },
+			data: {
+				blocked: {
+					connect: {
+						intraName: data["blockUser"]
+					}
+				}
+			}
+		});
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("unBlockUser")
-	public async unBlockUser() {
-
+	public async unBlockUser(@MessageBody() data: Object) {
+		await this.friendsService.unBlockUser(data["user"].intraName, data["unBlockUser"])
+		return {succes:"user unblocked"}
 	}
 
 }

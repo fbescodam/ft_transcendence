@@ -162,7 +162,7 @@ canvas {
 	margin-top: 1rem;
 	max-width: 100%;
 
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	outline: none;
 	border: 1px var(--component-border) solid;
 }
@@ -194,7 +194,7 @@ canvas {
 	}
 
 	& img {
-		border-radius: 8px;
+		border-radius: var(--border-radius);
 	}
 }
 </style>

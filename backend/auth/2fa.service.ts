@@ -3,7 +3,6 @@ import { toDataURL } from 'qrcode';
 import { authenticator } from 'otplib';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
-import { create } from 'ts-node';
 
 @Injectable()
 export class TwoFactorAuthenticationService {
@@ -18,18 +17,36 @@ export class TwoFactorAuthenticationService {
 	const secret = authenticator.generateSecret();
 	const otpauthUrl = authenticator.keyuri(user.intraName, "ft_transcendance", secret);
 	
-	const newUser = await this.prismaService.user.update({
-	  where: {
-		intraName: user.intraName
-	  },
-	  data: {
-		tfaSecret: {
-			create: {
-				string: secret
+	const newUser = await this.prismaService.user.findFirst({where:{intraName:user.intraName}, include:{tfaSecret:true}})
+
+	if (newUser.tfaSecret)
+	{
+		newUser.tfaSecret.string = secret
+		await this.prismaService.user.update({
+			where:{intraName:user.intraName},
+			data: {
+				tfaSecret: {
+					delete: true,
+					create: {
+						string: secret
+					}
+				}
 			}
-		}
-	  }
-	})
+		})
+	}
+	else
+	{
+		await this.prismaService.user.update({
+			where: {intraName:user.intraName},
+			data: {
+				tfaSecret:{
+					create: {
+						string:secret
+					}
+				}
+			}
+		})
+	}
 
 	return {
 	  newUser,
