@@ -14,6 +14,7 @@ import type { Socket } from "socket.io-client";
 let userInQueue = false;
 let io: Socket | null = null;
 let matchmakeStatus: string = "Joining the matchmaking queue...";
+let statusIcon: HTMLElement;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
@@ -40,10 +41,15 @@ onMount(() => {
 			{
 				console.log("Creating online multiplayer lobby");
 				io.emit("joinQueue", {}, (ret: any) => {
-					console.log("Queue joing status:", ret);
+					console.log("Queue joining status:", ret);
 					if (ret.status === true) {
 						matchmakeStatus = "Searching for players...";
 						userInQueue = true;
+					}
+					else {
+						matchmakeStatus = "Unable to join queue";
+						statusIcon.style.display = "none";
+						alert("Unable to join the queue. Are you maybe already in a queue or in an ongoing game?");
 					}
 				});
 				io.on("gameStart", (data: any) => {
@@ -86,7 +92,7 @@ onDestroy(() => {
 	<Container>
 		<div class="loading">
 			<b>{matchmakeStatus}</b>
-			<span class="icon">
+			<span class="icon" bind:this={statusIcon}>
 				<Icon src={Refresh} size={"24px"}/>
 			</span>
 		</div>
