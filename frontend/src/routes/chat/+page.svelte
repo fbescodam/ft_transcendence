@@ -20,6 +20,7 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 	let currentUser = $displayName
 	let chat: HTMLDivElement;
 	let autoscroll: boolean;
+	let blockedUsers: any
 
 	beforeUpdate(() => {
 		autoscroll = chat && (chat.offsetHeight + chat.scrollTop) > (chat.scrollHeight - 20);
@@ -37,7 +38,10 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 		// Listen to the message event
 		io.on("sendMsg", function (message: any) {
 			if (message.channel == openChannel)
-				messages = [...messages, { senderName: message.user, text: message.text}]
+			{
+				if (!(blockedUsers.map((item: any) => item['name']).includes(message.user)))
+					messages = [...messages, { senderName: message.user, text: message.text}];
+			}
 		});
 
 		// Get channels from the user
@@ -45,6 +49,10 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 			$channels = answer;
 			io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 		});
+
+		io.emit('getBlockedUsers', {}, function (e: any) {
+			blockedUsers = e;
+		})
 	});
 
 	function updateMessages(channelName: string) {

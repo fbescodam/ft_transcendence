@@ -101,10 +101,29 @@ export class MainGateway {
 		});
 	}
 
+	/**
+	 * get all blocked users
+	 * @param data {}
+	 * @returns all blocked users
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getBlockedUsers')
+	async getBlockedUser(@MessageBody() data: any) {
+		const user = await this.prismaService.user.findFirst({
+			where: { intraName: data.user.intraName },
+			select: { 
+				blocked: {
+					select: {
+						name: true
+					}
+				}
+			}
+		});
+		return user.blocked;
+	}
+	 
 
 	/**
-	 * TODO: Figure out the correct types...
-	 *
 	 * Retrieves the channels for a given user.
 	 * @param userName The name of the user.
 	 * @returns All the channels that the user is subscribed to.
