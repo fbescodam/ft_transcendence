@@ -580,8 +580,12 @@ class GameStateMachine {
 				this._paused = PausedReason.WAITING_FOR_P1;
 			else if (!this.player1.isReady() && !this.player2.isReady())
 				this._paused = PausedReason.WAITING_FOR_BOTH;
-			else
+			else {
 				this._paused = null;
+				// If this state machine is acting as the host, send the new state to the listening clients
+				if (this._isHost)
+					this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+			}
 		}
 
 		// Check if we're paused...
