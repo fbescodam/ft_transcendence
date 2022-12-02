@@ -26,8 +26,8 @@ import GameNetworkHandler from "$lib/Game/NetworkHandler";
 let canvas: HTMLCanvasElement;
 let scores: HTMLElement;
 let timer: HTMLElement;
-let avatar1: HTMLImageElement;
-let avatar2: HTMLImageElement;
+let playerLeft: HTMLElement;
+let playerRight: HTMLElement;
 
 let gameSoundEngine: GameSoundEngine;
 let gameTicker: GameTicker;
@@ -126,7 +126,7 @@ async function initGame() {
 		}
 	}, (gameMode != ONLINE_MULTIPL_MODE_ID));
 	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
-	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, avatar1, avatar2);
+	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, playerLeft, playerRight);
 
 	// Set up additional extensions of the game mode that only apply to certain game modes
 	if (gameMode === SINGLEPL_MODE_ID)
@@ -181,12 +181,18 @@ const keyDownHandler = (event: KeyboardEvent) => {
 	<Container>
 		<Container>
 			<div class="score">
-				<img bind:this={avatar1} width={64} height={64} src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P1"/>
+				<div class="player-info left" bind:this={playerLeft}>
+					<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P1"/>
+					<div class="player-info-text"><span class="player-name">Player 1</span><i>PLAYER 1</i></div>
+				</div>
 				<div class="score-middle">
 					<b bind:this={scores} >0 : 0</b>
 					<i bind:this={timer} >3:00</i>
 				</div>
-				<img bind:this={avatar2} width={64} height={64} src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P2"/>
+				<div class="player-info right" bind:this={playerRight}>
+					<div class="player-info-text"><span class="player-name">Player 2</span><i>PLAYER 2</i></div>
+					<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="P2"/>
+				</div>
 			</div>
 		</Container>
 		<canvas bind:this={canvas} width="1080" height="720" tabindex="0" />
@@ -233,8 +239,41 @@ canvas {
 		margin-top: 0.2em;
 	}
 
-	& img {
-		border-radius: var(--border-radius);
+	& .player-info {
+		text-align: left;
+
+		& .player-info-text {
+			display: inline-block;
+			vertical-align: middle;
+			margin: 0.2em 0.5em;
+
+			& .player-name {
+				display: block;
+				font-size: large;
+				max-width: 100%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			& i {
+				display: block;
+				font-size: x-small;
+				text-transform: uppercase;
+			}
+		}
+
+		& img {
+			display: inline-block;
+			vertical-align: middle;
+			border-radius: var(--border-radius);
+			width: 64px;
+			height: 64px;
+		}
+	}
+
+	& .player-info.right {
+		text-align: right;
 	}
 }
 </style>

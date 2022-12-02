@@ -16,7 +16,6 @@ class GameNetworkHandler {
 
 		console.log("Registering client state handler");
 		this._io.on("gameState", (state: OnlineGameState) => {
-			console.log("Received game state from host", state);
 			this._lastResponseTime = Date.now() - state.time.timestamp;
 			this._stateHandler(state);
 		});
@@ -29,7 +28,6 @@ class GameNetworkHandler {
 	}
 
 	public sendPaddleState = (paddleState: OnlinePaddleState) => {
-		console.log("Sending paddle state", paddleState);
 		this._io.emit("paddleGameState", { game: { id: this._gameState.getGameId(), paddleState: paddleState}}, (ret: any) => {
 			if ("error" in ret) {
 				console.error(ret.error);
