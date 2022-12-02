@@ -138,6 +138,44 @@ export class MainGateway {
 		return user.channels;
 	}
 
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('getUsersInChannel')
+	async getUsersInChannel(@MessageBody() data: any) {
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		}) //TODO: this could be a guard i guess
+
+		if (!userInChannel)
+			return {error:"not part of channel"};
+		if (userInChannel.users[0].role != Role.ADMIN)
+			return {error:"not an admin"};
+
+		const channelUsers = await this.prismaService.channel.findFirst({
+			where: { name: data["channelName"]},
+			select: {
+				users: {
+					select: {
+						userName: true,
+						joinedOn: true,
+						role: true
+					}
+				}
+			}
+		})
+		
+		return {usersInChannel:channelUsers}
+	}
+	 
+
 	/**
 	 * Retrieves the messages in a channel.
 	 * @param channelName The channel name
