@@ -47,17 +47,17 @@ onMount(() => {
 
 // Add user as a retard
 function addUser() {
-	
+	console.log("Add or unadd user as a friend");
 }
 
 // Invite that retard
 function inviteUser() {
-
+	console.log("invite user to game");
 }
 
 // Shield form that retard autism
 function blockUser() {
-
+	console.log("block or unblock user to game");
 }
 
 const getRandomEmoji = () => {
