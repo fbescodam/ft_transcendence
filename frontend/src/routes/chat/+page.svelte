@@ -64,6 +64,16 @@ import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 			if (!input.value) {
 				return;
 			}
+			let muted = false;
+			$channels.forEach((chan: any) => {
+				if (chan.channelName == openChannel && chan.role == 'MUTED')
+				{
+					console.log('ya got muted bitch')	
+					muted = true
+				} //TODO: display to user theyve been muted
+			});
+			if (muted)
+				return;
 			console.log("Sending message:", input.value);
 			io.emit("sendMsg", {inChannel: openChannel, text: input.value});
 			input.value = "";

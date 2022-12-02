@@ -129,6 +129,7 @@ enum GameStatus {
 enum Role {
 	USER
 	ADMIN
+	MUTED
 }
 
 enum ChannelType {

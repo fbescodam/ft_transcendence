@@ -54,7 +54,10 @@ function onChannelCreate(e: SubmitEvent) {
         if (answer.error)
             console.log(answer.error)
         else
+        {
             $channels = [...$channels, {channelName: answer.name}]
+            window.location.reload()
+        }
     });
     visible = false;
 }

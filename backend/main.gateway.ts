@@ -135,16 +135,15 @@ export class MainGateway {
 }
 
 
-	//TODO: figure out why messages get sent to every socket
 	@SubscribeMessage("joinRooms")
-	joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
-		socket.join(roomInfo["channels"]);
+	async joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
+		await socket.join(roomInfo["channels"]);
 		this.logger.log(`joined ${roomInfo["channels"]}`);
 	}
 
 	@SubscribeMessage("leaveRoom")
-	leaveRoom(@MessageBody() roomInfo: { name: string }, @ConnectedSocket() socket: Socket) {
-		socket.leave(roomInfo.name);
+	async leaveRoom(@MessageBody() roomInfo: { name: string }, @ConnectedSocket() socket: Socket) {
+		await socket.leave(roomInfo.name);
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
@@ -182,12 +181,12 @@ export class MainGateway {
 			channel = await this.prismaService.channel.create({
 				data: {
 					name: channelData["name"],
-					password: null,
+					password: undefined,
 					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
 			}});
 		}
 
-		socket.join(channelData["name"]) //TODO: for some reason this dont do shit
+		await socket.join(channelData["name"]);
 		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
 		return channel
 	}
@@ -264,9 +263,113 @@ export class MainGateway {
 		return { name: channelData["name"] }
 	}
 
+	/**
+	 * method for muting a user in chanel
+	 * @param data {channelName: channel_to_mute_in, muteUser: user_to_mute}
+	 * @returns 
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("muteUser")
+	public async muteUser(@MessageBody() data: Object) {
+
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		})
+
+		if (!userInChannel)
+			return {error:"not part of channel"};
+		if (userInChannel.users[0].role != Role.ADMIN)
+			return {error:"not an admin"};
+		
+		await this.prismaService.channel.update({
+			where: { name:data["channelName"] },
+			data: {
+				users: {
+					updateMany: {
+						where: { userName: data["muteUser"]  },
+						data: {
+							role: Role.MUTED
+						}
+					}
+				}
+			}
+		})
+
+		this.logger.log(`${data["muteUser"]} muted in ${data["channelName"]}`)
+	}
+
+	/**
+	 * method to kick user from channel
+	 * @param data {channelName: channel_to_kick_in, kickUser: user_to_kick}
+	 * @returns 
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("kickUser")
+	public async kickUser(@MessageBody() data: Object) {
+		
+
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		})
+
+		if (!userInChannel)
+			return {error:"not part of channel"};
+		if (userInChannel.users[0].role != Role.ADMIN)
+			return {error:"not an admin"};
+
+		await this.prismaService.channel.update({
+			where: {name: data["channelName"]},
+			data: {
+				users: {
+					deleteMany: [{ userName: data["kickUser"]}],
+				}
+			}
+		})
+	}
+
+	/**
+	 * method for a 'leave channel' button
+	 * @param channelData {name: name_of_channel}
+	 * @returns 
+	 */
+	@UseGuards(JwtGuard)
 	@SubscribeMessage("leaveChannel")
 	public async leaveChannel(@MessageBody() channelData: Object) {
 
+		const channel = await this.prismaService.channel.findUnique({
+			where: { name:channelData["name"] },
+			select: {users: true}
+		});
+
+		if (!channel)
+			return {error:"channel does not exist"};
+
+		await this.prismaService.channel.update({
+			where: {name: channelData["name"]},
+			data: {
+				users: {
+					deleteMany: [{ userName: channelData["user"].intraName }],
+				}
+			}
+		})
+
+		this.logger.log(`${channelData["user"].intraName} left ${channelData["name"]}`)
 	}
 
 	@UseGuards(JwtGuard)
