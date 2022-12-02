@@ -16,6 +16,8 @@ import {
 import * as fs from 'fs';
 import * as dotenv from 'dotenv'
 import { TwoFactorAuthenticationService } from "auth/2fa.service";
+import { isJsxElement } from "typescript";
+import { AppService } from "app.service";
 
 /*==========================================================================*/
 
@@ -28,6 +30,8 @@ export class MainGateway {
 
 	//= Properties =//
 
+	@Inject(AppService)
+	private readonly appService: AppService;
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
 	@Inject(TwoFactorAuthenticationService)
@@ -121,7 +125,6 @@ export class MainGateway {
 		});
 		return user.blocked;
 	}
-	 
 
 	/**
 	 * Retrieves the channels for a given user.
@@ -137,7 +140,6 @@ export class MainGateway {
 		});
 		return user.channels;
 	}
-
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getUsersInChannel')
@@ -174,7 +176,6 @@ export class MainGateway {
 		
 		return {usersInChannel:channelUsers}
 	}
-	 
 
 	/**
 	 * Retrieves the messages in a channel.
@@ -226,10 +227,12 @@ export class MainGateway {
 		let channel;
 		if (channelData["password"] != null)
 		{
+			const password = await this.appService.hashPassword(channelData["password"])
+			console.log(password)
 			channel = await this.prismaService.channel.create({
 				data: {
 					name: channelData["name"],
-					password: {create: {string: channelData["password"]}}, //TODO: hashes lol
+					password: {create: {string: password}},
 					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
 			}});
 		}
@@ -288,6 +291,18 @@ export class MainGateway {
 		return channel
 	}
 
+	// @UseGuards(JwtGuard)
+	// @SubscribeMessage("changePassword")
+	// public async changePassword(@MessageBody() data: Object) {
+	// 	const channel = await this.prismaService.channel.findUnique({
+	// 		where: { name:data["name"] },
+	// 		select: {password: true, users: true}
+	// 	});
+
+
+	// }
+	//TODO: buttons on frontend
+
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("joinChannel")
@@ -299,7 +314,7 @@ export class MainGateway {
 
 		if (!channel)
 			return {error:"channel does not exist"};
-		if (channel.password.string && channel.password.string != channelData["password"])
+		if (channel.password.string && this.appService.comparePassword(channel.password.string, channelData["password"]))
 			return {error:"wrong password"};
 		if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
 			return {error:"already in channel"};

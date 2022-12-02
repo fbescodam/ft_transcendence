@@ -13,14 +13,6 @@ async function main() {
     channels: { create: [
       {
         role: Role.ADMIN,
-        channel: {create: {name: "number2"}}
-      },
-      {
-        role: Role.ADMIN,
-        channel: {create: {name: "number3"}}
-      },
-      {
-        role: Role.ADMIN,
         channel: {create: {name: "Global"}}
       }
   ]}}});
