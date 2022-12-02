@@ -79,6 +79,8 @@ export class MainGateway {
 					}
 				},
 				friends: true,
+				blocked: true,
+				blockedWho: true
 			}
 		});
 

@@ -46,6 +46,8 @@ model User {
 	friends    		User[] @relation("friends")
 	friendStore		User[] @relation("friends") //This field is just for storing the many-to-many. ignore
 
+	blockedWho		String[]
+
 	blocked     	User[] @relation("blocked")
 	blockedStore	User[] @relation("blocked") //This field is just for storing the many-to-many. ignore
 
