@@ -6,83 +6,87 @@ import { afterUpdate, beforeUpdate, onMount } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import { initSocket } from "$lib/socketIO";
-import { displayName, JWT,  } from "$lib/Stores/User";
+import { displayName, JWT } from "$lib/Stores/User";
 import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 </script>
 
 <script lang="ts">
-import Button from "$lib/Components/Button/Button.svelte";
-import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";
+	let showAddModal: boolean = false;
+	let io: any;
+	let messages: Array<any> = [];
+	let openChannel = "Global";
+	let currentUser = $displayName
+	let chat: HTMLDivElement;
+	let autoscroll: boolean;
+	let blockedUsers: any
 
-let showAddModal: boolean = false;
-let io: any;
-let messages: Array<any> = [];
-let openChannel = "Global";
-let currentChannel: any;
-let chat: HTMLDivElement;
-let autoscroll: boolean;
-let showSettingsModal: boolean = false;
-
-beforeUpdate(() => {
-	autoscroll = chat && (chat.offsetHeight + chat.scrollTop) > (chat.scrollHeight - 20);
-});
-
-afterUpdate(() => {
-	if (autoscroll)
-		chat.scrollTo(0, chat.scrollHeight);
-});
-
-onMount(() => {
-	io = initSocket($page.url.hostname, $JWT!)
-	updateMessages("Global");
-	
-	// Listen to the message event
-	io.on("sendMsg", function (message: any) {
-		console.log("Send", message.channel);
-		if (message.channel == openChannel)
-			messages = [...messages, { senderName: message.user, text: message.text}]
+	beforeUpdate(() => {
+		autoscroll = chat && (chat.offsetHeight + chat.scrollTop) > (chat.scrollHeight - 20);
 	});
 
-	// TODO: Set the currentchannel variable
-
-	// Get channels from the user
-	io.emit('getChannelsForUser', {user: $displayName}, function (answer: any) {
-		$channels = answer;
-		io.emit('joinRooms', {channels: $channels.map((el: any) => el.channelName)});
+	afterUpdate(() => {
+		if (autoscroll)
+			chat.scrollTo(0, chat.scrollHeight);
 	});
-});
 
-function switchChannel(channel: any) {
-	console.log(channel)
-	openChannel = channel["channelName"]
-	currentChannel = channel;
-	updateMessages(channel["channelName"])
-}
+	onMount(() => {
+		io = initSocket($page.url.hostname, $JWT!)
+		updateMessages("Global");
 
-function updateMessages(channelName: string) {
-	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
-		messages = answer);
-}
+		// Listen to the message event
+		io.on("sendMsg", function (message: any) {
+			if (message.channel == openChannel)
+			{
+				if (!(blockedUsers.map((item: any) => item['name']).includes(message.user)))
+					messages = [...messages, { senderName: message.user, text: message.text}];
+			}
+		});
 
-/**
- * When the user sends a message.
- * @param data The even data.
- */
-function onSend(data: CustomEvent<KeyboardEvent>) {
-	const event = data.detail as KeyboardEvent;
-	const input = event.target as HTMLInputElement;
-	if (event.key === 'Enter') {
-		if (!input.value) {
-			return;
-		}
-		console.log("Sending message:", input.value);
-		io.emit("sendMsg", {inChannel: openChannel, text: input.value});
-		input.value = "";
+		// Get channels from the user
+		io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
+			$channels = answer;
+			io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
+		});
+
+		io.emit('getBlockedUsers', {}, function (e: any) {
+			blockedUsers = e;
+		})
+	});
+
+	function updateMessages(channelName: string) {
+		io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
+			messages = answer);
 	}
-}
 
+	/**
+	 * When the user sends a message.
+	 * @param data The even data.
+	 */
+	function onSend(data: CustomEvent<KeyboardEvent>) {
+		const event = data.detail as KeyboardEvent;
+		const input = event.target as HTMLInputElement;
+
+		if (event.key === 'Enter') {
+			if (!input.value) {
+				return;
+			}
+			let muted = false;
+			$channels.forEach((chan: any) => {
+				if (chan.channelName == openChannel && chan.role == 'MUTED')
+				{
+					console.log('ya got muted bitch')	
+					muted = true
+				} //TODO: display to user theyve been muted
+			});
+			if (muted)
+				return;
+			console.log("Sending message:", input.value);
+			io.emit("sendMsg", {inChannel: openChannel, text: input.value});
+			input.value = "";
+		}
+	}
 </script>
 
 <!-- HTML -->
@@ -93,14 +97,16 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 </svelte:head>
 
 <div class="page">
+	<!-- PopUps -->
 	<ChatAddModal bind:visible={showAddModal}/>
-	<ChatSettingsModal bind:visible={showSettingsModal} bind:channel={currentChannel}/>
 
 	<!-- Channels -->
 	<Container>
 		<div class="channels">
 			{#each $channels as channel}
-				<ChatItem text={channel["channelName"]} icon={channel["channelName"] == "Global" ? Globe : Chat} on:click={() => switchChannel(channel)} />
+				<ChatItem text={channel["channelName"]}
+				icon={channel["channelName"] == "Global" ? Globe : Chat}
+				on:click={() => {openChannel = channel["channelName"]; updateMessages(channel["channelName"])}} />
 			{/each}
 			<hr />
 			<ChatItem text="Add" icon={Plus} on:click={() => { showAddModal = true; }} />
@@ -110,9 +116,6 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 
 	<!-- Chat messages -->
 	<Container style="flex: 1;">
-		{#if currentChannel != undefined && currentChannel.name != "Global" && currentChannel.role === "ADMIN"}
-		<Button on:click={() => {showSettingsModal = true}}>Settings</Button>
-		{/if}
 		<div class="chat">
 			<h1>{openChannel}</h1>
 			<div class="messages" bind:this={chat}>
@@ -121,7 +124,6 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 				{:else}
 					{#each messages as message}
 						<article>
-							<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 							<a href="/profile/{message.senderName}">
 								<b>
 									{message.senderName}:
