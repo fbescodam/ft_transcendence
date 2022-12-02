@@ -28,6 +28,8 @@ import Button from "$lib/Components/Button/Button.svelte";
 let socket: Socket;
 let user: User | null = null;
 let isCurrentUser: boolean = false;
+let isFriend: boolean = false;
+let isBlocked: boolean = false;
 
 onMount(() => {
 	socket = initSocket($page.url.hostname, $JWT!);
@@ -42,6 +44,21 @@ onMount(() => {
 		user = data;
 	});
 });
+
+// Add user as a retard
+function addUser() {
+	
+}
+
+// Invite that retard
+function inviteUser() {
+
+}
+
+// Shield form that retard autism
+function blockUser() {
+
+}
 
 const getRandomEmoji = () => {
 	const emojis = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🤡','😉'];
@@ -66,11 +83,29 @@ const getRandomEmoji = () => {
 			<hr />
 		{/if}
 		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
-			<Button style="position: relative; left: 0;">Add Friend</Button>
 			<div class="profile-stats">
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} />
 			</div>
+			{#if $page.params.slug === user.name}
+			<div style="margin-top: 8px;">
+				<Button on:click={() => addUser}>
+					{#if isFriend}
+						Remove Friend
+					{:else}
+						Add Friend
+					{/if}
+				</Button>
+				<Button on:click={() => inviteUser}>Invite</Button>
+				<Button on:click={() => blockUser}>
+					{#if isBlocked}
+						Unblock
+					{:else}
+						Block
+					{/if}
+				</Button>
+			</div>
+			{/if}
 		</Container>
 		<hr />
 		<div class="content">
@@ -129,6 +164,7 @@ const getRandomEmoji = () => {
 	flex-wrap: wrap;
 	align-items: center;
     justify-content: center;
+	backdrop-filter: blur(4px);
 	gap: 15px;
 }
 

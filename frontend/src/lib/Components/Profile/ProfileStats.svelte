@@ -44,7 +44,6 @@ let ratio = wins / loss;
 	justify-content: center;
 	
 	border-radius: var(--border-radius);
-	backdrop-filter: blur(4px);
 }
 
 </style>
