@@ -9,7 +9,7 @@ export class FriendsService {
 	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
 
-	//TODO: for some fucking reason this doesnt cascade so i have to update for both sides
+	//for some fucking reason this doesnt cascade so i have to update for both sides
 	async addFriend(userName:string, friendName:string) {
 		await this.prismaService.user.update({
 			where: {intraName: userName},
