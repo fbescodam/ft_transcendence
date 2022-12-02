@@ -707,9 +707,7 @@ class GameStateMachine {
 		}
 
 		if (paddleState) {
-			// TODO: handle timestamp
-			console.log(`${paddleState.position} paddle is now moving by ${paddleState.dy} pixels per second`);
-			console.log("Timestamp difference for paddle movement:", Date.now() - paddleState.timestamp + "ms");
+			// TODO: handle timestamp?
 
 			// Update the correct paddle
 			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
@@ -744,7 +742,6 @@ class GameStateMachine {
 		}
 
 		// TODO: handle timestamp
-		console.log("Timestamp difference:", Date.now() - state.time.timestamp + "ms");
 
 		// Play a sound if the host told us to
 		switch (state.sound) {
