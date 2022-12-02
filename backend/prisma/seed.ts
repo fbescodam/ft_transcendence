@@ -7,7 +7,7 @@ async function main() {
     name: "AdminUser",
     intraId: 80962,
     intraName: "clafoutis",
-    avatar: "https://freekb.es/imgs/project-meirlbot-icon.png",
+    avatar: "avatars/adminavatar",
     role: Role.ADMIN,
     email: "totally an email",
     channels: { create: [

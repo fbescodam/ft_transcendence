@@ -17,23 +17,25 @@ import { page } from "$app/stores";
 import { onMount } from "svelte";
 import ProfilePic from "$lib/Components/Profile/ProfilePic.svelte";
 import ProfileStats from "$lib/Components/Profile/ProfileStats.svelte";
-import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
 import type { User } from "$lib/Types";
 import { goto } from "$app/navigation";
 import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
 import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 import Button from "$lib/Components/Button/Button.svelte";
+import type { Socket } from "socket.io-client";
 
 let socket: Socket;
 let user: User | null = null;
 let isCurrentUser: boolean = false;
 let isFriend: boolean = false;
 let isBlocked: boolean = false;
+let isBlockReceive: boolean = false;
 
 onMount(() => {
 	socket = initSocket($page.url.hostname, $JWT!);
 	console.log($page.params.slug)
+	console.log($displayName)
 	socket.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
 		if ("error" in data) {
 			// Disgusting hack because I can't read.
@@ -42,11 +44,30 @@ onMount(() => {
 		}
 
 		user = data;
+		console.log(user)
+		if (user!.name == $displayName)
+			isCurrentUser = true;
+		if (isCurrentUser == false && user!.friends.map((item) => item['name']).includes($displayName!))
+			isFriend = true;
+		if (isBlocked == false && user!.blocked.map((item) => item['name']).includes($displayName!))
+			isBlocked = true;
+		if (isBlockReceive == false && user!.blockedWho.includes($displayName!))
+			isBlockReceive = true;
+		
 	});
 });
 
 // Add user as a retard
 function addUser() {
+	if (!isFriend)
+		socket.emit("addFriend",{newFriend:user!.intraName}, function (e:any) {
+			console.log(e)
+		})
+	else
+		socket.emit("removeFriend", {removeFriend: user!.intraName}, function (e:any) {
+			console.log(e)
+		})
+	window.location.reload()
 	console.log("Add or unadd user as a friend");
 }
 
@@ -55,8 +76,17 @@ function inviteUser() {
 	console.log("invite user to game");
 }
 
-// Shield form that retard autism
+// Shield from that retards autism
 function blockUser() {
+	if (!isBlocked)
+		socket.emit("blockUser",{blockUser:user!.intraName}, function (e:any) {
+			console.log(e)
+		})
+	else
+		socket.emit("unBlockUser", {unBlockUser: user!.intraName}, function (e:any) {
+			console.log(e)
+		})
+	window.location.reload()
 	console.log("block or unblock user to game");
 }
 
@@ -76,7 +106,7 @@ const getRandomEmoji = () => {
 
 {#if user}
 	<div>
-		{#if user && $page.params.slug === user.name}
+		{#if user && isCurrentUser}
 			<Container style="flex: 1; height: 95%;">
 				<h1>Welcome back {$displayName} {getRandomEmoji()}</h1>
 			</Container>
@@ -87,17 +117,17 @@ const getRandomEmoji = () => {
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} />
 			</div>
-			{#if $page.params.slug === user.name}
+			{#if $page.params.slug != $displayName && isBlockReceive == false} 
 			<div style="margin-top: 8px;">
-				<Button on:click={() => addUser}>
+				<Button on:click={() => addUser()}>
 					{#if isFriend}
 						Remove Friend
 					{:else}
 						Add Friend
 					{/if}
 				</Button>
-				<Button on:click={() => inviteUser}>Invite</Button>
-				<Button on:click={() => blockUser}>
+				<Button on:click={() => inviteUser()}>Invite</Button>
+				<Button on:click={() => blockUser()}>
 					{#if isBlocked}
 						Unblock
 					{:else}

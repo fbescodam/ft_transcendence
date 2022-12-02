@@ -9,6 +9,8 @@ export type User = {
 	avatar: string;
 	games: Game[];
 	friends: User[];
+	blocked: User[];
+	blockedWho: String[];
 };
 
 export type Game = {
