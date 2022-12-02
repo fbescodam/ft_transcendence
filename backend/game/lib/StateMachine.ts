@@ -520,6 +520,15 @@ class GameStateMachine {
 
 		// Run the game state machine every tick
 		gameTicker.add(this.getTickerId(), this._update);
+
+		// Update the game state every quarter a second
+		(async () => {
+			while (42) {
+				// @ts-ignore it is set, so shut up
+				this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+				await new Promise(resolve => setTimeout(resolve, 250));
+			}
+		})();
 	}
 
 	/**
@@ -687,6 +696,11 @@ class GameStateMachine {
 		return this._gameSize;
 	}
 
+	/**
+	 * This function applies a client's paddle state on the host machine. It also checks if a player is ready to play.
+	 * @param paddleState The client's paddle state.
+	 * @param playerReady Whether or not a player is ready to play.
+	 */
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
@@ -720,7 +734,7 @@ class GameStateMachine {
 	}
 
 	/**
-	 * Handle an incoming state update from the host.
+	 * Handle an incoming state update from the host. The host is always right, so we do no anti-cheat here.
 	 * Only call this in online multiplayer mode.
 	 * @param state The game state to apply.
 	 */
