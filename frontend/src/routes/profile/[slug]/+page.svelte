@@ -23,6 +23,7 @@ import type { User } from "$lib/Types";
 import { goto } from "$app/navigation";
 import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
 import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
+import Button from "$lib/Components/Button/Button.svelte";
 
 let socket: Socket;
 let user: User | null = null;
@@ -65,6 +66,7 @@ const getRandomEmoji = () => {
 			<hr />
 		{/if}
 		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
+			<Button style="position: relative; left: 0;">Add Friend</Button>
 			<div class="profile-stats">
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} />
