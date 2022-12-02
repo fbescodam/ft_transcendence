@@ -139,9 +139,11 @@ const getRandomEmoji = () => {
 			{/if}
 		</Container>
 		<hr />
-		<div style="position: absolute; bottom: 10px; right: 10px;">
-			<DirectMessageBox/>
-		</div>
+		{#if isCurrentUser == false && isBlocked == false}
+			<div style="position: absolute; bottom: 10px; right: 10px;">
+				<DirectMessageBox otherUser={user.intraName}/>
+			</div>
+		{/if}
 		<div class="content">
 			<details>
 				<summary>

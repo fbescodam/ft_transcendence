@@ -12,11 +12,14 @@ import { JWT } from "$lib/Stores/User";
 import Container from "../Container/Container.svelte";
 import { page } from '$app/stores';
 import TextInput from "../TextInput/TextInput.svelte";
+import type { Socket } from "socket.io-client";
 
 // ----------------------------------------------------------------------------
 
+let io: Socket
 let chat: HTMLDivElement;
 let autoscroll: boolean;
+export let otherUser: string;
 let messages: { senderName: string, text: string }[] = [
 	{senderName: "faggot", text: "fuck off"},
 	{senderName: "faggot", text: "fuck off"},
@@ -29,10 +32,29 @@ let messages: { senderName: string, text: string }[] = [
 	{senderName: "faggot", text: "fuck off"},
 ]
 
+let channel: any;
 // ----------------------------------------------------------------------------
 
 onMount(() => {
-	const io = initSocket($page.url.hostname, $JWT!)
+	io = initSocket($page.url.hostname, $JWT!)
+	
+	io.on("sendMsg", function (message: any) {
+			messages = [...messages, { senderName: message.user, text: message.text}];
+	});
+	
+	io.emit('checkDmExistence', {user2:otherUser}, function (e:any) {
+		if (e["channel"] == null)
+		{
+			io.emit('createDirectChannel', {user2:otherUser}, function (e:any) {
+				channel = e
+			})
+		}
+		else
+			channel = e["channel"]
+		io.emit('getMessagesFromChannel', {name:channel}, (answer: any) =>
+			messages = answer);
+		io.emit('joinRooms', {channels:[channel]});
+	})
 });
 
 beforeUpdate(() => {
@@ -56,7 +78,9 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 	if (event.key === 'Enter') {
 		if (!input.value)
 			return;
-
+		
+		console.log("Sending message:", input.value);
+		io.emit("sendMsg", {inChannel: channel, text: input.value});
 		input.value = "";
 	}
 }

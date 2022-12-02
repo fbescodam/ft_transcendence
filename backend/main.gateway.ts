@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
-import { ChannelType, Role } from "@prisma/client";
+import { ChannelType, Role, UserInChannel } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 import { Inject, Logger, UseGuards, CACHE_MANAGER } from "@nestjs/common";
 import { Cache } from 'cache-manager'
@@ -18,6 +18,7 @@ import * as dotenv from 'dotenv'
 import { TwoFactorAuthenticationService } from "auth/2fa.service";
 import { isJsxElement } from "typescript";
 import { AppService } from "app.service";
+import { element } from "svelte/internal";
 
 /*==========================================================================*/
 
@@ -96,7 +97,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('sendMsg')
 	async handleMessage(@MessageBody() msg: any): Promise<void> {
-		this.server.to(msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
+		this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
 		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
 		await this.prismaService.message.create({
 			data: {
@@ -194,9 +195,35 @@ export class MainGateway {
 	return channel.messages;
 }
 
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('checkDmExistence')
+	async checkDmExistence(@MessageBody() data: any) {
+
+		let arr = [data["user"].intraName, data["user2"]]
+		arr.sort() //yes this is cringe, no i will not change it
+		let channelName = arr[0] + '-' + arr[1]
+
+		const user = await this.prismaService.user.findFirst({
+			where: {intraName: data["user"].intraName},
+			include: {channels: true}
+		})
+
+		let foundChannel = null
+		for (let i = 0; i < user.channels.length; i++) {
+			const element = user.channels[i];
+			if (element.channelName == channelName)
+				foundChannel = element.channelName
+		}
+
+		this.logger.log("dms exist already")
+		return {channel:foundChannel}
+	}
+
 
 	@SubscribeMessage("joinRooms")
 	async joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
+		
+		roomInfo["channels"] = roomInfo["channels"].map(i => 'chan-' + i);
 		await socket.join(roomInfo["channels"]);
 		this.logger.log(`joined ${roomInfo["channels"]}`);
 	}
@@ -211,7 +238,9 @@ export class MainGateway {
 	@SubscribeMessage("createDirectChannel")
 	public async createDirectChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
-		const newChannelName = channelData["user1"].name + "-" + channelData["user2"].name
+		let arr = [channelData["user"].intraName, channelData["user2"]]
+		arr.sort() //yes this is cringe, no i will not change it
+		const newChannelName = arr[0] + "-" + arr[1]
 		const channelExists = await this.prismaService.channel.findUnique({
 			where: { name:newChannelName }
 		});
@@ -226,15 +255,15 @@ export class MainGateway {
 			data: {
 				name: newChannelName,
 				type: ChannelType.DIRECT,
-				password: null,
+				password: undefined,
 				users: {
 					create: [
 						{
-							userName: channelData["user1"].name,
+							userName: arr[0],
 							role: Role.ADMIN
 						},
 						{
-							userName: channelData["user2"].name,
+							userName: arr[1],
 							role: Role.ADMIN
 						}
 					]
@@ -242,8 +271,8 @@ export class MainGateway {
 			}
 		});
 
-		socket.join(newChannelName)
-		this.logger.log(`direct messages between ${channelData["user1"].name} and ${channelData["user2"].name} established`)
+		await socket.join('chan-' + newChannelName)
+		this.logger.log(`direct messages between ${channelData["user"].intraName} and ${channelData["user2"]} established`)
 		return channel
 	}
 
@@ -287,7 +316,7 @@ export class MainGateway {
 			}});
 		}
 
-		await socket.join(channelData["name"]);
+		await socket.join('chan-' + channelData["name"]);
 		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
 		return channel
 	}
@@ -296,9 +325,8 @@ export class MainGateway {
 	@SubscribeMessage("removePassword")
 	public async removepassword(@MessageBody() data: Object) {
 		
-		let channel
 		try {
-			channel = await this.prismaService.channel.update({
+			await this.prismaService.channel.update({
 				where: {name: data["name"]},
 				data: {password: {delete: true}}
 			})
@@ -339,11 +367,13 @@ export class MainGateway {
 	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 		const channel = await this.prismaService.channel.findUnique({
 			where: { name:channelData["name"] },
-			select: {password: true, users: true}
+			select: {password: true, users: true, type: true}
 		});
 
 		if (!channel)
 			return {error:"channel does not exist"};
+		if (channel.type == ChannelType.DIRECT)
+			return {error:"direct channel"}
 		if (channel.password &&
 			channel.password.string && 
 			await this.appService.comparePassword(channel.password.string, channelData["password"]) == false)
@@ -363,7 +393,7 @@ export class MainGateway {
 			}
 		});
 
-		socket.join(channelData["name"])
+		await socket.join('chan-' + channelData["name"])
 		return { name: channelData["name"] }
 	}
 
@@ -517,7 +547,7 @@ export class MainGateway {
 		})
 
 		//TODO: if the last admin left a new admin should be selected 
-		//TODO: other logic probably idk yet what really
+		//TODO: other logic probably idk yet what
 
 		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
 	}

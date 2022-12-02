@@ -79,13 +79,12 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 			return;
 		}
 		let muted = false;
-		$channels.forEach((chan: any) => {
-			if (chan.channelName == openChannel && chan.role == 'MUTED')
-			{
-				console.log('ya got muted bitch')	
-				muted = true
-			} //TODO: display to user theyve been muted
-		});
+	
+		if ($channels["channelName"] == openChannel && $channels["channelName"].role == 'MUTED')
+		{
+			console.log('ya got muted bitch')	
+			muted = true
+		} //TODO: display to user theyve been muted
 		if (muted)
 			return;
 		console.log("Sending message:", input.value);
