@@ -22,18 +22,14 @@ export let channel: any;
 
 let io: Socket;
 let users: User[] = [];
+let passwordInput: HTMLInputElement;
+let killSelect: HTMLSelectElement;
+let killSelection: string = "none";
 
 //= Methods =//
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
-
-	io.emit('getUsers', {channelName: channel.channelName}, function (answer: any) {
-		if (answer.error)
-			console.log(answer.error)
-		else
-			users = answer.users
-	});
 
 	console.log(users)
 });
@@ -42,18 +38,66 @@ function onCancel() {
 	visible = false;
 }
 
-function updateSettings(e: SubmitEvent) {
+function passwordSetting(e: SubmitEvent) {
 	e.preventDefault();
+
+	console.log("Do password shit")
 }
+
+
+function killUser(e: SubmitEvent) {
+	e.preventDefault();
+
+	console.log("Kill a user")
+
+}
+
+function removePW() {
+	
+	console.log("Kill a user")
+}
+
 
 </script>
 
 <!-- HTML -->
 
 <Modal bind:visible={visible} style="display: flex; flex-direction: column;">
-    <div style="display: flex; justify-content: space-around; margin: 1rem 0;">
-		<form on:submit={(e) => {updateSettings(e)}}>
-			a
+    <div style="display: flex; margin: 1rem 0; overflow: auto; gap: 10px">
+		<form on:submit={(e) => { passwordSetting(e); }}>
+			<fieldset>
+				<legend>Password</legend>
+
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label>Update Password:</label>
+				<input type="password" bind:this={passwordInput} required/>
+				<hr/>
+				<Button type="submit">Submit</Button>
+				<Button on:click={() => {removePW()}}>Remove password</Button>
+			</fieldset>
+		</form>
+		<form on:submit={(e) => { killUser(e); }}>
+			<fieldset>
+				<legend>Kill Users</legend>
+
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label>UserName:</label>
+				<input type="text" bind:this={passwordInput} required/>
+				<hr/>
+				<select bind:this={killSelect} on:change={() => { 
+					killSelection = killSelect.value; console.log(killSelection)
+				}}>
+					<option selected value="1">Mute</option>
+					<option value="2">Kick</option>
+					<option value="3">Ban</option>
+				</select>
+				{#if killSelection != "2"}
+					<label>Minutes:</label>
+					<input type="number" min="0" max="100" step="1" value="0"/>
+				{/if}
+				<hr/>
+				<Button type="submit">Submit</Button>
+			</fieldset>
 		</form>
     </div>
     <Button on:click={onCancel}>Cancel</Button>
@@ -62,5 +106,9 @@ function updateSettings(e: SubmitEvent) {
 <!-- Styling -->
 
 <style lang="scss">
-
+fieldset {
+	border-radius: var(--border-radius);
+	padding: 8px;
+	border: 2px solid var(--component-border);
+}
 </style>

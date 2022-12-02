@@ -24,6 +24,7 @@ import { goto } from "$app/navigation";
 import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
 import ProfileFriend from "$lib/Components/Profile/ProfileFriend.svelte";
 import Button from "$lib/Components/Button/Button.svelte";
+import DirectMessageBox from "$lib/Components/DirectMessageBox/DirectMessageBox.svelte";
 
 let socket: Socket;
 let user: User | null = null;
@@ -108,6 +109,9 @@ const getRandomEmoji = () => {
 			{/if}
 		</Container>
 		<hr />
+		<div style="position: absolute; bottom: 10px; right: 10px;">
+			<DirectMessageBox/>
+		</div>
 		<div class="content">
 			<details>
 				<summary>
