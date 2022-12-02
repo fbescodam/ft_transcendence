@@ -264,6 +264,49 @@ export class MainGateway {
 	}
 
 	/**
+	 * method for admin a user in chanel
+	 * @param data {channelName: channel_to_admin_in, adminUser: user_to_admin}
+	 * @returns 
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("makeUserAdmin")
+	public async makeUserAdmin(@MessageBody() data: Object) {
+
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		}) //TODO: this could be a guard i guess
+
+		if (!userInChannel)
+			return {error:"not part of channel"};
+		if (userInChannel.users[0].role != Role.ADMIN)
+			return {error:"not an admin"};
+		
+		await this.prismaService.channel.update({
+			where: { name:data["channelName"] },
+			data: {
+				users: {
+					updateMany: {
+						where: { userName: data["adminUser"]  },
+						data: {
+							role: Role.ADMIN
+						}
+					}
+				}
+			}
+		})
+
+		this.logger.log(`${data["adminUSer"]} made admin in ${data["channelName"]}`)
+	}
+
+	/**
 	 * method for muting a user in chanel
 	 * @param data {channelName: channel_to_mute_in, muteUser: user_to_mute}
 	 * @returns 
@@ -434,8 +477,6 @@ export class MainGateway {
 		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
 		return { token: jwtToken, qrcode: ret }
 	}
-
-	//TODO: 2fa flow. user logs in -> check if 2fa is enabled -> log user in or redirect them to 2fa flow
 
 	/**
 	 * checks wether or not a submitted 2fa code is valid
