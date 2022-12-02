@@ -12,6 +12,7 @@ export let name: string;
 export let games: number;
 export let wins: number;
 export let loss: number;
+export let status: string;
 let ratio = wins / loss;
 
 // const getUserData = (async () => {
@@ -29,6 +30,7 @@ let ratio = wins / loss;
 	<b>Losses: {loss}</b>
 	<b>Games: {games}</b>
 	<b>Ratio: {ratio}</b>
+	<b>Status: {status}</b>
 </div>
 
 <!-- Styling -->

@@ -51,6 +51,7 @@ onMount(() => {
 		$channels = answer;
 		io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 	});
+	currentChannel = $channels[0];
 	io.emit('getBlockedUsers', {}, function (e: any) {
 		blockedUsers = e;
 	})
@@ -62,7 +63,8 @@ function updateMessages(channelName: string) {
 }
 
 function leaveChannel() {
-	console.log("todo: leave channel " + currentChannel.channelName);
+	io.emit('leaveChannel', {name:currentChannel.channelName}, function (e:any) {})
+	window.location.reload();
 }
 
 /**

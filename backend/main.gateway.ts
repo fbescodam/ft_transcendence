@@ -207,52 +207,6 @@ export class MainGateway {
 		this.logger.log(`left ${roomInfo.name}`);
 	}
 
-	/**
-	 * Creates a new channel.
-	 * @param channelData The channel data. E.g: Name, public or private, password ...
-	 * @param socket The web socket that is the client.
-	 * @returns The newly created channel.
-	 */
-	@UseGuards(JwtGuard)
-	@SubscribeMessage("createChannel")
-	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
-
-		const channelExists = await this.prismaService.channel.findUnique({
-			where: { name:channelData["name"] }
-		});
-
-		if (channelExists) {
-			this.logger.log(`channel named ${channelData["name"]} exists`)
-			return { error:"channel exists" }
-		}
-
-		let channel;
-		if (channelData["password"] != null)
-		{
-			const password = await this.appService.hashPassword(channelData["password"])
-			console.log(password)
-			channel = await this.prismaService.channel.create({
-				data: {
-					name: channelData["name"],
-					password: {create: {string: password}},
-					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
-			}});
-		}
-		else
-		{
-			channel = await this.prismaService.channel.create({
-				data: {
-					name: channelData["name"],
-					password: undefined,
-					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
-			}});
-		}
-
-		await socket.join(channelData["name"]);
-		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
-		return channel
-	}
-
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("createDirectChannel")
 	public async createDirectChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
@@ -293,17 +247,91 @@ export class MainGateway {
 		return channel
 	}
 
-	// @UseGuards(JwtGuard)
-	// @SubscribeMessage("changePassword")
-	// public async changePassword(@MessageBody() data: Object) {
-	// 	const channel = await this.prismaService.channel.findUnique({
-	// 		where: { name:data["name"] },
-	// 		select: {password: true, users: true}
-	// 	});
+	/**
+	 * Creates a new channel.
+	 * @param channelData The channel data. E.g: Name, public or private, password ...
+	 * @param socket The web socket that is the client.
+	 * @returns The newly created channel.
+	 */
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("createChannel")
+	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
 
+		const channelExists = await this.prismaService.channel.findUnique({
+			where: { name:channelData["name"] }
+		});
 
-	// }
-	//TODO: buttons on frontend
+		if (channelExists) {
+			this.logger.log(`channel named ${channelData["name"]} exists`)
+			return { error:"channel exists" }
+		}
+
+		let channel;
+		if (channelData["password"] != null)
+		{
+			const password = await this.appService.hashPassword(channelData["password"])
+			channel = await this.prismaService.channel.create({
+				data: {
+					name: channelData["name"],
+					password: {create: {string: password}},
+					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
+			}});
+		}
+		else
+		{
+			channel = await this.prismaService.channel.create({
+				data: {
+					name: channelData["name"],
+					password: undefined,
+					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
+			}});
+		}
+
+		await socket.join(channelData["name"]);
+		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
+		return channel
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("removePassword")
+	public async removepassword(@MessageBody() data: Object) {
+		
+		let channel
+		try {
+			channel = await this.prismaService.channel.update({
+				where: {name: data["name"]},
+				data: {password: {delete: true}}
+			})
+		}
+		catch(any) { this.logger.log("no password")}
+		
+		this.logger.log(`removed password of ${data["name"]}`)
+		return {valid: "password removed"}
+	}
+
+	//TODO: do these need admin verification?
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage("changePassword")
+	public async changePassword(@MessageBody() data: Object) {
+
+		const newPass = await this.appService.hashPassword(data["password"])
+		try {
+			await this.prismaService.channel.update({
+				where: {name: data["name"]},
+				data: {password: {delete: true}}
+			})
+		}
+		catch(any) { this.logger.log("no password, adding one")}
+
+		const channel = await this.prismaService.channel.update({
+			where: {name: data["name"]},
+			data: {password: {create: {string: newPass}}},
+		})
+
+		this.logger.log(`changed password of ${channel.name}`)
+		return {valid:"password changed"}
+	}
 
 
 	@UseGuards(JwtGuard)
@@ -316,7 +344,9 @@ export class MainGateway {
 
 		if (!channel)
 			return {error:"channel does not exist"};
-		if (channel.password.string && this.appService.comparePassword(channel.password.string, channelData["password"]))
+		if (channel.password &&
+			channel.password.string && 
+			await this.appService.comparePassword(channel.password.string, channelData["password"]) == false)
 			return {error:"wrong password"};
 		if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
 			return {error:"already in channel"};
@@ -467,10 +497,10 @@ export class MainGateway {
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("leaveChannel")
-	public async leaveChannel(@MessageBody() channelData: Object) {
+	public async leaveChannel(@MessageBody() data: Object) {
 
 		const channel = await this.prismaService.channel.findUnique({
-			where: { name:channelData["name"] },
+			where: { name:data["name"] },
 			select: {users: true}
 		});
 
@@ -478,15 +508,18 @@ export class MainGateway {
 			return {error:"channel does not exist"};
 
 		await this.prismaService.channel.update({
-			where: {name: channelData["name"]},
+			where: {name: data["name"]},
 			data: {
 				users: {
-					deleteMany: [{ userName: channelData["user"].intraName }],
+					deleteMany: [{ userName: data["user"].intraName }],
 				}
 			}
 		})
 
-		this.logger.log(`${channelData["user"].intraName} left ${channelData["name"]}`)
+		//TODO: if the last admin left a new admin should be selected 
+		//TODO: other logic probably idk yet what really
+
+		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
 	}
 
 	@UseGuards(JwtGuard)

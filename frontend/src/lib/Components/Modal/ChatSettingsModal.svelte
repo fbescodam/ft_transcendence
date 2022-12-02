@@ -23,6 +23,7 @@ export let channel: any;
 let io: Socket;
 let users: User[] = [];
 let passwordInput: HTMLInputElement;
+let userInput: HTMLInputElement;
 let killSelect: HTMLSelectElement;
 let killSelection: string = "none";
 
@@ -41,7 +42,10 @@ function onCancel() {
 function passwordSetting(e: SubmitEvent) {
 	e.preventDefault();
 
-	console.log("Do password shit")
+	console.log(passwordInput.value)
+	io.emit("changePassword", {password:passwordInput.value, name:channel.channelName}, function (e:any) {
+		console.log("password changed")
+	})
 }
 
 
@@ -53,8 +57,9 @@ function killUser(e: SubmitEvent) {
 }
 
 function removePW() {
-	
-	console.log("Kill a user")
+	io.emit("removePassword", {name:channel.channelName}, function (e:any) {
+		console.log("password removed from channel")
+	})
 }
 
 
@@ -82,7 +87,7 @@ function removePW() {
 
 				<!-- svelte-ignore a11y-label-has-associated-control -->
 				<label>UserName:</label>
-				<input type="text" bind:this={passwordInput} required/>
+				<input type="text" bind:this={userInput} required/>
 				<hr/>
 				<select bind:this={killSelect} on:change={() => { 
 					killSelection = killSelect.value; console.log(killSelection)

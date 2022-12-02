@@ -116,7 +116,7 @@ const getRandomEmoji = () => {
 		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
-				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} />
+				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} status={user.status} />
 			</div>
 			{#if $page.params.slug != $displayName && isBlockReceive == false} 
 			<div style="margin-top: 8px;">

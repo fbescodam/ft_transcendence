@@ -17,11 +17,8 @@ export class AppService {
 	}
 
 	public async comparePassword(passwordHash: string, userInput:string) {
-		
-		let res;
-		await bcrypt.compare(userInput, passwordHash, function(err, result) {
-			res = result
-		});
+
+		const res = await bcrypt.compare(userInput, passwordHash)
 		return res
 	}
 
