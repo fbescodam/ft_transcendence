@@ -9,8 +9,8 @@ class GameRenderer {
 	private _ctx: CanvasRenderingContext2D;
 	private _scores: HTMLElement;
 	private _timer: HTMLElement;
-	private _avatar1: HTMLImageElement;
-	private _avatar2: HTMLImageElement;
+	private _playerLeftInfo: HTMLElement;
+	private _playerRightInfo: HTMLElement;
 
 	private _size: Dimensions;
 
@@ -19,22 +19,25 @@ class GameRenderer {
 	private _lastFrameTime: number = 0;
 	private _fps = 0;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, avatar1: HTMLImageElement, avatar2: HTMLImageElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, playerLeftInfo: HTMLImageElement, playerRightInfo: HTMLImageElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
 		this._scores = scores;
 		this._timer = timer;
-		this._avatar1 = avatar1;
-		this._avatar2 = avatar2;
+		this._playerLeftInfo = playerLeftInfo;
+		this._playerRightInfo = playerRightInfo;
 
 		this._size = { w: canvas.width, h: canvas.height };
 
 		// Set up user data
-		this._avatar1.src = this._gameState.player1.avatar;
-		this._avatar2.src = this._gameState.player2.avatar;
-		console.log(this._gameState.player1.avatar);
-		console.log(this._avatar1.src);
+		this._playerLeftInfo.querySelector("img")!.src = this._gameState.player1.avatar;
+		const playerLeftNameElem: HTMLElement = this._playerLeftInfo.querySelector(".player-name")!;
+		playerLeftNameElem.innerText = this._gameState.player1.name.substring(0, 24) + (this._gameState.player1.name.length > 24 ? "..." : "");
+
+		this._playerRightInfo.querySelector("img")!.src = this._gameState.player2.avatar;
+		const playerRightNameElem: HTMLElement = this._playerRightInfo.querySelector(".player-name")!;
+		playerRightNameElem.innerText = this._gameState.player2.name.substring(0, 24) + (this._gameState.player1.name.length > 24 ? "..." : "");;
 
 		// Register game state events
 		document.addEventListener("scoreUpdated", this._updateScores);
