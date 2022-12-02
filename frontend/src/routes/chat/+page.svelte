@@ -61,6 +61,10 @@ function updateMessages(channelName: string) {
 		messages = answer);
 }
 
+function leaveChannel() {
+	console.log("todo: leave channel " + currentChannel.channelName);
+}
+
 /**
  * When the user sends a message.
  * @param data The even data.
@@ -127,6 +131,7 @@ function switchChannel(channel: any) {
 	<Container style="flex: 1;">
 		{#if currentChannel != undefined && currentChannel.name != "Global" && currentChannel.role === "ADMIN"}
 		<Button on:click={() => {showSettingsModal = true}}>Settings</Button>
+		<Button on:click={() => {leaveChannel()}}>Leave channel</Button>
 		{/if}
 		<div class="chat">
 			<h1>{openChannel}</h1>
