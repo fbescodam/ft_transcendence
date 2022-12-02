@@ -141,6 +141,10 @@ export class Ball extends GameObject {
 			this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
 			this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
 		}
+		else {
+			this.dx = 0;
+			this.dy = 0;
+		}
 	}
 
 	/**
