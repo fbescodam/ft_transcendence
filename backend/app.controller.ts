@@ -3,7 +3,7 @@ import { Controller, Logger, Req, All, Res, Body, UseInterceptors, UploadedFile,
 import { Response, Request } from 'express';
 import { PrismaService } from 'prisma/prisma.service';
 import * as fs from 'fs';
-import * as JWT from "jsonwebtoken"
+import * as JWT from "jsonwebtoken";
 import { User } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -65,8 +65,7 @@ export class AppController {
 
 			return "avatar uploaded"
 		}
-		else
-			return res.redirect('http://localhost:3000')
+		return "method not supported";
 	}
 }
 

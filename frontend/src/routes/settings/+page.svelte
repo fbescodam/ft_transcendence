@@ -62,16 +62,10 @@ function changeUsername(e: SubmitEvent) {
  async function changeUserAvatar(e: SubmitEvent) {
 	e.preventDefault()
 
-	// TODO: Get user ID somehow, we need to update our store...
-
-	const id = $avatar?.split("/")[1];
-	console.log(id);
-
 	const formData = new FormData()
 	formData.append('file', newAvatar.files![0])
 
-
-	fetch('http://localhost:3000/avatar', {
+	fetch(`${$page.url.protocol}//${$page.url.hostname}:3000/avatar`, {
 		method: 'POST',
 		headers: {"Authorization": `Bearer ${$JWT!}`},
 		body: formData
@@ -132,7 +126,7 @@ function checkCode(e: SubmitEvent) {
 		<form on:submit={(e) => { changeUserAvatar(e); }}>
 			<fieldset>
 				<legend>Avatar</legend>
-				<input type="file" accept="*.png" required bind:this={newAvatar}/>
+				<input type="file" accept="image/*" required bind:this={newAvatar}/>
 				<hr/>
 				<Button type="submit">Submit</Button>
 			</fieldset>

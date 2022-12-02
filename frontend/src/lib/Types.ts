@@ -20,4 +20,5 @@ export type Game = {
 	winnerId: number;
 
 	roomID: string;
+	status : "WAITING" | "ONGOING" | "ENDED"
 };

@@ -8,9 +8,10 @@
 	const dispatch = createEventDispatcher();
 
     export let type: string = "button";
+    export let style: string = "";
 </script>
 
-<button {type} on:click={() => { dispatch("click"); }}>
+<button {type} {style} on:click={() => { dispatch("click"); }}>
 	<div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
 		<slot/>
 	</div>

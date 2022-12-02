@@ -141,6 +141,10 @@ export class Ball extends GameObject {
 			this.dx = (Math.random() > 0.5 ? -1: 1) * this.speed;
 			this.dy = (Math.random() > 0.5 ? -1: 1) * this.speed;
 		}
+		else {
+			this.dx = 0;
+			this.dy = 0;
+		}
 	}
 
 	/**
@@ -260,12 +264,12 @@ export class Paddle extends GameObject {
 
 	/**
 	 * Set the height of the paddle. This will also update the paddle's maximum off-screen movement.
-	 * Only making the paddle smaller was tested, but it might work for making it bigger too.
+	 * Only making the paddle smaller actually works. This is to prevent cheating.
 	 * @param newHeight The new height of the paddle.
 	 * @returns True if the height was changed, false if the new height is the same as the current one.
 	 */
 	public setHeight = (newHeight: number) => {
-		if (newHeight != this.size.h) {
+		if (newHeight < this.size.h) {
 			const oldHeight = this.size.h;
 			this.size.h = newHeight;
 			this._updateMaxOffscreen();
@@ -516,6 +520,15 @@ class GameStateMachine {
 
 		// Run the game state machine every tick
 		gameTicker.add(this.getTickerId(), this._update);
+
+		// Update the game state every quarter a second
+		(async () => {
+			while (42) {
+				// @ts-ignore it is set, so shut up
+				this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+				await new Promise(resolve => setTimeout(resolve, 250));
+			}
+		})();
 	}
 
 	/**
@@ -580,8 +593,12 @@ class GameStateMachine {
 				this._paused = PausedReason.WAITING_FOR_P1;
 			else if (!this.player1.isReady() && !this.player2.isReady())
 				this._paused = PausedReason.WAITING_FOR_BOTH;
-			else
+			else {
 				this._paused = null;
+				// If this state machine is acting as the host, send the new state to the listening clients
+				if (this._isHost)
+					this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
+			}
 		}
 
 		// Check if we're paused...
@@ -679,21 +696,24 @@ class GameStateMachine {
 		return this._gameSize;
 	}
 
+	/**
+	 * This function applies a client's paddle state on the host machine. It also checks if a player is ready to play.
+	 * @param paddleState The client's paddle state.
+	 * @param playerReady Whether or not a player is ready to play.
+	 */
 	public handleOnlinePaddleState = (paddleState: OnlinePaddleState | null, playerReady: string | null) => {
 		if (this._gameMode != ONLINE_MULTIPL_MODE_ID) {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
 		}
 
 		if (paddleState) {
-			// TODO: handle timestamp
-			console.log(`${paddleState.position} paddle is now moving by ${paddleState.dy} pixels per second`);
-			console.log("Timestamp difference for paddle movement:", Date.now() - paddleState.timestamp + "ms");
+			// TODO: handle timestamp?
 
 			// Update the correct paddle
 			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
-			paddle.pos.y = paddleState.pos.y;
-			paddle.pos.x = paddleState.pos.x;
-			paddle.size.w = paddleState.size.w;
+			// paddle.pos.y = paddleState.pos.y; // Commented out because we don't want to update the position directly - this is an anti-cheat!
+			// paddle.pos.x = paddleState.pos.x; // If the client tries to cheat, the server will just ignore it. We only modify the dy value, which cannot go over the max speed.
+			// paddle.size.w = paddleState.size.w; // No need for this here.
 			paddle.setHeight(paddleState.size.h);
 			paddle.setMoveDirection(paddleState.dy, true);
 		}
@@ -712,7 +732,7 @@ class GameStateMachine {
 	}
 
 	/**
-	 * Handle an incoming state update from the host.
+	 * Handle an incoming state update from the host. The host is always right, so we do no anti-cheat here.
 	 * Only call this in online multiplayer mode.
 	 * @param state The game state to apply.
 	 */
@@ -722,7 +742,6 @@ class GameStateMachine {
 		}
 
 		// TODO: handle timestamp
-		console.log("Timestamp difference:", Date.now() - state.time.timestamp + "ms");
 
 		// Play a sound if the host told us to
 		switch (state.sound) {

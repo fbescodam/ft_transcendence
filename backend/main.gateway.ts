@@ -545,8 +545,10 @@ export class MainGateway {
 			return { error: "invalid request" }
 
 		// Fetch the oauth token.
+
 		const response = await fetch("https://api.intra.42.fr/oauth/token", {
 			method: "POST",
+			// @ts-ignore fuck you typescript
 			body: new URLSearchParams({
 				grant_type: "authorization_code",
 				client_id: process.env.INTRA_KEY,
