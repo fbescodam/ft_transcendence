@@ -36,3 +36,7 @@ export function initSocket(hostname: string, JWT: string): Socket {
 	});
 	return (io);
 };
+
+export function destroySocket(socket: Socket) {
+	socket.disconnect();
+}

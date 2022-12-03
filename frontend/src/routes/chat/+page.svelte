@@ -2,10 +2,10 @@
 <script context="module" lang="ts">
 import {  Globe, Chat, Plus } from "svelte-hero-icons";
 import { page } from '$app/stores';
-import { afterUpdate, beforeUpdate, onMount } from "svelte";
+import { afterUpdate, beforeUpdate, onMount, onDestroy } from "svelte";
 import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 import { displayName, JWT } from "$lib/Stores/User";
 import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
@@ -57,6 +57,11 @@ onMount(() => {
 	})
 });
 
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
+});
+
 function updateMessages(channelName: string) {
 	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
 		messages = answer);
@@ -79,10 +84,10 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 			return;
 		}
 		let muted = false;
-	
+
 		if ($channels["channelName"] == openChannel && $channels["channelName"].role == 'MUTED')
 		{
-			console.log('ya got muted bitch')	
+			console.log('ya got muted bitch')
 			muted = true
 		} //TODO: display to user theyve been muted
 		if (muted)

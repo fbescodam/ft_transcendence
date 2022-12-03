@@ -2,12 +2,12 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 import { page } from '$app/stores';
 import { channels } from "$lib/Stores/Channel";
 import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
-import { onMount } from "svelte";
+import { onMount, onDestroy } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
 
@@ -32,6 +32,11 @@ let io: Socket;
 //= Methods =//
 
 onMount(() => io = initSocket($page.url.hostname, $JWT!));
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
+});
 
 /** Handler for closing the modal. */
 function onCancel() {

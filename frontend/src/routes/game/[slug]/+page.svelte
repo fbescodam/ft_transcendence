@@ -17,7 +17,7 @@ import { LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID, SINGLEPL_MODE_ID } from 
 import type { User } from "$lib/Types";
 import { JWT, displayName, avatar, intraName } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 // @ts-ignore ignore "cannot find module" error below, it is probably a bug in the IDE? It compiles...
 import { createPlaceholderUser } from "$lib/Utils/Placeholders";
 import type { OnlineGameState, OnlinePaddleState } from "$lib/Game/NetworkTypes";
@@ -202,6 +202,8 @@ onDestroy(() => {
 	if (gameTicker)
 		gameTicker.clear(); // For just in case
 	console.log("onDestroy called");
+	if (io)
+		destroySocket(io);
 	window.location.reload();
 	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
 });

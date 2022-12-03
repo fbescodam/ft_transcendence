@@ -3,7 +3,7 @@
 <script context="module" lang="ts">
 import { page } from '$app/stores';
 import { onMount } from "svelte";
-import { authSocket, initSocket } from '$lib/socketIO';
+import { authSocket, initSocket, destroySocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import Button from "$lib/Components/Button/Button.svelte";
 import { state, JWT, displayName, intraName, avatar } from "$lib/Stores/User";
@@ -57,6 +57,9 @@ onMount(() => {
 function checkCode(e: SubmitEvent) {
 	e.preventDefault();
 
+	if (io)
+		destroySocket(io);
+
 	io = initSocket($page.url.hostname, jwt)
 
 	io.emit("checkCode", { authCode: tfaCodeField.value }, (answer: any) => {
@@ -85,6 +88,11 @@ function onClick() {
 		replaceState: true
 	});
 }
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
+});
 
 </script>
 

@@ -8,7 +8,7 @@ import { onDestroy, onMount } from "svelte";
 import { goto } from "$app/navigation";
 import { SINGLEPL_MODE_ID, LOCAL_MULTIPL_MODE_ID, ONLINE_MULTIPL_MODE_ID } from "$lib/Game/Modes";
 import { JWT } from "$lib/Stores/User";
-import { initSocket } from "$lib/socketIO";
+import { destroySocket, initSocket } from "$lib/socketIO";
 import type { Socket } from "socket.io-client";
 
 let userInQueue = false;
@@ -99,6 +99,8 @@ onDestroy(() => {
 			console.log("Queue leaving status:", ret);
 		});
 	}
+	if (io)
+		destroySocket(io);
 });
 
 </script>

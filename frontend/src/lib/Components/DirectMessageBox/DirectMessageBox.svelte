@@ -5,9 +5,9 @@
 
 <!-- Scripting -->
 <script lang="ts">
-import { initSocket } from "$lib/socketIO";
+import { destroySocket, initSocket } from "$lib/socketIO";
 import type { User } from "$lib/Types";
-import { afterUpdate, beforeUpdate, onMount } from "svelte";
+import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
 import { JWT } from "$lib/Stores/User";
 import Container from "../Container/Container.svelte";
 import { page } from '$app/stores';
@@ -37,11 +37,11 @@ let channel: any;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
-	
+
 	io.on("sendMsg", function (message: any) {
 			messages = [...messages, { senderName: message.user, text: message.text}];
 	});
-	
+
 	io.emit('checkDmExistence', {user2:otherUser}, function (e:any) {
 		if (e["channel"] == null)
 		{
@@ -55,6 +55,11 @@ onMount(() => {
 			messages = answer);
 		io.emit('joinRooms', {channels:[channel]});
 	})
+});
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
 });
 
 beforeUpdate(() => {
@@ -78,7 +83,7 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 	if (event.key === 'Enter') {
 		if (!input.value)
 			return;
-		
+
 		console.log("Sending message:", input.value);
 		io.emit("sendMsg", {inChannel: channel, text: input.value});
 		input.value = "";

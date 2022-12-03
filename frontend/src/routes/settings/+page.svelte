@@ -10,10 +10,10 @@ import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import Disable2FaModal from "$lib/Components/Modal/Disable2FAModal.svelte";
 import Enable2FaModal from "$lib/Components/Modal/Enable2FAModal.svelte";
-import { initSocket } from "$lib/socketIO";
-import { displayName, JWT, avatar } from "$lib/Stores/User";
+import { initSocket, destroySocket } from "$lib/socketIO";
+import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
-import { onMount } from "svelte";
+import { onMount, onDestroy } from "svelte";
 import { page } from "$app/stores";
 
 let io: Socket;
@@ -33,6 +33,11 @@ onMount(() => {
 		tfaEnabled = data.tfaEnabled;
 		console.log(tfaEnabled);
 	});
+});
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
 });
 
 /**

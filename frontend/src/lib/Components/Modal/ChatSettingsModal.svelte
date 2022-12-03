@@ -2,12 +2,12 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 import { page } from '$app/stores';
 import { channels } from "$lib/Stores/Channel";
 import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
-import { onMount } from "svelte";
+import { onMount, onDestroy } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
 import type { User } from "$lib/Types";
@@ -33,6 +33,11 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
 	console.log(users)
+});
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
 });
 
 function onCancel() {
@@ -89,7 +94,7 @@ function removePW() {
 				<label>UserName:</label>
 				<input type="text" bind:this={userInput} required/>
 				<hr/>
-				<select bind:this={killSelect} on:change={() => { 
+				<select bind:this={killSelect} on:change={() => {
 					killSelection = killSelect.value; console.log(killSelection)
 				}}>
 					<option selected value="1">Mute</option>

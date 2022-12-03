@@ -14,10 +14,10 @@
 import Container from "$lib/Components/Container/Container.svelte";
 import { displayName, JWT } from "$lib/Stores/User";
 import { page } from "$app/stores";
-import { onMount } from "svelte";
+import { onMount, onDestroy } from "svelte";
 import ProfilePic from "$lib/Components/Profile/ProfilePic.svelte";
 import ProfileStats from "$lib/Components/Profile/ProfileStats.svelte";
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 import type { User } from "$lib/Types";
 import { goto } from "$app/navigation";
 import MatchScore from "$lib/Components/MatchScore/MatchScore.svelte";
@@ -54,8 +54,13 @@ onMount(() => {
 			isBlocked = true;
 		if (isBlockReceive == false && user!.blockedWho.includes($displayName!))
 			isBlockReceive = true;
-		
+
 	});
+});
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
 });
 
 // Add user as a retard
@@ -118,7 +123,7 @@ const getRandomEmoji = () => {
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} status={user.status} />
 			</div>
-			{#if $page.params.slug != $displayName && isBlockReceive == false} 
+			{#if $page.params.slug != $displayName && isBlockReceive == false}
 			<div style="margin-top: 8px;">
 				<Button on:click={() => addUser()}>
 					{#if isFriend}
