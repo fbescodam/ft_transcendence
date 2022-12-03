@@ -264,6 +264,26 @@ canvas {
 	justify-content: space-between;
 	font-family: 'Common Pixel', sans-serif;
 
+	& >div {
+		flex: 1;
+		display: flex;
+		justify-content: left;
+	}
+
+	& > div:first-child {
+		margin-right: auto;
+	}
+
+	& > div:last-child {
+		margin-left: auto;
+	}
+
+	& > .score-middle {
+		flex: 0 0 20%;
+		justify-content: center;
+		flex-direction: column;
+	}
+
 	& b {
 		display: block;
 		font-size: xx-large;
@@ -279,9 +299,11 @@ canvas {
 		text-align: left;
 
 		& .player-info-text {
-			display: inline-block;
+			display: inline-flex;
+			flex-direction: column;
+			justify-content: center;
 			vertical-align: middle;
-			margin: 0.2em 0.5em;
+			margin: 0 12px;
 
 			& .player-name {
 				display: block;
@@ -296,6 +318,7 @@ canvas {
 				display: block;
 				font-size: x-small;
 				text-transform: uppercase;
+				margin-top: -0.5em;
 			}
 		}
 
@@ -310,6 +333,7 @@ canvas {
 
 	& .player-info.right {
 		text-align: right;
+		justify-content: right;
 	}
 }
 </style>
