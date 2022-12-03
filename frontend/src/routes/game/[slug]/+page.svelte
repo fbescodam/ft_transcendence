@@ -48,7 +48,7 @@ async function getGameData(gameId: number) {
 			console.log("Game data fetched:", ret);
 			if ("error" in ret)
 				return reject(ret.error);
-			if (!("game" in ret))
+			if (!("game" in ret) || !ret["game"])
 				return reject("game key missing in getGame response");
 			if (ret.game.status == "ENDED")
 				return reject("Game already ended");
@@ -157,7 +157,11 @@ async function initGame() {
 				await new Promise(resolve => setTimeout(resolve, 1000));
 				gameSoundEngine.stopTheme();
 				if (gameMode != LOCAL_MULTIPL_MODE_ID) {
-					const finalScoreMain = gameController.getMainUser().score - gameController.getOtherUser().score;
+					const mainUser = gameController.getMainUser();
+					const otherUser = gameController.getOtherUser();
+					if (!mainUser || !otherUser)
+						return;
+					const finalScoreMain = mainUser.score - otherUser.score;
 					if (finalScoreMain >= 0)
 						gameSoundEngine.playWin();
 					else if (finalScoreMain < 0)
@@ -195,7 +199,8 @@ onMount(() => {
 });
 
 onDestroy(() => {
-	gameTicker.clear(); // For just in case
+	if (gameTicker)
+		gameTicker.clear(); // For just in case
 	console.log("onDestroy called");
 	window.location.reload();
 	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
