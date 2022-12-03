@@ -168,6 +168,13 @@ class GameSoundEngine {
 	}
 
 	/**
+	 * Get the current theme.
+	 */
+	public getTheme = () => {
+		return (this._currentTheme ? this._currentTheme.src : null);
+	}
+
+	/**
 	 * Check if the current theme is paused.
 	 * @returns True if the current theme is paused or no theme is playing.
 	 */

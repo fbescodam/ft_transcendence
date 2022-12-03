@@ -113,8 +113,13 @@ async function initGame() {
 			// If the game is paused, but only for truly a pause, pause the currently playing theme
 			if (state.paused != null && (state.paused == PausedReason.PAUSED_P1 || state.paused == PausedReason.PAUSED_P2 || state.paused == PausedReason.PAUSED_BY_SERVER))
 				gameSoundEngine.pauseTheme();
-			else if (gameSoundEngine.themeIsPaused())
-				gameSoundEngine.resumeTheme();
+			else {
+				const theme = gameSoundEngine.getTheme();
+				if (!theme || theme.indexOf("game-theme.mp3") == -1)
+					gameSoundEngine.playTheme("game");
+				if (gameSoundEngine.themeIsPaused())
+					gameSoundEngine.resumeTheme();
+			}
 
 			if (!state.paused) {
 				// Sync the game theme with the game time (may have a difference of half a second)
