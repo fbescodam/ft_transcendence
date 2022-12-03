@@ -500,7 +500,7 @@ class GameStateMachine {
 	private _gameMode: GameMode;
 	private _paused: PausedReasonObject | null = PausedReason.WAITING_FOR_BOTH;
 	private _secondsPlayed: number = 0;
-	private _gameDuration: number = 12; // 3 minutes
+	private _gameDuration: number = 180; // 3 minutes
 
 	private _actualTps: number = 0;
 	private _tps: number = 0;
