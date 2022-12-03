@@ -1,5 +1,5 @@
 import { goto } from "$app/navigation";
-import ioClient from "socket.io-client";
+import ioClient, { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 
 /**
@@ -38,5 +38,6 @@ export function initSocket(hostname: string, JWT: string): Socket {
 };
 
 export function destroySocket(socket: Socket) {
+	socket.off("disconnect");
 	socket.disconnect();
 }

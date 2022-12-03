@@ -2,7 +2,7 @@
 
 <script context="module" lang="ts">
 import { page } from '$app/stores';
-import { onMount } from "svelte";
+import { onMount, onDestroy } from "svelte";
 import { authSocket, initSocket, destroySocket } from '$lib/socketIO';
 import { goto } from "$app/navigation";
 import Button from "$lib/Components/Button/Button.svelte";

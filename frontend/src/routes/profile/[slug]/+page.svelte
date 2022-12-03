@@ -26,7 +26,7 @@ import Button from "$lib/Components/Button/Button.svelte";
 import DirectMessageBox from "$lib/Components/DirectMessageBox/DirectMessageBox.svelte";
 import type { Socket } from "socket.io-client";
 
-let socket: Socket;
+let io: Socket;
 let user: User | null = null;
 let isCurrentUser: boolean = false;
 let isFriend: boolean = false;
@@ -34,10 +34,10 @@ let isBlocked: boolean = false;
 let isBlockReceive: boolean = false;
 
 onMount(() => {
-	socket = initSocket($page.url.hostname, $JWT!);
+	io = initSocket($page.url.hostname, $JWT!);
 	console.log($page.params.slug)
 	console.log($displayName)
-	socket.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
+	io.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
 		if ("error" in data) {
 			// Disgusting hack because I can't read.
 			goto("/profile", { replaceState: true });
@@ -65,14 +65,16 @@ onDestroy(() => {
 
 // Add user as a retard
 function addUser() {
-	if (!isFriend)
-		socket.emit("addFriend",{newFriend:user!.intraName}, function (e:any) {
+	if (!isFriend) {
+		io.emit("addFriend",{newFriend:user!.intraName}, function (e:any) {
 			console.log(e)
 		})
-	else
-		socket.emit("removeFriend", {removeFriend: user!.intraName}, function (e:any) {
+	}
+	else {
+		io.emit("removeFriend", {removeFriend: user!.intraName}, function (e:any) {
 			console.log(e)
 		})
+	}
 	window.location.reload()
 	console.log("Add or unadd user as a friend");
 }
@@ -84,14 +86,16 @@ function inviteUser() {
 
 // Shield from that retards autism
 function blockUser() {
-	if (!isBlocked)
-		socket.emit("blockUser",{blockUser:user!.intraName}, function (e:any) {
+	if (!isBlocked) {
+		io.emit("blockUser",{blockUser:user!.intraName}, function (e:any) {
 			console.log(e)
 		})
-	else
-		socket.emit("unBlockUser", {unBlockUser: user!.intraName}, function (e:any) {
+	}
+	else {
+		io.emit("unBlockUser", {unBlockUser: user!.intraName}, function (e:any) {
 			console.log(e)
 		})
+	}
 	window.location.reload()
 	console.log("block or unblock user to game");
 }
