@@ -128,8 +128,14 @@ class GameSoundEngine {
 				break;
 		}
 
-		this._currentTheme!.currentTime = 0; // Start playing from the beginning
-		this._currentTheme!.play();
+		try {
+			this._currentTheme!.currentTime = 0; // Start playing from the beginning
+			this._currentTheme!.play();
+		}
+		catch (e) {
+			// We do not care if the theme fails to play
+			// Usually it's just a "The play() request was interrupted by a call to pause() which is utter bullshit"
+		}
 	}
 
 	/**
@@ -137,11 +143,18 @@ class GameSoundEngine {
 	 * @returns True if the theme was resumed, false if there was no theme playing.
 	 */
 	public resumeTheme = (): boolean => {
-		if (this._currentTheme) {
-			this._currentTheme.play();
-			return true;
+		try {
+			if (this._currentTheme) {
+				this._currentTheme.play();
+				return true;
+			}
+			return false;
 		}
-		return false;
+		catch (e) {
+			// We do not care if the theme fails to play
+			// Usually it's just a "The play() request was interrupted by a call to pause() which is utter bullshit"
+			return false;
+		}
 	}
 
 	/**
