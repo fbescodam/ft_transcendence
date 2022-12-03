@@ -802,6 +802,11 @@ class GameStateMachine {
 		// Update the time
 		this._secondsPlayed = state.time.secondsPlayed;
 		this._gameDuration = state.time.gameDuration;
+
+		// If any player won, notify the game state handler
+		if (state.paused == PausedReason.GAME_WON_P1 || state.paused == PausedReason.GAME_WON_P2 ||
+				state.paused == PausedReason.GAME_WON_P1_OPPONENT_LEFT || state.paused == PausedReason.GAME_WON_P2_OPPONENT_LEFT)
+			this._gameStateHandlers.onGameOver(state);
 	}
 
 	/**
