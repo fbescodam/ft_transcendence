@@ -17,29 +17,17 @@ class GameController {
 		gameTicker.add('controller', this._update);
 
 		// mark main user as ready
-		this._getMainUser().markReady();
+		this.getMainUser().markReady();
 
 		if (this._gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID)
-			this._getOtherUser().markReady();
-	}
-
-	private _getMainUser() {
-		if (this._gameState.player1.intraName === this._mainUser)
-			return this._gameState.player1;
-		return this._gameState.player2;
-	}
-
-	private _getOtherUser() {
-		if (this._gameState.player1.intraName === this._mainUser)
-			return this._gameState.player2;
-		return this._gameState.player1;
+			this.getOtherUser().markReady();
 	}
 
 	/**
 	 * Move the paddle of player 1
 	 */
 	private _movePaddleWS = () => {
-		const player = this._getMainUser();
+		const player = this.getMainUser();
 		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["w"] && !this._keysPressed["s"])
@@ -53,7 +41,7 @@ class GameController {
 	 * Move the paddle of player 2 - this is only used in local multiplayer mode
 	 */
 	private _movePaddleArrows = () => {
-		const player = this._getOtherUser();
+		const player = this.getOtherUser();
 		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
@@ -81,6 +69,26 @@ class GameController {
 	};
 
 	//= Public =//
+
+	/**
+	 * Get the main user of the game that is being controlled - this is the user who is logged in.
+	 * @returns The player object of the main user
+	 */
+	public getMainUser() {
+		if (this._gameState.player1.intraName === this._mainUser)
+			return this._gameState.player1;
+		return this._gameState.player2;
+	}
+
+	/**
+	 * Get the opponent of the main user of the game that is being controlled.
+	 * @returns The player object of the other user
+	 */
+	public getOtherUser() {
+		if (this._gameState.player1.intraName === this._mainUser)
+			return this._gameState.player2;
+		return this._gameState.player1;
+	}
 
 	/**
 	 * Run this function when a key is pressed using the onkeydown event.

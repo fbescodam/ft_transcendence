@@ -15,6 +15,7 @@ let userInQueue = false;
 let io: Socket | null = null;
 let matchmakeStatus: string = "Joining the matchmaking queue...";
 let statusIcon: HTMLElement;
+let lobbyTheme: HTMLAudioElement | undefined;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
@@ -40,6 +41,14 @@ onMount(() => {
 			case ONLINE_MULTIPL_MODE_ID: // Online Multiplayer
 			{
 				console.log("Creating online multiplayer lobby");
+
+				// Play lobby theme
+				lobbyTheme = new Audio(`http://${$page.url.hostname}:3000/audio/lobby-theme.mp3`);
+				console.log(lobbyTheme.src);
+				lobbyTheme.loop = true;
+				lobbyTheme.play();
+
+				// Join the matchmaking queue
 				io.emit("joinQueue", {}, (ret: any) => {
 					console.log("Queue joining status:", ret);
 					if (ret.status === true) {
@@ -52,6 +61,8 @@ onMount(() => {
 						alert("Unable to join the queue. Are you maybe already in a queue or in an ongoing game?");
 					}
 				});
+
+				// Handle game Start events
 				io.on("gameStart", (data: any) => {
 					console.log("Game start data:", data);
 					matchmakeStatus = "Game starting...";
@@ -59,6 +70,8 @@ onMount(() => {
 						goto("/game/" + data.gameId, { replaceState: true });
 					}, 2000);
 				});
+
+				// Leave queue when window unloads
 				window.onbeforeunload = () => {
 					if (io) {
 						io.emit("leaveQueue", {}, (ret: any) => {
@@ -77,6 +90,10 @@ onMount(() => {
 
 onDestroy(() => {
 	console.log("onDestroy called");
+	if (lobbyTheme) {
+		lobbyTheme.pause();
+		lobbyTheme = undefined;
+	}
 	if (userInQueue && io != null) {
 		io.emit("leaveQueue", {}, (ret: any) => {
 			console.log("Queue leaving status:", ret);

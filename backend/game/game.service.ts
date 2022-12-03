@@ -230,6 +230,9 @@ export class GameService {
 			},
 			onBeepSound: () => {},
 			onBoopSound: ()	=> {},
+			onGameStart: () => {
+				console.log(`Game ${gameId} started`);
+			},
 			onImportantStateChange: (state: OnlineGameState) => {
 				// console.log(`Sending game state update for game ${gameId} to room ${game.roomId} (players: ${game.players.map(p => p.intraName).join(', ')})`);
 				this.gameGateway.server.to(game.roomId).emit('gameState', state);

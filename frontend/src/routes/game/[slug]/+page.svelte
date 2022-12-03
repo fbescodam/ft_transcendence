@@ -5,7 +5,7 @@ import { onMount, onDestroy } from "svelte";
 import { page } from '$app/stores';
 import { goto } from "$app/navigation";
 import GameTicker from "$lib/Game/Ticker";
-import GameStateMachine, { Player, type Dimensions } from "$lib/Game/StateMachine";
+import GameStateMachine, { PausedReason, Player, type Dimensions } from "$lib/Game/StateMachine";
 import GameRenderer from "$lib/Game/Renderer";
 import GameController from "$lib/Game/Controller";
 import GameSoundEngine from "$lib/Game/SoundEngine";
@@ -94,7 +94,7 @@ async function initGame() {
 
 	// Set up the game engine
 	gameTicker = new GameTicker();
-	gameSoundEngine = new GameSoundEngine();
+	gameSoundEngine = new GameSoundEngine($page.url.hostname);
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
 	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
 		onScoreUpdated: (p1Score: number, p2Score: number) => {
@@ -106,9 +106,20 @@ async function initGame() {
 		onBoopSound: () => {
 			gameSoundEngine.playBoop();
 		},
+		onGameStart: () => {
+			gameSoundEngine.playTheme("game");
+		},
 		onImportantStateChange: (state: OnlineGameState) => {
-			// gameNetworkHandler.sendState(state);
-			// do nothing here: the state is only sent by the host, which is the server
+			// If the game is paused, but only for truly a pause, pause the currently playing theme
+			if (state.paused != null && (state.paused == PausedReason.PAUSED_P1 || state.paused == PausedReason.PAUSED_P2 || state.paused == PausedReason.PAUSED_BY_SERVER))
+				gameSoundEngine.pauseTheme();
+			else if (gameSoundEngine.themeIsPaused())
+				gameSoundEngine.resumeTheme();
+
+			// Sync the game theme with the game time (may have a difference of half a second)
+			const themeTime: number = gameSoundEngine.getThemeTime();
+			if (themeTime < state.time.secondsPlayed - 0.25 || themeTime > state.time.secondsPlayed + 0.25)
+				gameSoundEngine.setThemeTime(state.time.secondsPlayed);
 		},
 		onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
 			if (gameNetworkHandler)
@@ -123,6 +134,22 @@ async function initGame() {
 		},
 		onGameOver: (state: OnlineGameState) => {
 			console.log("The game is over! Final state:", state);
+			(async () => {
+				// Wait a bit before playing the game over sound
+				// This is to avoid the sound being played before the game theme is over - it is about 1 second too long!
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				gameSoundEngine.pauseTheme();
+				if (gameMode != LOCAL_MULTIPL_MODE_ID) {
+					const finalScoreMain = gameController.getMainUser().score - gameController.getOtherUser().score;
+					if (finalScoreMain >= 0)
+						gameSoundEngine.playWin();
+					else if (finalScoreMain < 0)
+						gameSoundEngine.playLose();
+				}
+				else {
+					gameSoundEngine.playWin();
+				}
+			})();
 		}
 	}, (gameMode != ONLINE_MULTIPL_MODE_ID));
 	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
@@ -137,6 +164,12 @@ async function initGame() {
 	// Set up the game debugger and link it to the renderer
 	gameDebugger = new GameDebugger(gameAI, gameController, gameNetworkHandler, gameRenderer, gameSoundEngine, gameState);
 	gameRenderer.setDebugger(gameDebugger);
+
+	// Start playing the lobby music (which is used when waiting for the other player to be ready).
+	// Only do this in online multiplayer mode, as otherwise the game is almost immediately ready
+	// and the music would be cut off by the game theme.
+	if (gameMode == ONLINE_MULTIPL_MODE_ID)
+		gameSoundEngine.playTheme("lobby");
 }
 
 onMount(() => {

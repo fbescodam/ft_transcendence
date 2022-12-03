@@ -19,7 +19,7 @@ class GameRenderer {
 	private _lastFrameTime: number = 0;
 	private _fps = 0;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, playerLeftInfo: HTMLImageElement, playerRightInfo: HTMLImageElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, playerLeftInfo: HTMLElement, playerRightInfo: HTMLElement) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;

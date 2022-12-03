@@ -438,6 +438,11 @@ export interface GameStateHandlers {
 	onBoopSound: () => void;
 
 	/**
+	 * Called when the game started.
+	 */
+	onGameStart: () => void;
+
+	/**
 	 * Called when the game state changes so much that the state should be sent to the client.
 	 * Only applies to online games, in the server's state machine.
 	 * @param state The state of the game to send to the client.
@@ -595,6 +600,8 @@ class GameStateMachine {
 				this._paused = PausedReason.WAITING_FOR_BOTH;
 			else {
 				this._paused = null;
+				this._gameStateHandlers.onGameStart();
+
 				// If this state machine is acting as the host, send the new state to the listening clients
 				if (this._isHost)
 					this._gameStateHandlers.onImportantStateChange(this.getOnlineState());
@@ -751,6 +758,11 @@ class GameStateMachine {
 			case "beep":
 				this._gameStateHandlers.onBeepSound();
 				break;
+		}
+
+		// Notify the game handler the game is starting when both players are now ready and the game has started on the host's side
+		if (this._waitingForPlayers() && (state.paused == null && state.players.player1.ready && state.players.player2.ready)) {
+			this._gameStateHandlers.onGameStart();
 		}
 
 		// Update the ball position
