@@ -50,6 +50,8 @@ async function getGameData(gameId: number) {
 				return reject(ret.error);
 			if (!("game" in ret))
 				return reject("game key missing in getGame response");
+			if (ret.game.status == "ENDED")
+				return reject("Game already ended");
 			resolve(ret.game);
 		});
 	});
@@ -85,11 +87,18 @@ async function initGame() {
 	const player2: User = createPlaceholderUser("player2", "Player 2", null, $page.url);
 	if (gameMode == ONLINE_MULTIPL_MODE_ID) {
 		io = initSocket($page.url.hostname, $JWT!);
-		const gameData: any = await getGameData(gameId);
-		if (gameData.players.length != 2)
-			throw new Error("Invalid number of players in game");
-		populateUser(player1, gameData.players[0]);
-		populateUser(player2, gameData.players[1]);
+		try {
+			const gameData: any = await getGameData(gameId);
+			if (gameData.players.length != 2)
+				throw new Error("Invalid number of players in game");
+			populateUser(player1, gameData.players[0]);
+			populateUser(player2, gameData.players[1]);
+		}
+		catch (e) {
+			console.error("Failed to setup game:", e);
+			alert("Failed to setup game: " + e);
+			return goto("/game", { replaceState: true });
+		}
 	}
 
 	// Set up the game engine
