@@ -116,10 +116,13 @@ async function initGame() {
 			else if (gameSoundEngine.themeIsPaused())
 				gameSoundEngine.resumeTheme();
 
-			// Sync the game theme with the game time (may have a difference of half a second)
-			const themeTime: number = gameSoundEngine.getThemeTime();
-			if (themeTime < state.time.secondsPlayed - 0.25 || themeTime > state.time.secondsPlayed + 0.25)
-				gameSoundEngine.setThemeTime(state.time.secondsPlayed);
+			if (!state.paused) {
+				// Sync the game theme with the game time (may have a difference of half a second)
+				// Only if the game is ongoing
+				const themeTime: number = gameSoundEngine.getThemeTime();
+				if (themeTime < state.time.secondsPlayed - 0.25 || themeTime > state.time.secondsPlayed + 0.25)
+					gameSoundEngine.setThemeTime(state.time.secondsPlayed);
+			}
 		},
 		onPaddleMoveChange: (paddleState: OnlinePaddleState) => {
 			if (gameNetworkHandler)
@@ -138,7 +141,7 @@ async function initGame() {
 				// Wait a bit before playing the game over sound
 				// This is to avoid the sound being played before the game theme is over - it is about 1 second too long!
 				await new Promise(resolve => setTimeout(resolve, 1000));
-				gameSoundEngine.pauseTheme();
+				gameSoundEngine.stopTheme();
 				if (gameMode != LOCAL_MULTIPL_MODE_ID) {
 					const finalScoreMain = gameController.getMainUser().score - gameController.getOtherUser().score;
 					if (finalScoreMain >= 0)

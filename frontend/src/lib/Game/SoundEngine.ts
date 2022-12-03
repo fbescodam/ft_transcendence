@@ -157,6 +157,17 @@ class GameSoundEngine {
 	}
 
 	/**
+	 * Stop playing the current theme.
+	 */
+	public stopTheme = () => {
+		if (this._currentTheme) {
+			this._currentTheme.pause();
+			this._currentTheme.currentTime = 0;
+			this._currentTheme = null;
+		}
+	}
+
+	/**
 	 * Check if the current theme is paused.
 	 * @returns True if the current theme is paused or no theme is playing.
 	 */
