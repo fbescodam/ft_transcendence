@@ -17,10 +17,12 @@ class GameController {
 		gameTicker.add('controller', this._update);
 
 		// mark main user as ready
-		this.getMainUser().markReady();
+		const mainUser = this.getMainUser();
+		if (mainUser)
+			mainUser.markReady();
 
 		if (this._gameState.getGameMode() === LOCAL_MULTIPL_MODE_ID)
-			this.getOtherUser().markReady();
+			this.getOtherUser()!.markReady();
 	}
 
 	/**
@@ -28,6 +30,9 @@ class GameController {
 	 */
 	private _movePaddleWS = () => {
 		const player = this.getMainUser();
+		if (!player)
+			return;
+
 		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["w"] && !this._keysPressed["s"])
@@ -42,6 +47,9 @@ class GameController {
 	 */
 	private _movePaddleArrows = () => {
 		const player = this.getOtherUser();
+		if (!player)
+			return;
+
 		const maxSpeed = player.paddle.getMaxMoveSpeed();
 		let dy: Direction = 0;
 		if (this._keysPressed["ArrowUp"] && !this._keysPressed["ArrowDown"])
@@ -72,22 +80,26 @@ class GameController {
 
 	/**
 	 * Get the main user of the game that is being controlled - this is the user who is logged in.
-	 * @returns The player object of the main user
+	 * @returns The player object of the main user. Null if the current game is not controllable.
 	 */
 	public getMainUser() {
 		if (this._gameState.player1.intraName === this._mainUser)
 			return this._gameState.player1;
-		return this._gameState.player2;
+		else if (this._gameState.player2.intraName === this._mainUser)
+			return this._gameState.player2;
+		return null;
 	}
 
 	/**
 	 * Get the opponent of the main user of the game that is being controlled.
-	 * @returns The player object of the other user
+	 * @returns The player object of the other user. Null if the current game is not controllable.
 	 */
 	public getOtherUser() {
 		if (this._gameState.player1.intraName === this._mainUser)
 			return this._gameState.player2;
-		return this._gameState.player1;
+		else if (this._gameState.player2.intraName === this._mainUser)
+			return this._gameState.player1;
+		return null;
 	}
 
 	/**
