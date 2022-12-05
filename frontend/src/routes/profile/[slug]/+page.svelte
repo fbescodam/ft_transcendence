@@ -105,6 +105,11 @@ const getRandomEmoji = () => {
 	return emojis[~~(Math.random() * emojis.length)]
 }
 
+function spectateUser() {
+	console.log("Trying to spectate user...");
+	// Shit user to that lobby 
+}
+
 </script>
 
 <!-- HTML -->
@@ -137,6 +142,7 @@ const getRandomEmoji = () => {
 					{/if}
 				</Button>
 				<Button on:click={() => inviteUser()}>Invite</Button>
+				<Button on:click={() => spectateUser()}>Spectate</Button>
 				<Button on:click={() => blockUser()}>
 					{#if isBlocked}
 						Unblock

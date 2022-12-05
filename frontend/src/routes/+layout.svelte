@@ -7,7 +7,9 @@ import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
+import InviteModal from "$lib/Components/Modal/InviteModal.svelte";
 
+let hasInvite: boolean = true;
 let navitems = [
 	{
 		href: "/",
@@ -35,9 +37,10 @@ let navitems = [
 
 <DeviceDetector showInDevice="desktop">
 	<AuthGuard />
+	<!-- TODO: Change this depending on invite request -->
+	<InviteModal bind:visible={hasInvite} />
 
 	<!-- Render layout -->
-	<!-- TODO: Maybe have a config file for this or so? -->
 	{#if !$page.url.pathname.startsWith("/auth")}
 		<div class="layout">
 			<nav class="navbar">

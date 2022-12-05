@@ -55,7 +55,8 @@ function onChannelCreate(e: SubmitEvent) {
     if (channelPasswordInput)
         password = channelPasswordInput.value;
 
-    io.emit('createChannel', {name:channelNameInput.value, password:password}, function (answer: any) {
+	const name = channelNameInput.value.substring(0, 10);
+    io.emit('createChannel', { name:name, password:password }, function (answer: any) {
         if (answer.error)
             console.log(answer.error)
         else

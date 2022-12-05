@@ -7,11 +7,14 @@ export const createPlaceholderUser = (intraName: string, name: string, avatar: s
 	return {
 		id: 999999999999,
 		wins: 0,
-		loss: 0,
+		losses: 0,
+		status: "ONLINE",
 		name: name,
 		intraName: intraName,
 		avatar: (avatar ? `${currentURL!.protocol}//${currentURL!.hostname}:3000/${avatar}` : "https://picsum.photos/200"),
 		games: [],
 		friends: [],
+		blocked: [],
+		blockedWho: [],
 	};
 }

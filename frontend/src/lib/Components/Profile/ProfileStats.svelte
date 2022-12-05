@@ -12,8 +12,11 @@ export let name: string;
 export let games: number;
 export let wins: number;
 export let loss: number;
-export let status: string;
-let ratio = wins / loss;
+export let status: string = "OFFLINE";
+
+let ratio = wins / loss
+if (wins == 0 && loss == 0)
+	ratio = 0;
 
 // const getUserData = (async () => {
 // 	const response = await fetch('https://dog.ceo/api/breeds/image/random')

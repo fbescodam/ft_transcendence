@@ -47,14 +47,15 @@ onDestroy(() => {
 function changeUsername(e: SubmitEvent) {
 	e.preventDefault()
 
-	io.emit('changeDisplayName', {newDisplayName : newUsername.value}, function(answer: any) {
+	const name = newUsername.value.substring(0, 42);
+	io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
 		console.log(answer);
 		if ("error" in answer)
 		{
 			newUsername.setCustomValidity(answer.error);
 			return console.log("error: %s", answer.error);
 		}
-		$displayName = newUsername.value;
+		$displayName = name;
 		$JWT = answer["token"]
 		newUsername.value = '';
 	})

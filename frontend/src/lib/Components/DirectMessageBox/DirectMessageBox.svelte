@@ -16,10 +16,11 @@ import type { Socket } from "socket.io-client";
 
 // ----------------------------------------------------------------------------
 
+export let otherUser: string;
+
 let io: Socket
 let chat: HTMLDivElement;
 let autoscroll: boolean;
-export let otherUser: string;
 let messages: { senderName: string, text: string }[] = [
 	{senderName: "faggot", text: "fuck off"},
 	{senderName: "faggot", text: "fuck off"},
