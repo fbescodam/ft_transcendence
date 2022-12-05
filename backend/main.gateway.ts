@@ -52,6 +52,9 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("getUserData")
 	public async getUserData(@MessageBody() data: object) {
+		if (!("penis" in data))
+			return { error: "missing required parameter penis" };
+
 		this.logger.log(`getting user data for ${data["penis"]}`);
 		const user = await this.prismaService.user.findFirst({
 			where: {
@@ -95,32 +98,38 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('sendMsg')
 	async handleMessage(@MessageBody() msg: any) {
-		// Check if user is not muted
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name: msg.inChannel },
-			select: {
-				users: {
-					where: {
-						userName: msg.user.name
+		try {
+			// Check if user is not muted
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name: msg.inChannel },
+				select: {
+					users: {
+						where: {
+							userName: msg.user.name
+						}
 					}
 				}
-			}
-		})
-		if (userInChannel.users[0].role == Role.MUTED)
-			return { error: "you are muted" }
+			})
+			if (userInChannel.users[0].role == Role.MUTED)
+				return { error: "you are muted" }
 
-		this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
-		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+			this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
+			this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
 
-		await this.prismaService.message.create({
-			data: {
-				senderName: msg.user.name,
-				channelName: msg.inChannel,
-				text: msg.text
-			}
-		});
+			await this.prismaService.message.create({
+				data: {
+					senderName: msg.user.name,
+					channelName: msg.inChannel,
+					text: msg.text
+				}
+			});
 
-		return { status: "message sent" };
+			return { status: "message sent" };
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -131,17 +140,23 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getBlockedUsers')
 	async getBlockedUser(@MessageBody() data: any) {
-		const user = await this.prismaService.user.findFirst({
-			where: { intraName: data.user.intraName },
-			select: {
-				blocked: {
-					select: {
-						name: true
+		try {
+			const user = await this.prismaService.user.findFirst({
+				where: { intraName: data.user.intraName },
+				select: {
+					blocked: {
+						select: {
+							name: true
+						}
 					}
 				}
-			}
-		});
-		return user.blocked;
+			});
+			return user.blocked;
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -152,47 +167,59 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getChannelsForUser')
 	async getChannelsForUser(@MessageBody() data: any) {
-		const user = await this.prismaService.user.findFirst({
-			where: { intraName: data.user.intraName },
-			include: { channels: true }
-		});
-		return user.channels;
+		try {
+			const user = await this.prismaService.user.findFirst({
+				where: { intraName: data.user.intraName },
+				include: { channels: true }
+			});
+			return user.channels;
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getUsersInChannel')
 	async getUsersInChannel(@MessageBody() data: any) {
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
+						}
 					}
 				}
-			}
-		})
+			})
 
-		if (!userInChannel)
-			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
+			if (!userInChannel)
+				return {error:"not part of channel"};
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
 
-		const channelUsers = await this.prismaService.channel.findFirst({
-			where: { name: data["channelName"]},
-			select: {
-				users: {
-					select: {
-						userName: true,
-						joinedOn: true,
-						role: true
+			const channelUsers = await this.prismaService.channel.findFirst({
+				where: { name: data["channelName"]},
+				select: {
+					users: {
+						select: {
+							userName: true,
+							joinedOn: true,
+							role: true
+						}
 					}
 				}
-			}
-		})
+			})
 
-		return {usersInChannel:channelUsers}
+			return {usersInChannel:channelUsers}
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -203,100 +230,128 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getMessagesFromChannel')
 	async getMessagesFromChannel(@MessageBody() name: any) {
-	const channel = await this.prismaService.channel.findFirst({
-		where: {name: name.name },
-		include: { messages: true }
-	})
-	return channel.messages;
-}
+		try {
+			const channel = await this.prismaService.channel.findFirst({
+				where: {name: name.name },
+				include: { messages: true }
+			})
+			return channel.messages;
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
+	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('checkDmExistence')
 	async checkDmExistence(@MessageBody() data: any) {
+		try {
+			let arr = [data["user"].intraName, data["user2"]]
+			arr.sort() //yes this is cringe, no i will not change it
+			let channelName = arr[0] + '-' + arr[1]
 
-		let arr = [data["user"].intraName, data["user2"]]
-		arr.sort() //yes this is cringe, no i will not change it
-		let channelName = arr[0] + '-' + arr[1]
+			const user = await this.prismaService.user.findFirst({
+				where: {intraName: data["user"].intraName},
+				include: {channels: true}
+			})
 
-		const user = await this.prismaService.user.findFirst({
-			where: {intraName: data["user"].intraName},
-			include: {channels: true}
-		})
+			let foundChannel = null
+			for (let i = 0; i < user.channels.length; i++) {
+				const element = user.channels[i];
+				if (element.channelName == channelName)
+					foundChannel = element.channelName
+			}
 
-		let foundChannel = null
-		for (let i = 0; i < user.channels.length; i++) {
-			const element = user.channels[i];
-			if (element.channelName == channelName)
-				foundChannel = element.channelName
+			this.logger.log("dms exist already")
+			return { channel: foundChannel }
 		}
-
-		this.logger.log("dms exist already")
-		return {channel:foundChannel}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 
 	@SubscribeMessage("joinRooms")
 	async joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
-
-		roomInfo["channels"] = roomInfo["channels"].map(i => 'chan-' + i);
-		await socket.join(roomInfo["channels"]);
-		this.logger.log(`joined ${roomInfo["channels"]}`);
+		try {
+			roomInfo["channels"] = roomInfo["channels"].map(i => 'chan-' + i);
+			await socket.join(roomInfo["channels"]);
+			this.logger.log(`joined ${roomInfo["channels"]}`);
+			return { status: "joined rooms" };
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@SubscribeMessage("leaveRoom")
 	async leaveRoom(@MessageBody() roomInfo: { name: string }, @ConnectedSocket() socket: Socket) {
-		await socket.leave(roomInfo.name);
-		this.logger.log(`left ${roomInfo.name}`);
+		try {
+			await socket.leave(roomInfo.name);
+			this.logger.log(`left ${roomInfo.name}`);
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("createDirectChannel")
 	public async createDirectChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
+		try {
+			let arr = [channelData["user"].intraName, channelData["user2"]]
+			arr.sort() //yes this is cringe, no i will not change it
+			const newChannelName = arr[0] + "-" + arr[1]
+			const channelExists = await this.prismaService.channel.findUnique({
+				where: { name:newChannelName }
+			});
 
-		let arr = [channelData["user"].intraName, channelData["user2"]]
-		arr.sort() //yes this is cringe, no i will not change it
-		const newChannelName = arr[0] + "-" + arr[1]
-		const channelExists = await this.prismaService.channel.findUnique({
-			where: { name:newChannelName }
-		});
-
-		if (channelExists) {
-			this.logger.log(`direct channel named ${channelData["name"]} exists`)
-			return {error:"direct channel exists"}
-		}
-
-		// Check if users exist (both in one query with an OR statement)
-		const users = await this.prismaService.user.findMany({
-			where: { OR: [{intraName: channelData["user"].intraName}, {intraName: channelData["user2"]}] }
-		});
-		if (users.length != 2) {
-			this.logger.log(`user ${channelData["user"].intraName} or ${channelData["user2"]} does not exist`)
-			return {error:"user does not exist"}
-		}
-
-		const channel = await this.prismaService.channel.create({
-			data: {
-				name: newChannelName,
-				type: ChannelType.DIRECT,
-				password: undefined,
-				users: {
-					create: [
-						{
-							userName: arr[0],
-							role: Role.OWNER
-						},
-						{
-							userName: arr[1],
-							role: Role.OWNER
-						}
-					]
-				}
+			if (channelExists) {
+				this.logger.log(`direct channel named ${channelData["name"]} exists`)
+				return {error:"direct channel exists"}
 			}
-		});
 
-		await socket.join('chan-' + newChannelName)
-		this.logger.log(`direct messages between ${channelData["user"].intraName} and ${channelData["user2"]} established`)
-		return channel
+			// Check if users exist (both in one query with an OR statement)
+			const users = await this.prismaService.user.findMany({
+				where: { OR: [{intraName: channelData["user"].intraName}, {intraName: channelData["user2"]}] }
+			});
+			if (users.length != 2) {
+				this.logger.log(`user ${channelData["user"].intraName} or ${channelData["user2"]} does not exist`)
+				return {error:"user does not exist"}
+			}
+
+			const channel = await this.prismaService.channel.create({
+				data: {
+					name: newChannelName,
+					type: ChannelType.DIRECT,
+					password: undefined,
+					users: {
+						create: [
+							{
+								userName: arr[0],
+								role: Role.OWNER
+							},
+							{
+								userName: arr[1],
+								role: Role.OWNER
+							}
+						]
+					}
+				}
+			});
+
+			await socket.join('chan-' + newChannelName)
+			this.logger.log(`direct messages between ${channelData["user"].intraName} and ${channelData["user2"]} established`)
+			return channel
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -308,153 +363,174 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("createChannel")
 	public async createChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
-
-		const channelExists = await this.prismaService.channel.findUnique({
-			where: { name:channelData["name"] }
-		});
-
-		if (channelExists) {
-			this.logger.log(`channel named ${channelData["name"]} exists`)
-			return { error:"channel exists" }
-		}
-
-		if (channelData["name"].length > 42)
-			return { error:"channel name too long" }
-		if (channelData["name"].length < 3)
-			return { error:"channel name too short" }
-		if (channelData["name"].includes(" "))
-			return { error:"channel name cannot contain spaces" }
-		if (channelData["name"].trim() == "")
-			return { error:"channel name cannot be empty" }
-
-		let channel;
-		if (channelData["password"] != null)
-		{
-			const password = await this.appService.hashPassword(channelData["password"])
-			channel = await this.prismaService.channel.create({
-				data: {
-					name: channelData["name"],
-					password: { create: { string: password } },
-					users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
-				}
+		try {
+			const channelExists = await this.prismaService.channel.findUnique({
+				where: { name:channelData["name"] }
 			});
-		}
-		else
-		{
-			channel = await this.prismaService.channel.create({
-				data: {
-					name: channelData["name"],
-					password: undefined,
-					users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
-				}
-			});
-		}
 
-		await socket.join('chan-' + channelData["name"]);
-		this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
-		return channel
+			if (channelExists) {
+				this.logger.log(`channel named ${channelData["name"]} exists`)
+				return { error:"channel exists" }
+			}
+
+			if (channelData["name"].length > 42)
+				return { error:"channel name too long" }
+			if (channelData["name"].length < 3)
+				return { error:"channel name too short" }
+			if (channelData["name"].includes(" "))
+				return { error:"channel name cannot contain spaces" }
+			if (channelData["name"].trim() == "")
+				return { error:"channel name cannot be empty" }
+
+			let channel;
+			if (channelData["password"] != null)
+			{
+				const password = await this.appService.hashPassword(channelData["password"])
+				channel = await this.prismaService.channel.create({
+					data: {
+						name: channelData["name"],
+						password: { create: { string: password } },
+						users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
+					}
+				});
+			}
+			else
+			{
+				channel = await this.prismaService.channel.create({
+					data: {
+						name: channelData["name"],
+						password: undefined,
+						users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
+					}
+				});
+			}
+
+			await socket.join('chan-' + channelData["name"]);
+			this.logger.log(`${channelData["user"].intraName} created and joined ${channelData["name"]}`)
+			return channel
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("removePassword")
 	public async removepassword(@MessageBody() data: Object) {
-
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
+						}
 					}
 				}
-			}
-		})
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
-
-		try {
-			await this.prismaService.channel.update({
-				where: {name: data["name"]},
-				data: {password: {delete: true}}
 			})
-		}
-		catch(any) { this.logger.log("no password")}
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
 
-		this.logger.log(`removed password of ${data["name"]}`)
-		return {valid: "password removed"}
+			try {
+				await this.prismaService.channel.update({
+					where: {name: data["name"]},
+					data: {password: {delete: true}}
+				})
+			}
+			catch(any) { this.logger.log("no password")}
+
+			this.logger.log(`removed password of ${data["name"]}`)
+			return {valid: "password removed"}
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changePassword")
 	public async changePassword(@MessageBody() data: Object) {
-
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
+						}
 					}
 				}
-			}
-		})
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
-
-		const newPass = await this.appService.hashPassword(data["password"])
-		try {
-			await this.prismaService.channel.update({
-				where: {name: data["name"]},
-				data: {password: {delete: true}}
 			})
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
+
+			const newPass = await this.appService.hashPassword(data["password"])
+			try {
+				await this.prismaService.channel.update({
+					where: {name: data["name"]},
+					data: {password: {delete: true}}
+				})
+			}
+			catch(any) { this.logger.log("no password, adding one")}
+
+			const channel = await this.prismaService.channel.update({
+				where: {name: data["name"]},
+				data: {password: {create: {string: newPass}}},
+			})
+
+			this.logger.log(`changed password of ${channel.name}`)
+			return {valid:"password changed"}
 		}
-		catch(any) { this.logger.log("no password, adding one")}
-
-		const channel = await this.prismaService.channel.update({
-			where: {name: data["name"]},
-			data: {password: {create: {string: newPass}}},
-		})
-
-		this.logger.log(`changed password of ${channel.name}`)
-		return {valid:"password changed"}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("joinChannel")
 	public async joinChannel(@MessageBody() channelData: Object, @ConnectedSocket() socket: Socket) {
-		const channel = await this.prismaService.channel.findUnique({
-			where: { name:channelData["name"] },
-			select: {password: true, users: true, type: true}
-		});
+		try {
+			const channel = await this.prismaService.channel.findUnique({
+				where: { name:channelData["name"] },
+				select: {password: true, users: true, type: true}
+			});
 
-		if (!channel)
-			return {error:"channel does not exist"};
-		if (channel.type == ChannelType.DIRECT)
-			return {error:"direct channel"}
-		if (channel.password &&
-			channel.password.string &&
-			await this.appService.comparePassword(channel.password.string, channelData["password"]) == false)
-			return {error:"wrong password"};
-		if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
-			return {error:"already in channel"};
+			if (!channel)
+				return {error:"channel does not exist"};
+			if (channel.type == ChannelType.DIRECT)
+				return {error:"direct channel"}
+			if (channel.password &&
+				channel.password.string &&
+				await this.appService.comparePassword(channel.password.string, channelData["password"]) == false)
+				return {error:"wrong password"};
+			if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
+				return {error:"already in channel"};
 
-		await this.prismaService.channel.update({
-			where: { name: channelData["name"] },
-			data: {
-				users: {
-					create: {
-						role: Role.USER,
-						userName: channelData["user"].intraName,
+			await this.prismaService.channel.update({
+				where: { name: channelData["name"] },
+				data: {
+					users: {
+						create: {
+							role: Role.USER,
+							userName: channelData["user"].intraName,
+						}
 					}
 				}
-			}
-		});
+			});
 
-		await socket.join('chan-' + channelData["name"])
-		return { name: channelData["name"] }
+			await socket.join('chan-' + channelData["name"])
+			return { name: channelData["name"] }
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -465,41 +541,46 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("makeUserAdmin")
 	public async makeUserAdmin(@MessageBody() data: Object) {
-
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
-					}
-				}
-			}
-		})
-
-		if (!userInChannel)
-			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
-		if (userInChannel.users[0].userName == data["adminUser"].intraName)
-			return {error:"can't admin yourself"};
-
-		await this.prismaService.channel.update({
-			where: { name:data["channelName"] },
-			data: {
-				users: {
-					updateMany: {
-						where: { userName: data["adminUser"]  },
-						data: {
-							role: Role.ADMIN
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
 						}
 					}
 				}
-			}
-		})
+			})
 
-		this.logger.log(`${data["adminUSer"]} made admin in ${data["channelName"]}`)
+			if (!userInChannel)
+				return {error:"not part of channel"};
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
+			if (userInChannel.users[0].userName == data["adminUser"])
+				return {error:"can't admin yourself"};
+
+			await this.prismaService.channel.update({
+				where: { name:data["channelName"] },
+				data: {
+					users: {
+						updateMany: {
+							where: { userName: data["adminUser"]  },
+							data: {
+								role: Role.ADMIN
+							}
+						}
+					}
+				}
+			})
+
+			this.logger.log(`${data["adminUSer"]} made admin in ${data["channelName"]}`);
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -510,41 +591,46 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("muteUser")
 	public async muteUser(@MessageBody() data: Object) {
-
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
-					}
-				}
-			}
-		})
-
-		if (!userInChannel)
-			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
-		if (userInChannel.users[0].userName == data["muteUser"].intraName)
-			return {error:"can't mute yourself"};
-
-		await this.prismaService.channel.update({
-			where: { name:data["channelName"] },
-			data: {
-				users: {
-					updateMany: {
-						where: { userName: data["muteUser"]  },
-						data: {
-							role: Role.MUTED
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
 						}
 					}
 				}
-			}
-		})
+			})
 
-		this.logger.log(`${data["muteUser"]} muted in ${data["channelName"]}`)
+			if (!userInChannel)
+				return {error:"not part of channel"};
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
+			if (userInChannel.users[0].userName == data["muteUser"])
+				return {error:"can't mute yourself"};
+
+			await this.prismaService.channel.update({
+				where: { name:data["channelName"] },
+				data: {
+					users: {
+						updateMany: {
+							where: { userName: data["muteUser"]  },
+							data: {
+								role: Role.MUTED
+							}
+						}
+					}
+				}
+			})
+
+			this.logger.log(`${data["muteUser"]} muted in ${data["channelName"]}`)
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -555,49 +641,53 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("kickUser")
 	public async kickUser(@MessageBody() data: Object) {
-
-
-		//check user is admin
-		const userInChannel = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["user"].intraName
+		try {
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
+						}
 					}
 				}
-			}
-		})
+			})
 
-		if (!userInChannel)
-			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-			return {error:"not an admin"};
-		if (data["user"].intraName == data["kickUser"])
-			return {error:"can't kick yourself"};
+			if (!userInChannel)
+				return {error:"not part of channel"};
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
+			if (data["user"].intraName == data["kickUser"])
+				return {error:"can't kick yourself"};
 
-		// check if user to kick is owner
-		const userToKick = await this.prismaService.channel.findUnique({
-			where: { name:data["channelName"] },
-			select: {
-				users: {
-					where: {
-						userName: data["kickUser"]
+			// check if user to kick is owner
+			const userToKick = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["kickUser"]
+						}
 					}
 				}
-			}
-		})
-		if (userToKick.users[0].role == Role.OWNER)
-			return {error:"can't kick owner"};
+			})
+			if (userToKick.users[0].role == Role.OWNER)
+				return {error:"can't kick owner"};
 
-		await this.prismaService.channel.update({
-			where: {name: data["channelName"]},
-			data: {
-				users: {
-					deleteMany: [{ userName: data["kickUser"]}],
+			await this.prismaService.channel.update({
+				where: {name: data["channelName"]},
+				data: {
+					users: {
+						deleteMany: [{ userName: data["kickUser"]}],
+					}
 				}
-			}
-		})
+			})
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -608,94 +698,105 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("leaveChannel")
 	public async leaveChannel(@MessageBody() data: Object) {
+		try {
+			const channel = await this.prismaService.channel.findUnique({
+				where: { name:data["name"] },
+				select: {users: true}
+			});
 
-		const channel = await this.prismaService.channel.findUnique({
-			where: { name:data["name"] },
-			select: {users: true}
-		});
+			if (!channel)
+				return {error:"channel does not exist"};
 
-		if (!channel)
-			return {error:"channel does not exist"};
+			this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
 
-		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
-
-		// If the current user is the owner of the channel, make a random person the owner
-		const user = channel.users.find((user) => user.userName === data["user"].intraName);
-		if (user.role === Role.OWNER) {
-			const newOwner = channel.users[Math.floor(Math.random() * channel.users.length)];
-			if (newOwner) {
-				await this.prismaService.channel.update({
-					where: {name: data["name"]},
-					data: {
-						users: {
-							updateMany: {
-								where: { userName: newOwner.userName },
-								data: {
-									role: Role.OWNER
+			// If the current user is the owner of the channel, make a random person the owner
+			const user = channel.users.find((user) => user.userName === data["user"].intraName);
+			if (user.role === Role.OWNER) {
+				const newOwner = channel.users[Math.floor(Math.random() * channel.users.length)];
+				if (newOwner) {
+					await this.prismaService.channel.update({
+						where: {name: data["name"]},
+						data: {
+							users: {
+								updateMany: {
+									where: { userName: newOwner.userName },
+									data: {
+										role: Role.OWNER
+									}
 								}
 							}
 						}
-					}
-				})
-			}
-			else {
-				// Delete the channel, there is nobody left.
-				await this.prismaService.channel.delete({
-					where: {name: data["name"]}
-				})
-				return;
-			}
-		}
-
-		await this.prismaService.channel.update({
-			where: {name: data["name"]},
-			data: {
-				users: {
-					deleteMany: [{ userName: data["user"].intraName }],
+					})
+				}
+				else {
+					// Delete the channel, there is nobody left.
+					await this.prismaService.channel.delete({
+						where: {name: data["name"]}
+					})
+					return;
 				}
 			}
-		})
+
+			await this.prismaService.channel.update({
+				where: {name: data["name"]},
+				data: {
+					users: {
+						deleteMany: [{ userName: data["user"].intraName }],
+					}
+				}
+			})
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changeDisplayName")
 	async changeDisplayName(@MessageBody() UserInfo: Object, @ConnectedSocket() socket: Socket) {
-		const user = await this.prismaService.user.findFirst({
-			where: { name: UserInfo["newDisplayName"] }
-		})
+		try {
+			const user = await this.prismaService.user.findFirst({
+				where: { name: UserInfo["newDisplayName"] }
+			})
 
-		if (user)
-			return {error:"Username already in use"}
+			if (user)
+				return {error:"Username already in use"}
 
-		if (UserInfo["newDisplayName"].length > 10)
-			return {error:"Display name too long"};
-		if (UserInfo["newDisplayName"].length < 3)
-			return {error:"Display name too short"};
-		if (UserInfo["newDisplayName"].includes(" "))
-			return {error:"Display name can't contain spaces"};
-		if (UserInfo["newDisplayName"].trim() == "")
-			return {error:"Display name can't be empty"};
+			if (UserInfo["newDisplayName"].length > 10)
+				return {error:"Display name too long"};
+			if (UserInfo["newDisplayName"].length < 3)
+				return {error:"Display name too short"};
+			if (UserInfo["newDisplayName"].includes(" "))
+				return {error:"Display name can't contain spaces"};
+			if (UserInfo["newDisplayName"].trim() == "")
+				return {error:"Display name can't be empty"};
 
-		const newUser = await this.prismaService.user.update({
-			where: { intraName: UserInfo["user"].intraName },
-			data: { name: UserInfo["newDisplayName"] }
-		})
+			const newUser = await this.prismaService.user.update({
+				where: { intraName: UserInfo["user"].intraName },
+				data: { name: UserInfo["newDisplayName"] }
+			})
 
-		await this.prismaService.message.updateMany({
-			where: {
-				senderName: UserInfo["user"].name
-			},
-			data: {
-				senderName: newUser.name
-			}
-		})
+			await this.prismaService.message.updateMany({
+				where: {
+					senderName: UserInfo["user"].name
+				},
+				data: {
+					senderName: newUser.name
+				}
+			})
 
-		this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
+			this.logger.log(`changed ${UserInfo["user"].name} to ${UserInfo["newDisplayName"]}`)
 
-		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
-		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken, newName: UserInfo["newDisplayName"] };
+			const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
+			await this.cacheManager.del(socket.handshake.auth.token)
+			socket.handshake.auth = { token: jwtToken }
+			return { token: jwtToken, newName: UserInfo["newDisplayName"] };
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@SubscribeMessage("verifyJWT")
@@ -717,16 +818,22 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("getQrCode")
 	public async tfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const { otpauthUrl, newUser } = await this.tfaService.generateTwoFactorAuthenticationSecret(data["user"]);
+		try {
+			const { otpauthUrl, newUser } = await this.tfaService.generateTwoFactorAuthenticationSecret(data["user"]);
 
 
-		const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
-		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth = { token: jwtToken }
+			const jwtToken = JWT.sign(newUser, process.env.JWT_SECRET);
+			await this.cacheManager.del(socket.handshake.auth.token)
+			socket.handshake.auth = { token: jwtToken }
 
-		this.logger.log(jwtToken)
-		const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
-		return { token: jwtToken, qrcode: ret }
+			this.logger.log(jwtToken)
+			const ret = await this.tfaService.pipeQrCodeStream(otpauthUrl)
+			return { token: jwtToken, qrcode: ret }
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -736,14 +843,20 @@ export class MainGateway {
 	 */
 	@SubscribeMessage("checkCode")
 	public async checkCode(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["authCode"], data["userIntraName"])
-		if (!valid)
-			return {error:"invalid 2fa", token: null}
-		const user = await this.prismaService.user.findUnique({
-			where: { intraName: data["userIntraName"] },
-		});
-		const token = this._getJWTToken(user, socket);
-		return { valid: "2fa code is valid", token: token }
+		try {
+			const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["authCode"], data["userIntraName"])
+			if (!valid)
+				return {error:"invalid 2fa", token: null}
+			const user = await this.prismaService.user.findUnique({
+				where: { intraName: data["userIntraName"] },
+			});
+			const token = this._getJWTToken(user, socket);
+			return { valid: "2fa code is valid", token: token }
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	@UseGuards(JwtGuard)
@@ -760,20 +873,25 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("enableTfaAuth")
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
+		try {
+			const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
+			if (!valid)
+				return { error: "invalid 2fa" }
 
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
-		if (!valid)
-			return { error: "invalid 2fa" }
-
-		const user = await this.prismaService.user.update({
-			where: { intraName: data["user"].intraName },
-			data: { tfaEnabled: true }
-		})
-		this.logger.log(`tfa enabled for ${user.intraName}`)
-		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken }
+			const user = await this.prismaService.user.update({
+				where: { intraName: data["user"].intraName },
+				data: { tfaEnabled: true }
+			})
+			this.logger.log(`tfa enabled for ${user.intraName}`)
+			const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+			await this.cacheManager.del(socket.handshake.auth.token)
+			socket.handshake.auth = { token: jwtToken }
+			return { token: jwtToken }
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -784,19 +902,25 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("disableTfaAuth")
 	public async disableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
-		if (!valid)
-			return { error: "invalid 2fa" }
+		try {
+			const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
+			if (!valid)
+				return { error: "invalid 2fa" }
 
-		const user = await this.prismaService.user.update({
-			where: { intraName: data["user"].intraName },
-			data: { tfaEnabled: false }
-		})
-		this.logger.log(`tfa disabled for ${user.intraName}`)
-		const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
-		await this.cacheManager.del(socket.handshake.auth.token)
-		socket.handshake.auth = { token: jwtToken }
-		return { token: jwtToken }
+			const user = await this.prismaService.user.update({
+				where: { intraName: data["user"].intraName },
+				data: { tfaEnabled: false }
+			})
+			this.logger.log(`tfa disabled for ${user.intraName}`)
+			const jwtToken = JWT.sign(user, process.env.JWT_SECRET);
+			await this.cacheManager.del(socket.handshake.auth.token)
+			socket.handshake.auth = { token: jwtToken }
+			return { token: jwtToken }
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	/**
@@ -807,23 +931,29 @@ export class MainGateway {
 	 */
 	@SubscribeMessage("changeAvatar")
 	public async changeAvatar(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		this.logger.log(`User: ${data['id']} is trying to change avatar.`);
+		try {
+			this.logger.log(`User: ${data['id']} is trying to change avatar.`);
 
-		if (!await this.prismaService.user.count({ where: { intraId: data["id"] }}))
-			return { error: "User does not exist" };
+			if (!await this.prismaService.user.count({ where: { intraId: data["id"] }}))
+				return { error: "User does not exist" };
 
-		const avatarFile = `avatars/${data["id"]}`;
-		const fileStream = fs.createWriteStream(`static/${avatarFile}`);
-		await new Promise((resolve, reject) => {
-			fileStream.on("finish", resolve);
-			fileStream.on("error", reject);
-			fileStream.write(Buffer.from(data["raw"]));
-		}).catch((err) => {
-			this.logger.log(`User: ${data['id']} failed to change avatar: ${err}`);
-		}).then(() => {
-			this.logger.log(`User: ${data['id']} changed avatar.`);
-		});
-		fileStream.close();
+			const avatarFile = `avatars/${data["id"]}`;
+			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
+			await new Promise((resolve, reject) => {
+				fileStream.on("finish", resolve);
+				fileStream.on("error", reject);
+				fileStream.write(Buffer.from(data["raw"]));
+			}).catch((err) => {
+				this.logger.log(`User: ${data['id']} failed to change avatar: ${err}`);
+			}).then(() => {
+				this.logger.log(`User: ${data['id']} changed avatar.`);
+			});
+			fileStream.close();
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 
 	private _getJWTToken(userData: User, socket: Socket) {
@@ -840,96 +970,102 @@ export class MainGateway {
 	 */
 	@SubscribeMessage("authStart")
 	public async authStart(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		this.logger.log(data);
+		try {
+			this.logger.log(data);
 
-		if (!("redirectUrl" in data) || !("state" in data) || !("authCode" in data))
-			return { error: "invalid request" }
+			if (!("redirectUrl" in data) || !("state" in data) || !("authCode" in data))
+				return { error: "invalid request" }
 
-		// Fetch the oauth token.
+			// Fetch the oauth token.
 
-		const response = await fetch("https://api.intra.42.fr/oauth/token", {
-			method: "POST",
-			// @ts-ignore fuck you typescript
-			body: new URLSearchParams({
-				grant_type: "authorization_code",
-				client_id: process.env.INTRA_KEY,
-				client_secret: process.env.INTRA_SECRET,
-				code: data["authCode"],
-				state: data["state"],
-				redirect_uri: data["redirectUrl"]
-			}),
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-			}
-		});
-		if (!response.ok) {
-			this.logger.log(`Failed to authenticate: ${response.status} : ${response.statusText}`);
-			return { error: response.statusText }
-		}
-
-		// Fetch all user data from /me
-		const authResponse = await response.json();
-		const responseUser = await fetch("https://api.intra.42.fr/v2/me", {
-			method: "GET",
-			headers: {
-				"Authorization": `Bearer ${authResponse["access_token"]}`,
-				"Content-Type": "application/json"
-			}
-		});
-		const userResponse = await responseUser.json();
-
-		// Registration
-		// these things should only be done on first-time login
-		const userExists = await this.prismaService.user.count({
-			where: { intraId: userResponse["id"] }
-		});
-		const avatarFile = `avatars/${userResponse["id"]}`;
-		if (!userExists) {
-			const profilePic = await fetch(userResponse["image"]["versions"]["large"]);
-			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
-			await new Promise((resolve, reject) => {
-				profilePic.body.pipe(fileStream);
-				profilePic.body.on("error", reject);
-				fileStream.on("finish", resolve);
+			const response = await fetch("https://api.intra.42.fr/oauth/token", {
+				method: "POST",
+				// @ts-ignore fuck you typescript
+				body: new URLSearchParams({
+					grant_type: "authorization_code",
+					client_id: process.env.INTRA_KEY,
+					client_secret: process.env.INTRA_SECRET,
+					code: data["authCode"],
+					state: data["state"],
+					redirect_uri: data["redirectUrl"]
+				}),
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+				}
 			});
-		}
+			if (!response.ok) {
+				this.logger.log(`Failed to authenticate: ${response.status} : ${response.statusText}`);
+				return { error: response.statusText }
+			}
 
-		// Store user data with upsert, if user already exists this does nothing
-		const userData = await this.prismaService.user.upsert({
-			where: { intraId: userResponse["id"] },
-			update: {}, // Empty since if user exists already all this data should be there
-			create: {
-				name: userResponse["login"],
-				email: userResponse["email"],
-				intraId: userResponse["id"],
-				intraName: userResponse["login"],
-				avatar: avatarFile,
-				channels: {
-					create: {
-						role: Role.USER,
-						channel: {
-							connect: {
-								name: "Global"
+			// Fetch all user data from /me
+			const authResponse = await response.json();
+			const responseUser = await fetch("https://api.intra.42.fr/v2/me", {
+				method: "GET",
+				headers: {
+					"Authorization": `Bearer ${authResponse["access_token"]}`,
+					"Content-Type": "application/json"
+				}
+			});
+			const userResponse = await responseUser.json();
+
+			// Registration
+			// these things should only be done on first-time login
+			const userExists = await this.prismaService.user.count({
+				where: { intraId: userResponse["id"] }
+			});
+			const avatarFile = `avatars/${userResponse["id"]}`;
+			if (!userExists) {
+				const profilePic = await fetch(userResponse["image"]["versions"]["large"]);
+				const fileStream = fs.createWriteStream(`static/${avatarFile}`);
+				await new Promise((resolve, reject) => {
+					profilePic.body.pipe(fileStream);
+					profilePic.body.on("error", reject);
+					fileStream.on("finish", resolve);
+				});
+			}
+
+			// Store user data with upsert, if user already exists this does nothing
+			const userData = await this.prismaService.user.upsert({
+				where: { intraId: userResponse["id"] },
+				update: {}, // Empty since if user exists already all this data should be there
+				create: {
+					name: userResponse["login"],
+					email: userResponse["email"],
+					intraId: userResponse["id"],
+					intraName: userResponse["login"],
+					avatar: avatarFile,
+					channels: {
+						create: {
+							role: Role.USER,
+							channel: {
+								connect: {
+									name: "Global"
+								}
 							}
 						}
 					}
 				}
-			}
-		});
+			});
 
-		//sign a jwttoken and store it in the auth of the socket handshake
-		//only if 2fa is disabled
-		const jwtToken = (userData.tfaEnabled ? null : this._getJWTToken(userData, socket));
+			//sign a jwttoken and store it in the auth of the socket handshake
+			//only if 2fa is disabled
+			const jwtToken = (userData.tfaEnabled ? null : this._getJWTToken(userData, socket));
 
-		return {
-			token: jwtToken,
-			state: data["state"],
-			displayName: userData.name,
-			intraName: userData.intraName,
-			avatar: userData.avatar,
-			hasTfa: userData.tfaEnabled,
-			isNew: userExists ? false : true // invert logic but not with !
-		}; // <===== jwt
+			return {
+				token: jwtToken,
+				state: data["state"],
+				displayName: userData.name,
+				intraName: userData.intraName,
+				avatar: userData.avatar,
+				hasTfa: userData.tfaEnabled,
+				isNew: userExists ? false : true // invert logic but not with !
+			}; // <===== jwt
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	}
 }
 

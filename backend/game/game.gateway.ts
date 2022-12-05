@@ -82,9 +82,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('setupGameConnection')
 	async setupGameConnection(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		if (this.gameService.connectUserToGames(socket.id, data["user"]["intraName"]))
-			return { connectedToGame: true };
-		return { connectedToGame: false };
+		try {
+			if (this.gameService.connectUserToGames(socket.id, data["user"]["intraName"]))
+				return { connectedToGame: true };
+			return { connectedToGame: false };
+		}
+		catch (e) {
+			console.error(e);
+			return {error: e.toString()};
+		}
 	}
 
 	handleConnection(@ConnectedSocket() socket: Socket) {
