@@ -641,6 +641,15 @@ export class MainGateway {
 		if (user)
 			return {error:"Username already in use"}
 
+		if (UserInfo["newDisplayName"].length > 20)
+			return {error:"Display name too long"};
+		if (UserInfo["newDisplayName"].length < 3)
+			return {error:"Display name too short"};
+		if (UserInfo["newDisplayName"].includes(" "))
+			return {error:"Display name can't contain spaces"};
+		if (UserInfo["newDisplayName"].trim() == "")
+			return {error:"Display name can't be empty"};
+
 		const newUser = await this.prismaService.user.update({
 			where: { intraName: UserInfo["user"].intraName },
 			data: { name: UserInfo["newDisplayName"] }
