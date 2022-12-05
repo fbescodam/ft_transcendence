@@ -6,6 +6,7 @@ import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
 import { JWT} from "$lib/Stores/User";
+// @ts-ignore ignore import as any
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
 import InviteModal from "$lib/Components/Modal/InviteModal.svelte";
