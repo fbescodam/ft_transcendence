@@ -63,7 +63,7 @@ function killUser(e: SubmitEvent) {
 
 	switch (killSelect.value) {
 		case "1": {
-			io.emit("muteUser", { user: userInput.value, channelName: channel.channelName }, function (e:any) {
+			io.emit("muteUser", { muteUser: userInput.value, channelName: channel.channelName }, function (e:any) {
 				if ("error" in e) {
 					alert(e.error);
 					return;
@@ -72,9 +72,9 @@ function killUser(e: SubmitEvent) {
 			})
 			break;
 		}
-	
+
 		case "2": {
-			io.emit("kickUser", { user: userInput.value, channelName: channel.channelName }, function (e:any) {
+			io.emit("kickUser", { kickUser: userInput.value, channelName: channel.channelName }, function (e:any) {
 				if ("error" in e) {
 					alert(e.error);
 					return;

@@ -542,6 +542,9 @@ export class MainGateway {
 	@SubscribeMessage("makeUserAdmin")
 	public async makeUserAdmin(@MessageBody() data: Object) {
 		try {
+			if (!("adminUser" in data))
+				return {error:"no adminUser in data"};
+
 			//check user is admin
 			const userInChannel = await this.prismaService.channel.findUnique({
 				where: { name:data["channelName"] },
@@ -598,6 +601,9 @@ export class MainGateway {
 	@SubscribeMessage("muteUser")
 	public async muteUser(@MessageBody() data: Object) {
 		try {
+			if (!("muteUser" in data))
+				return {error:"no muteUser in data"};
+
 			//check user is admin
 			const userInChannel = await this.prismaService.channel.findUnique({
 				where: { name:data["channelName"] },
@@ -654,6 +660,9 @@ export class MainGateway {
 	@SubscribeMessage("kickUser")
 	public async kickUser(@MessageBody() data: Object) {
 		try {
+			if (!("kickUser" in data))
+				return {error:"no kickUser in data"};
+
 			//check user is admin
 			const userInChannel = await this.prismaService.channel.findUnique({
 				where: { name:data["channelName"] },
