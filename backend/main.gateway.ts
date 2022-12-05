@@ -97,6 +97,8 @@ export class MainGateway {
 	async handleMessage(@MessageBody() msg: any): Promise<void> {
 		this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
 		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+
+		// TODO: check if user is muted
 		await this.prismaService.message.create({
 			data: {
 				senderName: msg.user.name,
@@ -300,6 +302,15 @@ export class MainGateway {
 			this.logger.log(`channel named ${channelData["name"]} exists`)
 			return { error:"channel exists" }
 		}
+
+		if (channelData["name"].length > 42)
+			return { error:"channel name too long" }
+		if (channelData["name"].length < 3)
+			return { error:"channel name too short" }
+		if (channelData["name"].includes(" "))
+			return { error:"channel name cannot contain spaces" }
+		if (channelData["name"].trim() == "")
+			return { error:"channel name cannot be empty" }
 
 		let channel;
 		if (channelData["password"] != null)
