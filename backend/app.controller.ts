@@ -61,13 +61,13 @@ export class AppController {
 				fileStream.write(Buffer.from(file.buffer));
 			}).then(() => {
 				this.logger.log(`User: ${user.intraId} changed avatar.`);
+				res.status(200).send({ status: "avatar changed" });
 			}).catch((err) => {
 				this.logger.log(`User: ${user.intraId} failed to change avatar: ${err}`);
+				res.status(400).send({ error: "failed to change avatar: " + err.toString() });
 			}).finally(() => {
 				fileStream.close();
 			});
-
-			return { status: "avatar uploaded" };
 		}
 		return { error: "method not supported" };
 	}
