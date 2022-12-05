@@ -35,8 +35,8 @@ onMount(() => {
 		// send authentication code to backend
 		io.emit("authStart", { authCode: authCode, state: $state, redirectUrl: `${$page.url.origin}${$page.url.pathname}` },  function (answer: any) {
 			if ("error" in answer) {
-				console.error(answer.error, answer);
 				alert(`Error: ${answer.error}`);
+				return;
 			}
 
 			$displayName = answer.displayName;

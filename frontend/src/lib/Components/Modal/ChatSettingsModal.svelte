@@ -48,8 +48,12 @@ function passwordSetting(e: SubmitEvent) {
 	e.preventDefault();
 
 	console.log(passwordInput.value)
-	io.emit("changePassword", {password:passwordInput.value, name:channel.channelName}, function (e:any) {
-		console.log("password changed")
+	io.emit("changePassword", { password: passwordInput.value, name: channel.channelName}, function (e:any) {
+		if ("error" in e) {
+			alert(e.error);
+			return;
+		}
+		alert("Password changed");
 	})
 }
 
@@ -57,13 +61,41 @@ function passwordSetting(e: SubmitEvent) {
 function killUser(e: SubmitEvent) {
 	e.preventDefault();
 
-	console.log("Kill a user")
+	switch (killSelect.value) {
+		case "1": {
+			io.emit("muteUser", { user: userInput.value, channelName: channel.channelName }, function (e:any) {
+				if ("error" in e) {
+					alert(e.error);
+					return;
+				}
+				alert(`User ${userInput.value} has been muted`);
+			})
+			break;
+		}
+	
+		case "2": {
+			io.emit("kickUser", { user: userInput.value, channelName: channel.channelName }, function (e:any) {
+				if ("error" in e) {
+					alert(e.error);
+					return;
+				}
+				alert(`User ${userInput.value} has been banned`);
+			})
+			break;
+		}
 
+		default:
+			break;
+	}
 }
 
 function removePW() {
 	io.emit("removePassword", {name:channel.channelName}, function (e:any) {
-		console.log("password removed from channel")
+		if ("error" in e) {
+			alert(e.error);
+			return;
+		}
+		alert("Password removed");
 	})
 }
 
@@ -98,13 +130,8 @@ function removePW() {
 					killSelection = killSelect.value; console.log(killSelection)
 				}}>
 					<option selected value="1">Mute</option>
-					<option value="2">Kick</option>
-					<option value="3">Ban</option>
+					<option value="2">Kick / Ban</option>
 				</select>
-				{#if killSelection != "2"}
-					<label>Minutes:</label>
-					<input type="number" min="0" max="100" step="1" value="0"/>
-				{/if}
 				<hr/>
 				<Button type="submit">Submit</Button>
 			</fieldset>
