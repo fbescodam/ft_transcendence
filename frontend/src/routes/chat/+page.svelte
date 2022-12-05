@@ -143,7 +143,7 @@ function switchChannel(channel: any) {
 
 	<!-- Chat messages -->
 	<Container style="flex: 1;">
-		{#if currentChannel != undefined && currentChannel.name != "Global" && currentChannel.role === "ADMIN"}
+		{#if currentChannel != undefined && currentChannel.name != "Global" && (currentChannel.role === "ADMIN" || currentChannel.role === "OWNER")}
 		<Button on:click={() => {showSettingsModal = true}}>Settings</Button>
 		<Button on:click={() => {leaveChannel()}}>Leave channel</Button>
 		{/if}

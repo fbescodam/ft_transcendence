@@ -13,7 +13,6 @@ import Logo42 from "$lib/Assets/42Logo.svg";
 import Logo from "$lib/Assets/Logo.gif";
 import Container from "$lib/Components/Container/Container.svelte";
 import type { Socket } from 'socket.io-client';
-import TextInput from '$lib/Components/TextInput/TextInput.svelte';
 </script>
 
 <script lang="ts">

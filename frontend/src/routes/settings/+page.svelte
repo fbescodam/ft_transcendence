@@ -15,6 +15,7 @@ import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount, onDestroy } from "svelte";
 import { page } from "$app/stores";
+import NProgress from "nprogress";
 
 let io: Socket;
 let show2FAModal: boolean = false;
@@ -62,6 +63,7 @@ function changeUsername(e: SubmitEvent) {
 		$displayName = name;
 		$JWT = answer["token"]
 		newUsername.value = '';
+		alert("Username changed");
 	})
 }
 
@@ -69,9 +71,15 @@ function changeUsername(e: SubmitEvent) {
  * Change the name of the user
  * @param e The submit event
  */
- async function changeUserAvatar(e: SubmitEvent) {
-	e.preventDefault()
+ function changeUserAvatar(e: Event) {
+	console.log("changeUserAvatar", newAvatar, newAvatar.files);
 
+	if (!newAvatar.files || newAvatar.files.length == 0) {
+		alert("No file selected");
+		return;
+	}
+
+	NProgress.start();
 	const formData = new FormData()
 	formData.append('file', newAvatar.files![0])
 
@@ -79,10 +87,11 @@ function changeUsername(e: SubmitEvent) {
 		method: 'POST',
 		headers: {"Authorization": `Bearer ${$JWT!}`},
 		body: formData
-	}).catch((err) => alert(err));
-	alert("Avatar changed!");
-	newAvatar.files = null;
-	newAvatar.value = "";
+	}).catch((err) => alert(err)).then
+	(() => {
+		newAvatar.files = null;
+		newAvatar.value = "";
+	}).finally(() => NProgress.done());
 }
 
 function logOut() {
@@ -110,6 +119,7 @@ function checkCode(e: SubmitEvent) {
 <svelte:head>
 	<title>Settings</title>
 	<meta name="description" content="Change your user settings" />
+	<link rel='stylesheet' href='/nprogress.css'/>
 </svelte:head>
 
 <Enable2FaModal bind:visible={show2FAModal} bind:tfaEnabled={tfaEnabled}/>
@@ -136,14 +146,12 @@ function checkCode(e: SubmitEvent) {
 			</fieldset>
 		</form>
 
-		<form on:submit={(e) => { changeUserAvatar(e); }}>
-			<fieldset>
-				<legend>Avatar</legend>
-				<input type="file" accept="image/*" required bind:this={newAvatar}/>
-				<hr/>
-				<Button type="submit">Submit</Button>
-			</fieldset>
-		</form>
+		<fieldset>
+			<legend>Avatar</legend>
+			<input type="file" accept="image/*" required bind:this={newAvatar}/>
+			<hr/>
+			<Button on:click={(e) => { changeUserAvatar(e); }}>Submit</Button>
+		</fieldset>
 
 		<br/>
 
