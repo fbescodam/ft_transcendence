@@ -45,6 +45,30 @@ onMount(() => {
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
+			if (answer.newUser) {
+				let isGud: boolean = false;
+				let name: string | null = "";
+
+				while (!isGud) {
+					name = prompt("Give me your name", answer.displayName);
+					if (name == null || name.trim() == "") {
+						alert("Invalid name")
+						continue;
+					}
+
+					io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
+						if ("error" in answer) {
+							alert("Invalid name: " + answer.error);
+							isGud = false;
+							return;
+						};
+
+						isGud = true
+						$displayName = name;
+					});
+				}
+			}
+
 			if (!hasTFA) {
 				goto(`${$page.url.origin}/`, { replaceState: true })
 			}

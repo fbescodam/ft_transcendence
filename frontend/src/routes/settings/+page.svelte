@@ -30,6 +30,11 @@ let newAvatar: HTMLInputElement;
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 	io.emit("isTfaEnabled", {}, (data: { tfaEnabled: boolean }) => {
+		if ("error" in data) {
+			alert(data.error);
+			return;
+		}
+
 		tfaEnabled = data.tfaEnabled;
 		console.log(tfaEnabled);
 	});
@@ -49,12 +54,11 @@ function changeUsername(e: SubmitEvent) {
 
 	const name = newUsername.value.substring(0, 42);
 	io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
-		console.log(answer);
-		if ("error" in answer)
-		{
-			newUsername.setCustomValidity(answer.error);
-			return console.log("error: %s", answer.error);
+		if ("error" in answer) {
+			alert("Failed to change username: " + answer.error);
+			return;
 		}
+
 		$displayName = name;
 		$JWT = answer["token"]
 		newUsername.value = '';
@@ -88,7 +92,7 @@ function checkCode(e: SubmitEvent) {
 
 	io.emit('enableTfaAuth', {tfaCode: authCode.value}, function(answer:any) {
 		if ("error" in answer) {
-			authCode.setCustomValidity("Invalid code!");
+			alert("Failed to enable tfa: " + answer.error);
 			return;
 		}
 		$JWT = answer["token"]
