@@ -27,6 +27,32 @@ let io: Socket;
 
 //====//
 
+function askForDispName(defaultName: string): void {
+	let name: string | null = defaultName;
+	while (true) {
+		name = prompt("Give me your name", defaultName);
+		if (name != null && name.trim() != "")
+			break;
+		alert("Invalid name");
+	}
+
+	if (name === defaultName) {
+		goto(`${$page.url.origin}/`, { replaceState: true });
+		return;
+	}
+	io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
+		if ("error" in answer) {
+			alert("Invalid name: " + answer.error);
+			
+			askForDispName(defaultName);
+		}
+		else {
+			$displayName = name;
+			goto(`${$page.url.origin}/`, { replaceState: true });
+		}
+	});
+}
+
 //TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
@@ -45,31 +71,10 @@ onMount(() => {
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
-			if (answer.newUser) {
-				let isGud: boolean = false;
-				let name: string | null = "";
-
-				while (!isGud) {
-					name = prompt("Give me your name", answer.displayName);
-					if (name == null || name.trim() == "") {
-						alert("Invalid name")
-						continue;
-					}
-
-					io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
-						if ("error" in answer) {
-							alert("Invalid name: " + answer.error);
-							isGud = false;
-							return;
-						};
-
-						isGud = true
-						$displayName = name;
-					});
-				}
+			if (true) {
+				askForDispName($displayName!);
 			}
-
-			if (!hasTFA) {
+			else if (!hasTFA) { // Else because new user never has 2fa enabled anyways
 				goto(`${$page.url.origin}/`, { replaceState: true })
 			}
 		});

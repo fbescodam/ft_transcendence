@@ -80,6 +80,9 @@ function changeUsername(e: SubmitEvent) {
 		headers: {"Authorization": `Bearer ${$JWT!}`},
 		body: formData
 	}).catch((err) => alert(err));
+	alert("Avatar changed!");
+	newAvatar.files = null;
+	newAvatar.value = "";
 }
 
 function logOut() {
