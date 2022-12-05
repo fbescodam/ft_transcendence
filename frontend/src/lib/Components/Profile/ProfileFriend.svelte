@@ -8,10 +8,13 @@
 <script lang="ts">
 import Button from "../Button/Button.svelte";
 import ProfilePic from "./ProfilePic.svelte";
-import { ChatAlt2, EmojiHappy, EmojiSad, Icon, X } from "svelte-hero-icons";
+import { ChatAlt2, EmojiHappy, Icon, UserCircle, X } from "svelte-hero-icons";
 import Container from "../Container/Container.svelte";
 import type { User } from "$lib/Types";
 import type { Socket } from "socket.io-client";
+import { page } from "$app/stores";
+import { displayName } from "$lib/Stores/User";
+import { goto } from "$app/navigation";
 
 export let io: Socket;
 export let profile: User;
@@ -40,6 +43,11 @@ function removeFriend() {
 	});
 }
 
+function enterProfile() {
+	console.log("Removed friend!");
+	// goto(`/profile/${profile.name}`, { replaceState: true, invalidateAll: true });
+}
+
 </script>
 
 <!-- HTML -->
@@ -52,18 +60,24 @@ function removeFriend() {
 			<ProfilePic height={50} width={50} avatar={profile.avatar}/>
 		</div>
 		<menu>
-			<Button on:click={() => { }}>
-				<Icon src={ChatAlt2} size={"1.4rem"} />
-				<span>Message</span>
-			</Button>
-			<Button on:click={() => { }}>
-				<Icon src={EmojiHappy} size={"1.4rem"} />
-				<span>Invite</span>
-			</Button>
-			<Button on:click={() => { }}>
-				<Icon src={X} size={"1.4rem"} />
-				<span>Remove</span>
-			</Button>
+			{#if $page.params.slug === $displayName}
+				<Button on:click={() => { enterDM() }}>
+					<Icon src={ChatAlt2} size={"1.4rem"} />
+					<span>Message</span>
+				</Button>
+				<Button on:click={() => { inviteFriend() }}>
+					<Icon src={EmojiHappy} size={"1.4rem"} />
+					<span>Invite</span>
+				</Button>
+				<Button on:click={() => { removeFriend() }}>
+					<Icon src={X} size={"1.4rem"} />
+					<span>Remove</span>
+				</Button>
+			{/if}
+			<!-- <Button on:click={() => { enterProfile() }}>
+				<Icon src={UserCircle} size={"1.4rem"} />
+				<span>View</span>
+			</Button> -->
 		</menu>
 	</div>
 </Container>
