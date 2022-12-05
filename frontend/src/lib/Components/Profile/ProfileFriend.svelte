@@ -43,62 +43,23 @@ function removeFriend() {
 	});
 }
 
-function enterProfile() {
-	console.log("Removed friend!");
-	// goto(`/profile/${profile.name}`, { replaceState: true, invalidateAll: true });
-}
-
 </script>
 
 <!-- HTML -->
 
 <Container>
 	<!-- svelte-ignore a11y-missing-attribute -->
-	<a alt="profile" src="/profile/{profile.name}">{profile.name}</a>
-	<div class="content">
-		<div class="user-info">
-			<ProfilePic height={50} width={50} avatar={profile.avatar}/>
-		</div>
-		<menu>
-			{#if $page.params.slug === $displayName}
-				<Button on:click={() => { enterDM() }}>
-					<Icon src={ChatAlt2} size={"1.4rem"} />
-					<span>Message</span>
-				</Button>
-				<Button on:click={() => { inviteFriend() }}>
-					<Icon src={EmojiHappy} size={"1.4rem"} />
-					<span>Invite</span>
-				</Button>
-				<Button on:click={() => { removeFriend() }}>
-					<Icon src={X} size={"1.4rem"} />
-					<span>Remove</span>
-				</Button>
-			{/if}
-			<!-- <Button on:click={() => { enterProfile() }}>
-				<Icon src={UserCircle} size={"1.4rem"} />
-				<span>View</span>
-			</Button> -->
-		</menu>
-	</div>
+	<a class="profile-link" href="/profile/{profile.intraName}" title={profile.name} >
+		<ProfilePic height={50} width={50} avatar={profile.avatar} alt={profile.intraName} />
+	</a>
 </Container>
 
 <!-- Styling -->
 
 <style lang="scss">
-.content {
-	display: flex;
-	flex-direction: row;
-	gap: 4px;
-	
-	.user-info {
-		flex: 1;
-		display: block;
-	}
-
-	& menu {
-		display: flex;
-		gap: 8px;
-		flex-direction: row;
-	}
+.profile-link {
+	display: inline-block;
+	text-decoration: none;
+	cursor: pointer;
 }
 </style>

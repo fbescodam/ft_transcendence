@@ -21,17 +21,7 @@ export let otherUser: string;
 let io: Socket
 let chat: HTMLDivElement;
 let autoscroll: boolean;
-let messages: { senderName: string, text: string }[] = [
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-	{senderName: "faggot", text: "fuck off"},
-]
+let messages: { senderName: string, senderIntraName: string, text: string }[] = [];
 
 let channel: any;
 // ----------------------------------------------------------------------------
@@ -40,7 +30,7 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
 	io.on("sendMsg", function (message: any) {
-			messages = [...messages, { senderName: message.user, text: message.text}];
+			messages = [...messages, { senderName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 	});
 
 	io.emit('checkDmExistence', {user2:otherUser}, function (e:any) {

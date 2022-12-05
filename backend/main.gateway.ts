@@ -71,7 +71,7 @@ export class MainGateway implements OnGatewayDisconnect {
 		this.logger.log(`getting user data for ${data["penis"]}`);
 		const user = await this.prismaService.user.findFirst({
 			where: {
-				name: data["penis"]
+				intraName: data["penis"]
 			},
 			select: {
 				name: true,
@@ -118,7 +118,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				select: {
 					users: {
 						where: {
-							userName: msg.user.name
+							userName: msg.user.intraName
 						}
 					}
 				}
@@ -126,12 +126,12 @@ export class MainGateway implements OnGatewayDisconnect {
 			if (userInChannel.users[0].role == Role.MUTED)
 				return { error: "you are muted" }
 
-			this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
-			this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
+			this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user: msg.user.name, userIntraName: msg.user.intraName, channel:msg.inChannel });
+			this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.intraName}`);
 
 			await this.prismaService.message.create({
 				data: {
-					senderName: msg.user.name,
+					senderName: msg.user.name, // For some reason this needs the displayname and not the intra name
 					channelName: msg.inChannel,
 					text: msg.text
 				}

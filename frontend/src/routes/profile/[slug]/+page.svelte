@@ -138,7 +138,7 @@ function spectateUser() {
 		{/if}
 		<Container style="background-image: url(https://picsum.photos/1920/1080); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
-				<ProfilePic avatar={user.avatar} width={128} height={128}/>
+				<ProfilePic avatar={user.avatar} width={128} height={128} alt={user.intraName} />
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} online={isOnline} />
 			</div>
 			{#if $page.params.slug != $displayName && isBlockReceive == false}

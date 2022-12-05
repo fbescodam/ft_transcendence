@@ -18,7 +18,7 @@ import type { Socket } from "socket.io-client";
 <script lang="ts">
 let showAddModal: boolean = false;
 let io: Socket;
-let messages: Array<any> = [];
+let messages: { senderName: string, senderIntraName: string, text: string }[] = [];
 let openChannel = "Global";
 let currentChannel: any;
 let currentUser = $displayName
@@ -44,7 +44,7 @@ onMount(() => {
 		if (message.channel == openChannel)
 		{
 			if (!(blockedUsers.map((item: any) => item['name']).includes(message.user)))
-				messages = [...messages, { senderName: message.user, text: message.text}];
+				messages = [...messages, { senderName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
 	// Get channels from the user
@@ -151,18 +151,13 @@ function switchChannel(channel: any) {
 			<h1>{openChannel}</h1>
 			<div class="messages" bind:this={chat}>
 				{#if messages.length == 0}
-					<b> No messages...</b>
+					<b>No messages...</b>
 				{:else}
-					{#each messages as message}
-						<article>
-							<a href="/profile/{message.senderName}">
-								<b>
-									{message.senderName}:
-								</b>
-							</a>
-							<span>{message.text}</span>
-						</article>
-					{/each}
+					<ul>
+						{#each messages as message}
+							<li><a href="/profile/{message.senderIntraName}"><b>{message.senderName}</b></a>:&nbsp;<span>{message.text}</span></li>
+						{/each}
+					</ul>
 				{/if}
 			</div>
 			<TextInput on:key={onSend}/>
@@ -211,9 +206,18 @@ function switchChannel(channel: any) {
 		background-size: 100% 40px,100% 40px,100% 14px,100% 14px;
 		background-attachment: local,local,scroll,scroll;
 
+		& ul {
+			list-style-type: none;
+			margin: 0;
+		}
+
 		a {
 			text-decoration: none;
 			color: #9fa0f9;
+
+			&:hover {
+				text-decoration: underline;
+			}
 		}
 
 		&::-webkit-scrollbar {
