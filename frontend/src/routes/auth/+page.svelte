@@ -43,7 +43,7 @@ function askForDispName(defaultName: string): void {
 	io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
 		if ("error" in answer) {
 			alert("Invalid name: " + answer.error);
-			
+
 			askForDispName(defaultName);
 		}
 		else {
@@ -71,7 +71,9 @@ onMount(() => {
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
-			if (true) {
+			if (answer.isNew) {
+				destroySocket(io);
+				io = initSocket($page.url.hostname, $JWT!);
 				askForDispName($displayName!);
 			}
 			else if (!hasTFA) { // Else because new user never has 2fa enabled anyways
