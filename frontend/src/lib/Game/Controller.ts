@@ -82,7 +82,7 @@ class GameController {
 	 * Get the main user of the game that is being controlled - this is the user who is logged in.
 	 * @returns The player object of the main user. Null if the current game is not controllable.
 	 */
-	public getMainUser() {
+	getMainUser() {
 		if (this._gameState.player1.intraName === this._mainUser)
 			return this._gameState.player1;
 		else if (this._gameState.player2.intraName === this._mainUser)
@@ -94,7 +94,7 @@ class GameController {
 	 * Get the opponent of the main user of the game that is being controlled.
 	 * @returns The player object of the other user. Null if the current game is not controllable.
 	 */
-	public getOtherUser() {
+	getOtherUser() {
 		if (this._gameState.player1.intraName === this._mainUser)
 			return this._gameState.player2;
 		else if (this._gameState.player2.intraName === this._mainUser)
