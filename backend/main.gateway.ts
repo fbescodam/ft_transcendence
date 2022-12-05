@@ -641,7 +641,7 @@ export class MainGateway {
 		if (user)
 			return {error:"Username already in use"}
 
-		if (UserInfo["newDisplayName"].length > 20)
+		if (UserInfo["newDisplayName"].length > 10)
 			return {error:"Display name too long"};
 		if (UserInfo["newDisplayName"].length < 3)
 			return {error:"Display name too short"};
