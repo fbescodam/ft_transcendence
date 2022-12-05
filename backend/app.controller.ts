@@ -55,18 +55,13 @@ export class AppController {
 
 			const avatarFile = `avatars/${user.intraId}`;
 			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
-			new Promise((resolve, reject) => {
-				fileStream.on("finish", resolve);
-				fileStream.on("error", reject);
-				fileStream.write(Buffer.from(file.buffer));
-			}).then(() => {
+			fileStream.on("error", (err) => {
+				this.logger.error(err);
+				return { error: "Failed to write file: " + err.toString() };
+			});
+			fileStream.write(Buffer.from(file.buffer), () => {
 				this.logger.log(`User: ${user.intraId} changed avatar.`);
 				res.status(200).send({ status: "avatar changed" });
-			}).catch((err) => {
-				this.logger.log(`User: ${user.intraId} failed to change avatar: ${err}`);
-				res.status(400).send({ error: "failed to change avatar: " + err.toString() });
-			}).finally(() => {
-				fileStream.close();
 			});
 		}
 		return { error: "method not supported" };
