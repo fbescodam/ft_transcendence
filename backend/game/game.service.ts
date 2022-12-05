@@ -184,22 +184,25 @@ export class GameService {
 	}
 
 	/**
-	 * Add a connected user to any running games they are in.
+	 * Add a connected user a requested game
 	 * @param socketId The socket id of the user
 	 * @param intraName The intra name of the user
+	 * @param gameId The id of the game to add the user to
 	 * @returns Returns true if the user was added to any running games
 	 */
-	connectUserToGames(socketId, intraName) {
-		let addedToAny: boolean = false;
-		for (const gameId in this._games) {
-			if (this._games[gameId].players.includes(intraName) && !(intraName in Object.keys(this._games[gameId].sockets))) {
-				this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
+	connectUserToGame(socketId, intraName, gameId): boolean {
+		if (gameId in this._games) {
+			this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
+			if (intraName in this._games[gameId].players) {
 				this._games[gameId].sockets[intraName] = socketId;
-				console.log(`Socket ${socketId} added to game ${gameId} as ${intraName}`);
-				addedToAny = true;
+				console.log(`Socket ${socketId} added to game ${gameId} as player ${intraName}`);
+				return true;
 			}
+			console.log(`Socket ${socketId} is now spectating game ${gameId}`);
+			return true;
 		}
-		return addedToAny;
+		console.log(`Game ${gameId} does not exist in the list of running online games`);
+		return false;
 	}
 
 	/**

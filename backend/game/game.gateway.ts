@@ -83,7 +83,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('setupGameConnection')
 	async setupGameConnection(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
 		try {
-			if (this.gameService.connectUserToGames(socket.id, data["user"]["intraName"]))
+			if (this.gameService.connectUserToGame(socket.id, data["user"]["intraName"], data["game"]["id"]))
 				return { connectedToGame: true };
 			return { connectedToGame: false };
 		}

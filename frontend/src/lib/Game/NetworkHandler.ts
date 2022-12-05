@@ -20,7 +20,7 @@ class GameNetworkHandler {
 			this._stateHandler(state);
 		});
 
-		this._io.emit("setupGameConnection", {}, (ret: any) => {
+		this._io.emit("setupGameConnection", { game: { id: this._gameState.getGameId() } }, (ret: any) => {
 			if (ret.connectedToGame !== true) {
 				console.warn("Failed to connect to game: user is probably not in any game", ret);
 			}

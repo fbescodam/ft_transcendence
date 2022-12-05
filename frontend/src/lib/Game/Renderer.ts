@@ -11,7 +11,7 @@ class GameRenderer {
 	private _timer: HTMLElement;
 	private _playerLeftInfo: HTMLElement;
 	private _playerRightInfo: HTMLElement;
-
+	private _currentUserIntraName: string;
 	private _size: Dimensions;
 
 	private _debugger: GameDebugger | undefined;
@@ -19,7 +19,7 @@ class GameRenderer {
 	private _lastFrameTime: number = 0;
 	private _fps = 0;
 
-	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, playerLeftInfo: HTMLElement, playerRightInfo: HTMLElement) {
+	constructor(canvas: HTMLCanvasElement, gameState: GameStateMachine, scores: HTMLElement, timer: HTMLElement, playerLeftInfo: HTMLElement, playerRightInfo: HTMLElement, currentUserIntraName: string) {
 		this._gameState = gameState;
 		this._canvas = canvas;
 		this._ctx = canvas.getContext("2d")!;
@@ -27,6 +27,7 @@ class GameRenderer {
 		this._timer = timer;
 		this._playerLeftInfo = playerLeftInfo;
 		this._playerRightInfo = playerRightInfo;
+		this._currentUserIntraName = currentUserIntraName;
 
 		this._size = { w: canvas.width, h: canvas.height };
 
@@ -131,6 +132,17 @@ class GameRenderer {
 		// Timer
 		this._timer.innerText = formatSeconds(this._gameState.getGameDuration() - this._gameState.getTimePlayed());
 
+		// Spectator mode text
+		if (this._gameState.player1.intraName != this._currentUserIntraName && this._gameState.player2.intraName != this._currentUserIntraName) {
+			// We're probably in spectator mode. Display a message to the user.
+			this._ctx.save();
+			this._ctx.fillStyle = "#9a9a9a";
+			this._ctx.font = "24px 'Common Pixel'";
+			this._ctx.textAlign = "center";
+			this._ctx.fillText("SPECTATOR MODE", this._canvas.width * 0.5, 32);
+			this._ctx.restore();
+		}
+
 		// Pause screen (if paused)
 		if (this._gameState.isPaused()) {
 			this._renderOverlay();
@@ -146,11 +158,11 @@ class GameRenderer {
 	};
 
 	//= Public =//
-	public setDebugger = (dbugger: GameDebugger) => {
+	setDebugger = (dbugger: GameDebugger) => {
 		this._debugger = dbugger;
 	}
 
-	public getSize = (): Dimensions => {
+	getSize = (): Dimensions => {
 		return this._size;
 	}
 };
