@@ -14,6 +14,7 @@ import Logo from "$lib/Assets/Logo.gif";
 import Container from "$lib/Components/Container/Container.svelte";
 import type { Socket } from 'socket.io-client';
 import TextInput from '$lib/Components/TextInput/TextInput.svelte';
+import { User } from 'svelte-hero-icons';
 </script>
 
 <script lang="ts">
@@ -71,7 +72,7 @@ onMount(() => {
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
-			if (true) {
+			if (answer.newUser) {
 				askForDispName($displayName!);
 			}
 			else if (!hasTFA) { // Else because new user never has 2fa enabled anyways

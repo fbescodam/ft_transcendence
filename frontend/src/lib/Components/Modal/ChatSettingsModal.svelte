@@ -85,6 +85,7 @@ function killUser(e: SubmitEvent) {
 		}
 
 		default:
+			alert(`Lol no? ${userInput.value}`);
 			break;
 	}
 }
