@@ -5,11 +5,16 @@ import Logo from "$lib/Assets/Logo.gif";
 import { Home, Cube, Menu, Globe, Icon, XCircle } from "svelte-hero-icons";
 import NavItem from "$lib/Components/NavItem/NavItem.svelte";
 import { page } from '$app/stores';
+import { JWT} from "$lib/Stores/User";
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
 import InviteModal from "$lib/Components/Modal/InviteModal.svelte";
+import { onMount } from "svelte";
+import type { Socket } from "socket.io-client";
+import { initSocket } from "$lib/socketIO";
 
-let hasInvite: boolean = true;
+let io: Socket;
+let hasInvite: boolean = false;
 let navitems = [
 	{
 		href: "/",
@@ -30,6 +35,17 @@ let navitems = [
 		color: "purple",
 	},
 ];
+
+// TODO: Make this work
+onMount(() => {
+	if (JWT == null)
+		return;
+	io = initSocket($page.url.hostname, $JWT!)
+
+	io.on("invite", function (data: any) {
+		hasInvite = true;
+	});
+});
 
 </script>
 

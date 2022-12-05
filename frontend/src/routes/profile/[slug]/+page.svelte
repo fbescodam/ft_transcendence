@@ -190,7 +190,7 @@ function spectateUser() {
 				{#if user.friends.length > 0}
 					<div class="friends-list">
 						{#each user.friends as friend}
-							<ProfileFriend profile={friend} />
+							<ProfileFriend io={io} profile={friend} />
 						{/each}
 					</div>
 				{:else}

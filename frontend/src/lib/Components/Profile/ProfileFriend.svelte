@@ -6,16 +6,40 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { page } from "$app/stores";
 import Button from "../Button/Button.svelte";
 import ProfilePic from "./ProfilePic.svelte";
 import { ChatAlt2, EmojiHappy, EmojiSad, Icon, X } from "svelte-hero-icons";
 import Container from "../Container/Container.svelte";
 import type { User } from "$lib/Types";
+import type { Socket } from "socket.io-client";
 
-// TODO: Actually do the thing
-
+export let io: Socket;
 export let profile: User;
+
+function enterDM() {
+	console.log("DM a friend!");
+
+	io.emit('', { }, (answer: any) => {
+
+	});
+}
+
+function inviteFriend() {
+	console.log("Invited a friend!");
+
+	io.emit('', { }, (answer: any) => {
+
+	});
+}
+
+function removeFriend() {
+	console.log("Removed friend!");
+
+	io.emit('', { }, (answer: any) => {
+
+	});
+}
+
 </script>
 
 <!-- HTML -->
@@ -35,10 +59,6 @@ export let profile: User;
 			<Button on:click={() => { }}>
 				<Icon src={EmojiHappy} size={"1.4rem"} />
 				<span>Invite</span>
-			</Button>
-			<Button on:click={() => { }}>
-				<Icon src={EmojiSad} size={"1.4rem"} />
-				<span>Block</span>
 			</Button>
 			<Button on:click={() => { }}>
 				<Icon src={X} size={"1.4rem"} />
