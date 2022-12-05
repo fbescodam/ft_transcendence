@@ -19,7 +19,7 @@ export class AppController {
 	private readonly logger = new Logger("httpStuff")
 
 	public async validateUser(payload: any | JWT.JwtPayload) {
-		
+
 		try {
 			const user = await this.prismaService.user.findFirst({
 				where: {
@@ -43,12 +43,15 @@ export class AppController {
 			const jwtPayload = JWT.verify(jwt, process.env.JWT_SECRET);
 			const user: User = await this.validateUser(jwtPayload);
 			if (user == null)
-				return "no"
+				return { error: "Unauthorized" };
 
 			this.logger.log(`User: ${user.intraId} is trying to change avatar.`);
 
 			if (!await this.prismaService.user.count({ where: { intraId: user.intraId }}))
 				return { error: "User does not exist" };
+
+			if (!file.mimetype.startsWith('image/'))
+				return { error: "File is not an image" };
 
 			const avatarFile = `avatars/${user.intraId}`;
 			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
@@ -63,9 +66,9 @@ export class AppController {
 			});
 			fileStream.close();
 
-			return "avatar uploaded"
+			return { status: "avatar uploaded" };
 		}
-		return "method not supported";
+		return { error: "method not supported" };
 	}
 }
 
