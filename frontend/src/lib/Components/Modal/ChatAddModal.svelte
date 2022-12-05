@@ -57,10 +57,11 @@ function onChannelCreate(e: SubmitEvent) {
 
 	const name = channelNameInput.value.substring(0, 10);
     io.emit('createChannel', { name:name, password:password }, function (answer: any) {
-        if (answer.error)
-            console.log(answer.error)
-        else
-        {
+        if (answer.error) {
+            console.log(answer.error);
+            alert(answer.error);
+        }
+        else {
             $channels = [...$channels, {channelName: answer.name}]
             window.location.reload()
         }
