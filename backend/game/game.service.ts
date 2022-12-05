@@ -211,7 +211,7 @@ export class GameService {
 	connectUserToGame(socketId, intraName, gameId): boolean {
 		if (gameId in this._games) {
 			this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
-			if (intraName in this._games[gameId].players) {
+			if (intraName in this._games[gameId].players && !this._games[gameId].sockets[intraName]) {
 				this._games[gameId].sockets[intraName] = socketId;
 				console.log(`Socket ${socketId} added to game ${gameId} as player ${intraName}`);
 				return true;
