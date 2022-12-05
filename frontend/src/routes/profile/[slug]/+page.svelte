@@ -32,6 +32,7 @@ let isCurrentUser: boolean = false;
 let isFriend: boolean = false;
 let isBlocked: boolean = false;
 let isBlockReceive: boolean = false;
+let isInGame: number = -1;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
@@ -55,6 +56,14 @@ onMount(() => {
 		if (isBlockReceive == false && user!.blockedWho.includes($displayName!))
 			isBlockReceive = true;
 
+		io.emit("userInGame", { userIntraName: user?.intraName }, (ret: any) => {
+			console.log("User in game status:", ret);
+			if ("error" in ret)
+				console.error(ret["error"]);
+			else if (ret.status === "gaming" && "game" in ret && "id" in ret.game) {
+				isInGame = ret.game.id;
+			}
+		});
 	});
 });
 
@@ -104,7 +113,7 @@ const getRandomEmoji = () => {
 
 function spectateUser() {
 	console.log("Trying to spectate user...");
-	// Shit user to that lobby 
+	goto("/game/" + isInGame, { replaceState: false });
 }
 
 </script>
@@ -139,7 +148,9 @@ function spectateUser() {
 					{/if}
 				</Button>
 				<Button on:click={() => inviteUser()}>Invite</Button>
+				{#if isInGame > -1}
 				<Button on:click={() => spectateUser()}>Spectate</Button>
+				{/if}
 				<Button on:click={() => blockUser()}>
 					{#if isBlocked}
 						Unblock

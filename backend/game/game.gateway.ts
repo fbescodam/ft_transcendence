@@ -37,6 +37,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@UseGuards(JwtGuard)
+	@SubscribeMessage('userInGame')
+	async userInGame(@MessageBody() data: Object) {
+		try {
+			const gameId = this.gameService.userInGame(data["userIntraName"]);
+			if (!isNaN(gameId))
+				return { status: 'gaming', game: { id: gameId } };
+			else
+				return { status: 'living', game: null };
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() }
+		}
+	}
+
+	@UseGuards(JwtGuard)
 	@SubscribeMessage('getGame')
 	async getGameInfo(@MessageBody() data: Object) {
 		try {

@@ -184,6 +184,24 @@ export class GameService {
 	}
 
 	/**
+	 * Check if a user is currently in an ongoing game.
+	 * @param intraName The intra name of the user to check
+	 * @returns The gameID of an ongoing game if the user is in one, NaN otherwise
+	 */
+	userInGame(intraName: string): number {
+		for (const gameId in this._games) {
+			console.log(`Checking if ${intraName} is in game ${(this._games[gameId].stateMachine.isPaused() ? "paused" : "ongoing")} game ${gameId}...`);
+			if (this._games[gameId].stateMachine.isPaused())
+				continue;
+			for (const player of this._games[gameId].players) {
+				if (player == intraName)
+					return parseInt(gameId);
+			}
+		}
+		return NaN;
+	}
+
+	/**
 	 * Add a connected user a requested game
 	 * @param socketId The socket id of the user
 	 * @param intraName The intra name of the user
