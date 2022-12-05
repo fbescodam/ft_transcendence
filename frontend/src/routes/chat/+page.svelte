@@ -11,12 +11,13 @@ import { channels } from "$lib/Stores/Channel";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
 import TextInput from "$lib/Components/TextInput/TextInput.svelte"
 import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";import Button from "$lib/Components/Button/Button.svelte";
+import type { Socket } from "socket.io-client";
 ;
 </script>
 
 <script lang="ts">
 let showAddModal: boolean = false;
-let io: any;
+let io: Socket;
 let messages: Array<any> = [];
 let openChannel = "Global";
 let currentChannel: any;
@@ -63,12 +64,22 @@ onDestroy(() => {
 });
 
 function updateMessages(channelName: string) {
-	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) =>
-		messages = answer);
+	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) => {
+		if ("error" in answer) {
+			alert(answer.error);
+			return;
+		}
+		messages = answer
+	});
 }
 
 function leaveChannel() {
-	io.emit('leaveChannel', {name:currentChannel.channelName}, function (e:any) {})
+	io.emit('leaveChannel', {name:currentChannel.channelName}, (answer: any) => {
+		if ("error" in answer) {
+			alert(answer.error);
+			return;
+		}
+	})
 	window.location.reload();
 }
 
@@ -83,16 +94,13 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 		if (!input.value) {
 			return;
 		}
-		let muted = false;
 
-		if ($channels["channelName"] == openChannel && $channels["channelName"].role == 'MUTED')
-		{
-			console.log('ya got muted bitch')
-			muted = true
-		} //TODO: display to user theyve been muted
-		if (muted)
+		currentChannel = $channels.find((el: any) => el.channelName == openChannel);
+		if (currentChannel.channelName == openChannel && currentChannel.role == 'MUTED') {
+			alert("Stfu you fat mofo, your bitch ass got muted.");
 			return;
-		console.log("Sending message:", input.value);
+		}
+
 		io.emit("sendMsg", {inChannel: openChannel, text: input.value});
 		input.value = "";
 	}
