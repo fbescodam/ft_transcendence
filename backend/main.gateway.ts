@@ -116,7 +116,7 @@ export class MainGateway {
 	async getBlockedUser(@MessageBody() data: any) {
 		const user = await this.prismaService.user.findFirst({
 			where: { intraName: data.user.intraName },
-			select: { 
+			select: {
 				blocked: {
 					select: {
 						name: true
@@ -159,7 +159,7 @@ export class MainGateway {
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN)
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
 
 		const channelUsers = await this.prismaService.channel.findFirst({
@@ -174,7 +174,7 @@ export class MainGateway {
 				}
 			}
 		})
-		
+
 		return {usersInChannel:channelUsers}
 	}
 
@@ -220,7 +220,7 @@ export class MainGateway {
 
 	@SubscribeMessage("joinRooms")
 	async joinRooms(@MessageBody() roomInfo: string[], @ConnectedSocket() socket: Socket) {
-		
+
 		roomInfo["channels"] = roomInfo["channels"].map(i => 'chan-' + i);
 		await socket.join(roomInfo["channels"]);
 		this.logger.log(`joined ${roomInfo["channels"]}`);
@@ -258,11 +258,11 @@ export class MainGateway {
 					create: [
 						{
 							userName: arr[0],
-							role: Role.ADMIN
+							role: Role.OWNER
 						},
 						{
 							userName: arr[1],
-							role: Role.ADMIN
+							role: Role.OWNER
 						}
 					]
 				}
@@ -300,9 +300,10 @@ export class MainGateway {
 			channel = await this.prismaService.channel.create({
 				data: {
 					name: channelData["name"],
-					password: {create: {string: password}},
-					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
-			}});
+					password: { create: { string: password } },
+					users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
+				}
+			});
 		}
 		else
 		{
@@ -310,8 +311,9 @@ export class MainGateway {
 				data: {
 					name: channelData["name"],
 					password: undefined,
-					users: {create: {role: Role.ADMIN,userName: channelData["user"].intraName,}}
-			}});
+					users: { create: { role: Role.OWNER, userName: channelData["user"].intraName } }
+				}
+			});
 		}
 
 		await socket.join('chan-' + channelData["name"]);
@@ -322,7 +324,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("removePassword")
 	public async removepassword(@MessageBody() data: Object) {
-		
+
 		try {
 			await this.prismaService.channel.update({
 				where: {name: data["name"]},
@@ -330,7 +332,7 @@ export class MainGateway {
 			})
 		}
 		catch(any) { this.logger.log("no password")}
-		
+
 		this.logger.log(`removed password of ${data["name"]}`)
 		return {valid: "password removed"}
 	}
@@ -373,7 +375,7 @@ export class MainGateway {
 		if (channel.type == ChannelType.DIRECT)
 			return {error:"direct channel"}
 		if (channel.password &&
-			channel.password.string && 
+			channel.password.string &&
 			await this.appService.comparePassword(channel.password.string, channelData["password"]) == false)
 			return {error:"wrong password"};
 		if (channel.users.map((item) => item['userName']).includes(channelData["user"].intraName))
@@ -398,7 +400,7 @@ export class MainGateway {
 	/**
 	 * method for admin a user in chanel
 	 * @param data {channelName: channel_to_admin_in, adminUser: user_to_admin}
-	 * @returns 
+	 * @returns
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("makeUserAdmin")
@@ -418,9 +420,11 @@ export class MainGateway {
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN)
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
-		
+		if (userInChannel.users[0].userName == data["adminUser"].intraName)
+			return {error:"can't admin yourself"};
+
 		await this.prismaService.channel.update({
 			where: { name:data["channelName"] },
 			data: {
@@ -441,7 +445,7 @@ export class MainGateway {
 	/**
 	 * method for muting a user in chanel
 	 * @param data {channelName: channel_to_mute_in, muteUser: user_to_mute}
-	 * @returns 
+	 * @returns
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("muteUser")
@@ -461,9 +465,11 @@ export class MainGateway {
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN)
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
-		
+		if (userInChannel.users[0].userName == data["muteUser"].intraName)
+			return {error:"can't mute yourself"};
+
 		await this.prismaService.channel.update({
 			where: { name:data["channelName"] },
 			data: {
@@ -484,12 +490,12 @@ export class MainGateway {
 	/**
 	 * method to kick user from channel
 	 * @param data {channelName: channel_to_kick_in, kickUser: user_to_kick}
-	 * @returns 
+	 * @returns
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("kickUser")
 	public async kickUser(@MessageBody() data: Object) {
-		
+
 
 		//check user is admin
 		const userInChannel = await this.prismaService.channel.findUnique({
@@ -505,8 +511,24 @@ export class MainGateway {
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
-		if (userInChannel.users[0].role != Role.ADMIN)
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
+		if (data["user"].intraName == data["kickUser"])
+			return {error:"can't kick yourself"};
+
+		// check if user to kick is owner
+		const userToKick = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["kickUser"]
+					}
+				}
+			}
+		})
+		if (userToKick.users[0].role == Role.OWNER)
+			return {error:"can't kick owner"};
 
 		await this.prismaService.channel.update({
 			where: {name: data["channelName"]},
@@ -521,7 +543,7 @@ export class MainGateway {
 	/**
 	 * method for a 'leave channel' button
 	 * @param channelData {name: name_of_channel}
-	 * @returns 
+	 * @returns
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("leaveChannel")
@@ -544,7 +566,7 @@ export class MainGateway {
 			}
 		})
 
-		//TODO: if the last admin left a new admin should be selected 
+		//TODO: if the last admin left a new admin should be selected
 		//TODO: other logic probably idk yet what
 
 		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)

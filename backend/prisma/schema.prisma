@@ -132,6 +132,7 @@ enum Role {
 	USER
 	ADMIN
 	MUTED
+	OWNER
 }
 
 enum ChannelType {
