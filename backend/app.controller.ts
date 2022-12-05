@@ -40,6 +40,10 @@ export class AppController {
 		if (req.method == 'POST')
 		{
 			try {
+				// Check if the file exists
+				if (!file)
+					return { error: "No file was uploaded" }
+
 				const jwt = req.headers.authorization.replace('Bearer ', '');
 				const jwtPayload = JWT.verify(jwt, process.env.JWT_SECRET);
 				const user: User = await this.validateUser(jwtPayload);
