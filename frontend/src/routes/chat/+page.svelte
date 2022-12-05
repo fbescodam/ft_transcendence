@@ -97,7 +97,7 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 
 		currentChannel = $channels.find((el: any) => el.channelName == openChannel);
 		if (currentChannel.channelName == openChannel && currentChannel.role == 'MUTED') {
-			alert("Stfu you fat mofo, your bitch ass got muted.");
+			alert("You are muted in this channel!");
 			return;
 		}
 

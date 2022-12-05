@@ -32,7 +32,7 @@ export class FriendsGateway {
 
 			if (otherUser &&
 				otherUser.blocked.map((item) => item['intraName']).includes(data["user"].intraName))
-				return {error: "you got blocked bitch/you blocked this user"}
+				return {error: "you got blocked by this user, or you blocked them"}
 
 			const checkBlocked = await this.prismaService.user.findFirst({
 				where: {intraName: data["user"].intraName},
