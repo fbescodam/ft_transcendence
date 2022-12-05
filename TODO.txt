@@ -1,0 +1,2 @@
+- spectator mode
+- only return jwt token after 2fa if 2fa is enabled: right now it is stored in window memory which is bad
