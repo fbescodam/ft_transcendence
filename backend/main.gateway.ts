@@ -558,8 +558,14 @@ export class MainGateway {
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
-			if (userInChannel.users[0].userName == data["adminUser"])
-				return {error:"can't admin yourself"};
+
+			const userToAdmin = await this.prismaService.user.findUnique({
+				where: { intraName: data["adminUser"] },
+			});
+			if (!userToAdmin)
+				return {error:"user does not exist"};
+			if (userToAdmin.intraName == data["adminUser"])
+				return {error:"cannot admin yourself"}
 
 			await this.prismaService.channel.update({
 				where: { name:data["channelName"] },
@@ -608,7 +614,13 @@ export class MainGateway {
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
-			if (userInChannel.users[0].userName == data["muteUser"])
+
+			const userToMute = await this.prismaService.user.findUnique({
+				where: { intraName: data["muteUser"] },
+			})
+			if (!userToMute)
+				return {error:"user does not exist"};
+			if (userToMute.intraName == data["user"].intraName)
 				return {error:"can't mute yourself"};
 
 			await this.prismaService.channel.update({
@@ -658,11 +670,17 @@ export class MainGateway {
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
-			if (data["user"].intraName == data["kickUser"])
+
+			const userToKick = await this.prismaService.user.findUnique({
+				where: { intraName: data["kickUser"] },
+			})
+			if (!userToKick)
+				return {error:"user does not exist"};
+			if (userToKick.intraName == data["user"].intraName)
 				return {error:"can't kick yourself"};
 
 			// check if user to kick is owner
-			const userToKick = await this.prismaService.channel.findUnique({
+			const channelUserToKick = await this.prismaService.channel.findUnique({
 				where: { name:data["channelName"] },
 				select: {
 					users: {
@@ -672,7 +690,7 @@ export class MainGateway {
 					}
 				}
 			})
-			if (userToKick.users[0].role == Role.OWNER)
+			if (channelUserToKick.users[0].role == Role.OWNER)
 				return {error:"can't kick owner"};
 
 			await this.prismaService.channel.update({
