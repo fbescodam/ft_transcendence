@@ -4,7 +4,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { GameGateway } from './game.gateway';
 import { ONLINE_MULTIPL_MODE_ID } from './lib/Modes';
 import type { OnlineGameState, OnlinePaddleState } from './lib/NetworkTypes';
-import GameStateMachine, { Player } from './lib/StateMachine';
+import GameStateMachine, { PausedReason, Player } from './lib/StateMachine';
 import GameTicker from './lib/Ticker';
 
 /*==========================================================================*/
@@ -18,6 +18,9 @@ interface NetworkGame {
 	[gameId: string]: {
 		roomId: string;
 		players: [string, string]; // intraNames
+		sockets: {
+			[intraName: string]: string; // intraName: key, socketId: value
+		}
 		stateMachine: GameStateMachine;
 	}
 }
@@ -191,12 +194,44 @@ export class GameService {
 	connectUserToGames(socketId, intraName) {
 		let addedToAny: boolean = false;
 		for (const gameId in this._games) {
-			if (this._games[gameId].players.includes(intraName)) {
+			if (this._games[gameId].players.includes(intraName) && !(intraName in Object.keys(this._games[gameId].sockets))) {
 				this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
+				this._games[gameId].sockets[intraName] = socketId;
+				console.log(`Socket ${socketId} added to game ${gameId} as ${intraName}`);
 				addedToAny = true;
 			}
 		}
 		return addedToAny;
+	}
+
+	/**
+	 * Remove a user from any running games they are in.
+	 * @param socketId The socket id of the user
+	 */
+	disconnectUserFromGames(socketId: string) {
+		for (const gameId in this._games) {
+			// Ugly, but for some reason `socketId in Object.values(this._games[gameId].sockets)` doesn't work
+			for (const intraName in this._games[gameId].sockets) {
+				if (this._games[gameId].sockets[intraName] === socketId) {
+					console.log(`A disconnected socket ${socketId} is in game ${gameId} as ${intraName}`);
+					delete this._games[gameId].sockets[intraName];
+
+					const stateMachine = this._games[gameId].stateMachine;
+
+					// Find the player of the disconnected user
+					if (stateMachine.player1.intraName == intraName) {
+						stateMachine.pauseGame(PausedReason.GAME_WON_P2_OPPONENT_LEFT);
+						this._finishGame(parseInt(gameId), stateMachine.getOnlineState(), stateMachine.player2.intraName);
+					}
+					else {
+						stateMachine.pauseGame(PausedReason.GAME_WON_P1_OPPONENT_LEFT);
+						this._finishGame(parseInt(gameId), stateMachine.getOnlineState(), stateMachine.player1.intraName);
+					}
+
+					console.log(`Socket ${socketId} removed from game ${gameId} as ${intraName}`);
+				}
+			}
+		}
 	}
 
 	/**
@@ -253,6 +288,7 @@ export class GameService {
 		this._games[gameId] = {
 			roomId: game.roomId,
 			players: [ game.players[0].intraName, game.players[1].intraName ],
+			sockets: {},
 			stateMachine: gameStateMachine
 		}
 		return this._games[gameId];
@@ -293,8 +329,9 @@ export class GameService {
 	 * Mark a game as finished and fill in the remaining data.
 	 * @param gameId The ID of the game that has finished
 	 * @param gameState The final game state
+	 * @param forceWin The intraName of the user to force a win for, or null if no force win. Defaults to null.
 	 */
-	private async _finishGame(gameId: number, gameState: OnlineGameState) {
+	private async _finishGame(gameId: number, gameState: OnlineGameState, forceWin: string | null = null) {
 		if (!this._games[gameId]) {
 			console.warn(`Tried to finish game ${gameId} that was not running`);
 			return;
@@ -302,32 +339,50 @@ export class GameService {
 
 		console.log(`Finishing game ${gameId}`);
 
+		// Calculate winner data
+		let winnerUserId: number | null = null;
+		let victorScore: number | null = null;
+		let loserScore: number | null = null;
+		if (forceWin) {
+			if (!(forceWin in this._games[gameId].players)) {
+				console.warn(`Tried to force win for user ${forceWin} but they are not in game ${gameId}`);
+				return;
+			}
+			const dbUser = await this.prismaService.user.findUnique({
+				where: { intraName: forceWin }
+			});
+			if (!dbUser) {
+				console.warn(`Tried to force win for user ${forceWin} but they do not exist in the database`);
+				return;
+			}
+			console.log(`Forcing win for user ${forceWin} in game ${gameId}`);
+			winnerUserId = dbUser.id;
+			victorScore = (gameState.players.player1.intraName == forceWin ? gameState.players.player1.score : gameState.players.player2.score);
+			loserScore = (gameState.players.player1.intraName != forceWin ? gameState.players.player1.score : gameState.players.player2.score);
+		}
+		else {
+			if (gameState.players.player1.score > gameState.players.player2.score) {
+				winnerUserId = gameState.players.player1.id;
+				victorScore = gameState.players.player1.score;
+				loserScore = gameState.players.player2.score;
+			}
+			else if (gameState.players.player2.score > gameState.players.player1.score) {
+				winnerUserId = gameState.players.player2.id;
+				victorScore = gameState.players.player2.score;
+				loserScore = gameState.players.player1.score;
+			}
+			else {
+				console.warn(`Game ${gameId} ended in a draw`);
+				victorScore = gameState.players.player1.score;
+				loserScore = gameState.players.player2.score;
+			}
+		}
+
 		// Stop the game ticker
 		this._ticker.remove(this._games[gameId].stateMachine.getTickerId());
 
 		// Remove game from the cache
 		delete this._games[gameId];
-
-		// Calculate winner data
-		let winnerUserId: number | null = null;
-		let victorScore: number | null = null;
-		let loserScore: number | null = null;
-		if (gameState.players.player1.score > gameState.players.player2.score) {
-			winnerUserId = gameState.players.player1.id;
-			victorScore = gameState.players.player1.score;
-			loserScore = gameState.players.player2.score;
-		}
-		else if (gameState.players.player2.score > gameState.players.player1.score) {
-			winnerUserId = gameState.players.player2.id;
-			victorScore = gameState.players.player2.score;
-			loserScore = gameState.players.player1.score;
-		}
-		else {
-			console.warn(`Game ${gameId} ended in a draw`);
-			victorScore = gameState.players.player1.score;
-			loserScore = gameState.players.player2.score;
-		}
-		// else: draw, set everything to null
 
 		// Finalize game data in DB
 		await this.prismaService.game.update({
