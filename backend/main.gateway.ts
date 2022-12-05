@@ -325,6 +325,20 @@ export class MainGateway {
 	@SubscribeMessage("removePassword")
 	public async removepassword(@MessageBody() data: Object) {
 
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		}) //TODO: this could be a guard i guess
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+			return {error:"not an admin"};
+
 		try {
 			await this.prismaService.channel.update({
 				where: {name: data["name"]},
@@ -342,6 +356,20 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changePassword")
 	public async changePassword(@MessageBody() data: Object) {
+
+		//check user is admin
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name:data["channelName"] },
+			select: {
+				users: {
+					where: {
+						userName: data["user"].intraName
+					}
+				}
+			}
+		}) //TODO: this could be a guard i guess
+		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+			return {error:"not an admin"};
 
 		const newPass = await this.appService.hashPassword(data["password"])
 		try {
