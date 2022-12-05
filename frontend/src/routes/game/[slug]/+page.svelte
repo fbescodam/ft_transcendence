@@ -174,7 +174,7 @@ async function initGame() {
 		}
 	}, (gameMode != ONLINE_MULTIPL_MODE_ID));
 	gameController = new GameController(gameTicker, gameState, ($intraName ? $intraName : "player1"));
-	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, playerLeft, playerRight, $intraName);
+	gameRenderer = new GameRenderer(canvas, gameState, scores, timer, playerLeft, playerRight, $intraName!);
 
 	// Set up additional extensions of the game mode that only apply to certain game modes
 	if (gameMode === SINGLEPL_MODE_ID)
