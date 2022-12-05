@@ -155,7 +155,7 @@ export class MainGateway {
 					}
 				}
 			}
-		}) //TODO: this could be a guard i guess
+		})
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
@@ -248,7 +248,15 @@ export class MainGateway {
 			return {error:"direct channel exists"}
 		}
 
-		//TODO: verify users exist
+		// Check if users exist (both in one query with an OR statement)
+		const users = await this.prismaService.user.findMany({
+			where: { OR: [{intraName: channelData["user"].intraName}, {intraName: channelData["user2"]}] }
+		});
+		if (users.length != 2) {
+			this.logger.log(`user ${channelData["user"].intraName} or ${channelData["user2"]} does not exist`)
+			return {error:"user does not exist"}
+		}
+
 		const channel = await this.prismaService.channel.create({
 			data: {
 				name: newChannelName,
@@ -335,7 +343,7 @@ export class MainGateway {
 					}
 				}
 			}
-		}) //TODO: this could be a guard i guess
+		})
 		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
 
@@ -351,8 +359,6 @@ export class MainGateway {
 		return {valid: "password removed"}
 	}
 
-	//TODO: do these need admin verification?
-
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("changePassword")
 	public async changePassword(@MessageBody() data: Object) {
@@ -367,7 +373,7 @@ export class MainGateway {
 					}
 				}
 			}
-		}) //TODO: this could be a guard i guess
+		})
 		if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 			return {error:"not an admin"};
 
@@ -444,7 +450,7 @@ export class MainGateway {
 					}
 				}
 			}
-		}) //TODO: this could be a guard i guess
+		})
 
 		if (!userInChannel)
 			return {error:"not part of channel"};
@@ -585,6 +591,36 @@ export class MainGateway {
 		if (!channel)
 			return {error:"channel does not exist"};
 
+		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
+
+		// If the current user is the owner of the channel, make a random person the owner
+		const user = channel.users.find((user) => user.userName === data["user"].intraName);
+		if (user.role === Role.OWNER) {
+			const newOwner = channel.users[Math.floor(Math.random() * channel.users.length)];
+			if (newOwner) {
+				await this.prismaService.channel.update({
+					where: {name: data["name"]},
+					data: {
+						users: {
+							updateMany: {
+								where: { userName: newOwner.userName },
+								data: {
+									role: Role.OWNER
+								}
+							}
+						}
+					}
+				})
+			}
+			else {
+				// Delete the channel, there is nobody left.
+				await this.prismaService.channel.delete({
+					where: {name: data["name"]}
+				})
+				return;
+			}
+		}
+
 		await this.prismaService.channel.update({
 			where: {name: data["name"]},
 			data: {
@@ -593,11 +629,6 @@ export class MainGateway {
 				}
 			}
 		})
-
-		//TODO: if the last admin left a new admin should be selected
-		//TODO: other logic probably idk yet what
-
-		this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
 	}
 
 	@UseGuards(JwtGuard)
