@@ -11,7 +11,7 @@ export type User = {
 	friends: User[];
 	blocked: User[];
 	blockedWho: String[];
-	status: string;
+	online: boolean;
 };
 
 export type Game = {

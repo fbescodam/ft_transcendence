@@ -12,6 +12,7 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	ConnectedSocket,
+	OnGatewayDisconnect,
 } from "@nestjs/websockets"
 import * as fs from 'fs';
 import * as dotenv from 'dotenv'
@@ -25,9 +26,13 @@ dotenv.config();
 // normally we do not set origin to *, is unsafe
 // however here we don't really have a domain, so we do not care
 @WebSocketGateway({ cors: { origin: "*", credentials: false } })
-export class MainGateway {
+export class MainGateway implements OnGatewayDisconnect {
 
 	//= Properties =//
+
+	private _onlineUsers: {
+		[socketId: string]: string | undefined; // socketId -> intraName
+	} = {};
 
 	@Inject(AppService)
 	private readonly appService: AppService;
@@ -47,6 +52,14 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	OnGatewayConnection() {
 		console.log("new socket connected")
+	}
+
+	private _userIsOnline(intraName: string) {
+		for (const socketId in this._onlineUsers) {
+			if (this._onlineUsers[socketId] === intraName)
+				return true;
+		}
+		return false;
 	}
 
 	@UseGuards(JwtGuard)
@@ -88,7 +101,7 @@ export class MainGateway {
 
 		if (!user)
 			return { error: "no user found" };
-		return user;
+		return { user, online: this._userIsOnline(user.intraName) };
 	}
 
 	/**
@@ -829,12 +842,19 @@ export class MainGateway {
 	@SubscribeMessage("verifyJWT")
 	verifyJwt(@ConnectedSocket() socket: Socket) {
 		try {
-			JWT.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
+			const jwtPayload = JWT.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
+			if (jwtPayload["intraName"])
+				this._onlineUsers[socket.id] = jwtPayload["intraName"];
 		}
 		catch (e) {
 			return { status: "sad" }
 		}
 		return { status: "ok" }
+	}
+
+	handleDisconnect(@ConnectedSocket() socket: Socket) {
+		if (socket.id in this._onlineUsers)
+			delete this._onlineUsers[socket.id];
 	}
 
 	/**

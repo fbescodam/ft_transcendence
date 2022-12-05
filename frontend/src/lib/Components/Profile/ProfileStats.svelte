@@ -12,7 +12,7 @@ export let name: string;
 export let games: number;
 export let wins: number;
 export let loss: number;
-export let status: string = "OFFLINE";
+export let online: boolean = false;
 
 let ratio = wins / loss
 if (wins == 0 && loss == 0)
@@ -28,7 +28,7 @@ if (wins == 0 && loss == 0)
 	<b>Losses: {loss}</b>
 	<b>Games: {games}</b>
 	<b>Ratio: {ratio.toFixed(2)}</b>
-	<b>Status: {status}</b>
+	<b>Status: {online ? "ONLINE" : "OFFLINE"}</b>
 </div>
 
 <!-- Styling -->

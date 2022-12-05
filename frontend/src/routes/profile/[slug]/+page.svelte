@@ -33,20 +33,22 @@ let isFriend: boolean = false;
 let isBlocked: boolean = false;
 let isBlockReceive: boolean = false;
 let isInGame: number = -1;
+let isOnline: boolean = false;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
 	console.log($page.params.slug)
 	console.log($displayName)
 	io.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
+		console.log("getUserData:", data);
 		if ("error" in data) {
 			// Disgusting hack because I can't read.
 			goto("/profile", { replaceState: true });
 			return;
 		}
 
-		user = data;
-		console.log(user)
+		user = data.user;
+		isOnline = data.online;
 		if (user!.name == $displayName)
 			isCurrentUser = true;
 		if (isCurrentUser == false && user!.friends.map((item) => item['name']).includes($displayName!))
@@ -89,6 +91,7 @@ function addUser() {
 
 function inviteUser() {
 	console.log("invite user to game");
+	// TODO: invite user to game
 }
 
 function blockUser() {
@@ -133,10 +136,10 @@ function spectateUser() {
 			</Container>
 			<hr />
 		{/if}
-		<Container style="background-image: url(https://cdn.intra.42.fr/coalition/cover/59/Cetus_small.jpg); background-repeat: no-repeat; background-size: cover; background-position: center;">
+		<Container style="background-image: url(https://picsum.photos/1920/1080); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
 				<ProfilePic avatar={user.avatar} width={128} height={128}/>
-				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} status={user.status} />
+				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} online={isOnline} />
 			</div>
 			{#if $page.params.slug != $displayName && isBlockReceive == false}
 			<div style="margin-top: 8px;">
@@ -222,8 +225,9 @@ function spectateUser() {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-    justify-content: center;
+	justify-content: center;
 	backdrop-filter: blur(4px);
+	text-shadow:rgba(0, 0, 0, 0.60) 0px 0px 8px;
 	gap: 15px;
 }
 
