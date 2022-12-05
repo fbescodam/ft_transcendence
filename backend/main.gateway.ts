@@ -94,11 +94,24 @@ export class MainGateway {
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('sendMsg')
-	async handleMessage(@MessageBody() msg: any): Promise<void> {
+	async handleMessage(@MessageBody() msg: any) {
+		// Check if user is not muted
+		const userInChannel = await this.prismaService.channel.findUnique({
+			where: { name: msg.inChannel },
+			select: {
+				users: {
+					where: {
+						userName: msg.user.name
+					}
+				}
+			}
+		})
+		if (userInChannel.users[0].role == Role.MUTED)
+			return { error: "you are muted" }
+
 		this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user:msg.user.name, channel:msg.inChannel });
 		this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.name}`);
 
-		// TODO: check if user is muted
 		await this.prismaService.message.create({
 			data: {
 				senderName: msg.user.name,
@@ -106,6 +119,8 @@ export class MainGateway {
 				text: msg.text
 			}
 		});
+
+		return { status: "message sent" };
 	}
 
 	/**
