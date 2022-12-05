@@ -45,6 +45,32 @@ onMount(() => {
 			hasTFA = answer.hasTfa;
 
 			jwt = answer.token
+
+			if (answer.newUser) {
+				let isGud: boolean = false;
+				let name: string | null = "";
+
+				while (!isGud) {
+					name = prompt("Give me your fucking name", answer.displayName);
+					if (name == null || name.trim() == "") {
+						alert("Can you even read you? INSERT SOMETHING VALID!\nFucking idiot...")
+						continue;
+					}
+
+					io.emit('changeDisplayName', {newDisplayName : name}, function(answer: any) {
+						if ("error" in answer) {
+							alert("Something fucked up, try again: " + answer.error);
+							isGud = false;
+							return;
+						};
+
+						isGud = true
+						$displayName = name;
+						$JWT = answer["token"];
+					});
+				}
+			}
+
 			if (!hasTFA) {
 				$JWT = answer.token;
 				goto(`${$page.url.origin}/`, { replaceState: true })

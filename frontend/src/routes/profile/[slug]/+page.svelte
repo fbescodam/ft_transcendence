@@ -63,7 +63,6 @@ onDestroy(() => {
 		destroySocket(io);
 });
 
-// Add user as a retard
 function addUser() {
 	if (!isFriend) {
 		io.emit("addFriend",{newFriend:user!.intraName}, function (e:any) {
@@ -79,12 +78,10 @@ function addUser() {
 	console.log("Add or unadd user as a friend");
 }
 
-// Invite that retard
 function inviteUser() {
 	console.log("invite user to game");
 }
 
-// Shield from that retards autism
 function blockUser() {
 	if (!isBlocked) {
 		io.emit("blockUser",{blockUser:user!.intraName}, function (e:any) {
