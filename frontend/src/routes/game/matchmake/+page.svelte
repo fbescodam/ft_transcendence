@@ -46,7 +46,12 @@ onMount(() => {
 				lobbyTheme = new Audio(`http://${$page.url.hostname}:3000/audio/lobby-theme.mp3`);
 				console.log(lobbyTheme.src);
 				lobbyTheme.loop = true;
-				lobbyTheme.play();
+				try {
+					lobbyTheme.play();
+				}
+				catch (e) {
+					// Ignore
+				}
 
 				// Join the matchmaking queue
 				io.emit("joinQueue", {}, (ret: any) => {
