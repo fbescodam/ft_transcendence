@@ -39,30 +39,40 @@ export class AppController {
 	async createOrUpdateUser(@Req() req: Request, @Res() res: Response, @UploadedFile() file: Express.Multer.File) {
 		if (req.method == 'POST')
 		{
-			const jwt = req.headers.authorization.replace('Bearer ', '');
-			const jwtPayload = JWT.verify(jwt, process.env.JWT_SECRET);
-			const user: User = await this.validateUser(jwtPayload);
-			if (user == null)
-				return { error: "Unauthorized" };
+			try {
+				// Check if the file exists
+				if (!file)
+					return { error: "No file was uploaded" }
 
-			this.logger.log(`User: ${user.intraId} is trying to change avatar.`);
+				const jwt = req.headers.authorization.replace('Bearer ', '');
+				const jwtPayload = JWT.verify(jwt, process.env.JWT_SECRET);
+				const user: User = await this.validateUser(jwtPayload);
+				if (user == null)
+					return { error: "Unauthorized" };
 
-			if (!await this.prismaService.user.count({ where: { intraId: user.intraId }}))
-				return { error: "User does not exist" };
+				this.logger.log(`User: ${user.intraId} is trying to change avatar.`);
 
-			if (!file.mimetype.startsWith('image/'))
-				return { error: "File is not an image" };
+				if (!await this.prismaService.user.count({ where: { intraId: user.intraId }}))
+					return { error: "User does not exist" };
 
-			const avatarFile = `avatars/${user.intraId}`;
-			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
-			fileStream.on("error", (err) => {
-				this.logger.error(err);
-				return { error: "Failed to write file: " + err.toString() };
-			});
-			fileStream.write(Buffer.from(file.buffer), () => {
-				this.logger.log(`User: ${user.intraId} changed avatar.`);
-				res.status(200).send({ status: "avatar changed" });
-			});
+				if (!file.mimetype.startsWith('image/'))
+					return { error: "File is not an image" };
+
+				const avatarFile = `avatars/${user.intraId}`;
+				const fileStream = fs.createWriteStream(`static/${avatarFile}`);
+				fileStream.on("error", (err) => {
+					this.logger.error(err);
+					return { error: "Failed to write file: " + err.toString() };
+				});
+				fileStream.write(Buffer.from(file.buffer), () => {
+					this.logger.log(`User: ${user.intraId} changed avatar.`);
+					res.status(200).send({ status: "avatar changed" });
+				});
+			}
+			catch (e) {
+				this.logger.error(e);
+				return { error: "Failed to change avatar: " + e.toString() };
+			}
 		}
 		return { error: "method not supported" };
 	}
