@@ -227,8 +227,11 @@ function spectateUser() {
 	align-items: center;
 	justify-content: center;
 	backdrop-filter: blur(4px);
+	background: rgba(0, 0, 0, 0.1);
+	border-radius: var(--border-radius);
 	text-shadow:rgba(0, 0, 0, 0.60) 0px 0px 8px;
 	gap: 15px;
+	padding: 16px;
 }
 
 .friends {
