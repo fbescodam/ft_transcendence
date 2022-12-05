@@ -55,16 +55,17 @@ export class AppController {
 
 			const avatarFile = `avatars/${user.intraId}`;
 			const fileStream = fs.createWriteStream(`static/${avatarFile}`);
-			await new Promise((resolve, reject) => {
+			new Promise((resolve, reject) => {
 				fileStream.on("finish", resolve);
 				fileStream.on("error", reject);
 				fileStream.write(Buffer.from(file.buffer));
-			}).catch((err) => {
-				this.logger.log(`User: ${user.intraId} failed to change avatar: ${err}`);
 			}).then(() => {
 				this.logger.log(`User: ${user.intraId} changed avatar.`);
+			}).catch((err) => {
+				this.logger.log(`User: ${user.intraId} failed to change avatar: ${err}`);
+			}).finally(() => {
+				fileStream.close();
 			});
-			fileStream.close();
 
 			return { status: "avatar uploaded" };
 		}
