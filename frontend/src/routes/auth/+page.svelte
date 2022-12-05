@@ -39,14 +39,13 @@ onMount(() => {
 				return;
 			}
 
+			$JWT = answer.token;
 			$displayName = answer.displayName;
 			$intraName = answer.intraName;
 			$avatar = answer.avatar;
 			hasTFA = answer.hasTfa;
 
-			jwt = answer.token
 			if (!hasTFA) {
-				$JWT = answer.token;
 				goto(`${$page.url.origin}/`, { replaceState: true })
 			}
 		});
@@ -57,19 +56,15 @@ onMount(() => {
 function checkCode(e: SubmitEvent) {
 	e.preventDefault();
 
-	if (io)
-		destroySocket(io);
-
-	io = initSocket($page.url.hostname, jwt)
-
-	io.emit("checkCode", { authCode: tfaCodeField.value }, (answer: any) => {
+	io.emit("checkCode", { userIntraName: $intraName, authCode: tfaCodeField.value }, (answer: any) => {
 		if ("error" in answer) {
-			alert("Wrong code bitch");
+			alert("Wrong code"); // to Pjort: sorry I had to remove it
 			return;
 		}
-		$JWT = jwt
+		$JWT = answer.token;
+		destroySocket(io);
 
-		goto('http://localhost:5173', { replaceState: true })
+		goto(`${$page.url.origin}/`, { replaceState: true })
 	});
 }
 

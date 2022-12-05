@@ -6,17 +6,17 @@ import { User } from '@prisma/client';
 
 @Injectable()
 export class TwoFactorAuthenticationService {
-  
+
   	@Inject(PrismaService)
 	private readonly prismaService: PrismaService;
 
 	private readonly logger = new Logger("tfaAuth");
 
   public async generateTwoFactorAuthenticationSecret(user: User) {
-	
+
 	const secret = authenticator.generateSecret();
 	const otpauthUrl = authenticator.keyuri(user.intraName, "ft_transcendance", secret);
-	
+
 	const newUser = await this.prismaService.user.findFirst({where:{intraName:user.intraName}, include:{tfaSecret:true}})
 
 	if (newUser.tfaSecret)
@@ -66,14 +66,14 @@ export class TwoFactorAuthenticationService {
 		light:"#FFBF60FF"
 	  } //Change these values to change the look of the qrcode
 	}
-	
+
 	return toDataURL(otpauthUrl, opts);
   }
 
-  public async isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, user: User) {
-	
+  public async isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, userIntraName: string) {
+
 	const userTfaSecret = await this.prismaService.user.findFirst({
-		where: {intraName:user.intraName},
+		where: {intraName: userIntraName},
 		select: {tfaSecret: true}
 	});
 	this.logger.log(`\ntfaCode: ${twoFactorAuthenticationCode}\nsecret: ${userTfaSecret.tfaSecret.string}`)

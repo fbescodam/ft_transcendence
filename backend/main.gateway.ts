@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Socket } from "socket.io";
 import * as JWT from "jsonwebtoken"
 import { JwtGuard } from "auth/Guard";
-import { ChannelType, Role, UserInChannel } from "@prisma/client";
+import { ChannelType, Role, User, UserInChannel } from "@prisma/client";
 import { PrismaService } from "prisma/prisma.service";
 import { Inject, Logger, UseGuards, CACHE_MANAGER } from "@nestjs/common";
 import { Cache } from 'cache-manager'
@@ -699,13 +699,16 @@ export class MainGateway {
 	 * @param data contains tfa code
 	 * @returns valid or invalid
 	 */
-	@UseGuards(JwtGuard)
 	@SubscribeMessage("checkCode")
 	public async checkCode(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["authCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["authCode"], data["userIntraName"])
 		if (!valid)
-			return {error:"invalid 2fa"}
-		return { valid: "2fa code is valid" }
+			return {error:"invalid 2fa", token: null}
+		const user = await this.prismaService.user.findUnique({
+			where: { intraName: data["userIntraName"] },
+		});
+		const token = this._getJWTToken(user, socket);
+		return { valid: "2fa code is valid", token: token }
 	}
 
 	@UseGuards(JwtGuard)
@@ -723,7 +726,7 @@ export class MainGateway {
 	@SubscribeMessage("enableTfaAuth")
 	public async enableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
 
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
 		if (!valid)
 			return { error: "invalid 2fa" }
 
@@ -746,7 +749,7 @@ export class MainGateway {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("disableTfaAuth")
 	public async disableTfaAuth(@MessageBody() data: object, @ConnectedSocket() socket: Socket) {
-		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"])
+		const valid = await this.tfaService.isTwoFactorAuthenticationCodeValid(data["tfaCode"], data["user"].intraName)
 		if (!valid)
 			return { error: "invalid 2fa" }
 
@@ -786,6 +789,12 @@ export class MainGateway {
 			this.logger.log(`User: ${data['id']} changed avatar.`);
 		});
 		fileStream.close();
+	}
+
+	private _getJWTToken(userData: User, socket: Socket) {
+		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
+		socket.handshake.auth = { token: jwtToken };
+		return jwtToken;
 	}
 
 	/**
@@ -874,8 +883,8 @@ export class MainGateway {
 		});
 
 		//sign a jwttoken and store it in the auth of the socket handshake
-		const jwtToken = JWT.sign(userData, process.env.JWT_SECRET);
-		socket.handshake.auth = { token: jwtToken }
+		//only if 2fa is disabled
+		const jwtToken = (userData.tfaEnabled ? null : this._getJWTToken(userData, socket));
 
 		return {
 			token: jwtToken,
