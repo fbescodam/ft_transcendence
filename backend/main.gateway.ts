@@ -883,7 +883,8 @@ export class MainGateway {
 			displayName: userData.name,
 			intraName: userData.intraName,
 			avatar: userData.avatar,
-			hasTfa: userData.tfaEnabled
+			hasTfa: userData.tfaEnabled,
+			isNew: userExists ? false : true // invert logic but not with !
 		}; // <===== jwt
 	}
 }
