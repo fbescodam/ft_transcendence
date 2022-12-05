@@ -159,8 +159,6 @@ export class GameService {
 		this.leaveQueue(user1.socketId);
 		this.leaveQueue(user2.socketId);
 
-		// TODO: game state machine server-side for cheat detection?
-
 		console.log(`Game ${game.id} started between ${user1.intraName} and ${user2.intraName}. Room ID is ${game.roomId}.`);
 	}
 
@@ -261,7 +259,6 @@ export class GameService {
 		const gameStateMachine = new GameStateMachine(game.id, this._ticker, { w: 1080, h: 720 }, ONLINE_MULTIPL_MODE_ID, { p1: game.players[0], p2: game.players[1] }, {
 			onScoreUpdated: (p1Score: number, p2Score: number) => {
 				console.log(`Score updated for game ${gameId}: ${p1Score} - ${p2Score}`);
-				// TODO?
 			},
 			onBeepSound: () => {},
 			onBoopSound: ()	=> {},
