@@ -1,2 +1,3 @@
-- spectator mode
-- only return jwt token after 2fa if 2fa is enabled: right now it is stored in window memory which is bad
+- most of the TODOs in the code
+- block users: hide their chat messages in public/private chat, remove feature to dm. Can play with em though. We do not care
+- dockerize everything
