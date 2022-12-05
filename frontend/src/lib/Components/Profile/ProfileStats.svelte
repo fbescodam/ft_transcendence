@@ -18,11 +18,6 @@ let ratio = wins / loss
 if (wins == 0 && loss == 0)
 	ratio = 0;
 
-// const getUserData = (async () => {
-// 	const response = await fetch('https://dog.ceo/api/breeds/image/random')
-// 	return await response.json()
-// })()
-
 </script>
 
 <!-- HTML -->
@@ -32,7 +27,7 @@ if (wins == 0 && loss == 0)
 	<b>Wins: {wins}</b>
 	<b>Losses: {loss}</b>
 	<b>Games: {games}</b>
-	<b>Ratio: {ratio}</b>
+	<b>Ratio: {ratio.toFixed(2)}</b>
 	<b>Status: {status}</b>
 </div>
 
@@ -47,9 +42,8 @@ if (wins == 0 && loss == 0)
 	flex-wrap: wrap;
 	flex-direction: column;
 	justify-content: center;
-	
+
 	border-radius: var(--border-radius);
 }
 
 </style>
-	
