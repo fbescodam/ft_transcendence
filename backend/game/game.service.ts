@@ -338,6 +338,7 @@ export class GameService {
 
 		// Calculate winner data
 		let winnerUserId: number | null = null;
+		let loserUserId: number | null = null;
 		let victorScore: number | null = null;
 		let loserScore: number | null = null;
 		if (forceWin) {
@@ -345,27 +346,22 @@ export class GameService {
 				console.warn(`Tried to force win for user ${forceWin} but they are not in game ${gameId}`);
 				return;
 			}
-			const dbUser = await this.prismaService.user.findUnique({
-				where: { intraName: forceWin }
-			});
-			if (!dbUser) {
-				console.warn(`Tried to force win for user ${forceWin} but they do not exist in the database`);
-				return;
-			}
-			console.log(`Forcing win for user ${forceWin} in game ${gameId}`);
-			winnerUserId = dbUser.id;
+			winnerUserId = (gameState.players.player1.intraName == forceWin ? gameState.players.player1.id : gameState.players.player2.id);
 			victorScore = (gameState.players.player1.intraName == forceWin ? gameState.players.player1.score : gameState.players.player2.score);
+			loserUserId = (gameState.players.player1.intraName != forceWin ? gameState.players.player1.id : gameState.players.player2.id);
 			loserScore = (gameState.players.player1.intraName != forceWin ? gameState.players.player1.score : gameState.players.player2.score);
 		}
 		else {
 			if (gameState.players.player1.score > gameState.players.player2.score) {
 				winnerUserId = gameState.players.player1.id;
 				victorScore = gameState.players.player1.score;
+				loserUserId = gameState.players.player2.id;
 				loserScore = gameState.players.player2.score;
 			}
 			else if (gameState.players.player2.score > gameState.players.player1.score) {
 				winnerUserId = gameState.players.player2.id;
 				victorScore = gameState.players.player2.score;
+				loserUserId = gameState.players.player1.id;
 				loserScore = gameState.players.player1.score;
 			}
 			else {
@@ -391,6 +387,22 @@ export class GameService {
 				victorScore: victorScore
 			}
 		})
+
+		// Update user stats
+		if (winnerUserId && loserUserId) {
+			await this.prismaService.user.update({
+				where: { id: winnerUserId },
+				data: {
+					wins: { increment: 1 }
+				}
+			});
+			await this.prismaService.user.update({
+				where: { id: loserUserId },
+				data: {
+					losses: { increment: 1 }
+				}
+			});
+		}
 	}
 
 }
