@@ -1,12 +1,9 @@
 import { forwardRef, Inject, Logger, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, OnGatewayDisconnect, OnGatewayConnection } from "@nestjs/websockets";
-import { PrismaClient } from "@prisma/client";
 import { Socket } from "socket.io";
 import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
 import { GameService, QueuedUser } from "./game.service";
-import { NULL } from "sass";
-import { IoAdapter } from "@nestjs/platform-socket.io";
 
 // normally we do not set origin to *, is unsafe
 // however here we don't really have a domain, so we do not care

@@ -1,11 +1,11 @@
 - most of the TODOs in the code
 - dockerize everything
-- game invites: just create a game in the db between the users and add it to _games in backend game service upon request (but do check if game hasn't begun yet)
 
 
 
 done:
 
+- game invites: just create a game in the db between the users and add it to _games in backend game service upon request (but do check if game hasn't begun yet)
 - block users: hide their chat messages in public/private chat, remove feature to dm. Can play with em though. We do not care
 - MESSAGES SHOULD BE LINKED TO INTRANAMES AND NOT TO DISPLAYNAMES.
      ALSO ON CHANGING YOUR DISPLAY NAME IT SHOULD NOT UPDATE ALL MESSAGES WITH THAT DISPLAY NAME. OR YOU CAN STEAL PEOPLE'S MESSAGES

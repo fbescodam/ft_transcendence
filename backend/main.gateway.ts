@@ -1,23 +1,20 @@
-import fetch from "node-fetch";
-import { Socket } from "socket.io";
-import * as JWT from "jsonwebtoken"
-import { JwtGuard } from "auth/Guard";
-import { ChannelType, Role, User, UserInChannel } from "@prisma/client";
-import { PrismaService } from "prisma/prisma.service";
-import { Inject, Logger, UseGuards, CACHE_MANAGER } from "@nestjs/common";
-import { Cache } from 'cache-manager'
+import { CACHE_MANAGER, Inject, Logger, UseGuards } from "@nestjs/common";
 import {
-	MessageBody,
-	SubscribeMessage,
+	ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage,
 	WebSocketGateway,
-	WebSocketServer,
-	ConnectedSocket,
-	OnGatewayDisconnect,
-} from "@nestjs/websockets"
-import * as fs from 'fs';
-import * as dotenv from 'dotenv'
-import { TwoFactorAuthenticationService } from "auth/2fa.service";
+	WebSocketServer
+} from "@nestjs/websockets";
+import { ChannelType, Role, User } from "@prisma/client";
 import { AppService } from "app.service";
+import { TwoFactorAuthenticationService } from "auth/2fa.service";
+import { JwtGuard } from "auth/Guard";
+import { Cache } from 'cache-manager';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as JWT from "jsonwebtoken";
+import fetch from "node-fetch";
+import { PrismaService } from "prisma/prisma.service";
+import { Socket } from "socket.io";
 
 /*==========================================================================*/
 

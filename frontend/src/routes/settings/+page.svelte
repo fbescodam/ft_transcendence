@@ -6,16 +6,16 @@
 <!-- Scripting -->
 
 <script lang="ts">
+import { page } from "$app/stores";
 import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
 import Disable2FaModal from "$lib/Components/Modal/Disable2FAModal.svelte";
 import Enable2FaModal from "$lib/Components/Modal/Enable2FAModal.svelte";
-import { initSocket, destroySocket } from "$lib/socketIO";
+import { destroySocket, initSocket } from "$lib/socketIO";
 import { displayName, JWT } from "$lib/Stores/User";
+import NProgress from "nprogress";
 import type { Socket } from "socket.io-client";
-import { onMount, onDestroy } from "svelte";
-import { page } from "$app/stores";
-// import NProgress from "nprogress";
+import { onDestroy, onMount } from "svelte";
 
 let io: Socket;
 let show2FAModal: boolean = false;

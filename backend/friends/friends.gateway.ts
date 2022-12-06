@@ -1,7 +1,5 @@
 import { Inject, Logger, UseGuards } from "@nestjs/common";
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { PrismaClient } from "@prisma/client";
-import { Socket } from "socket.io";
+import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
 import { FriendsService } from "./friends.service";

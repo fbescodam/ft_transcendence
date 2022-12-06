@@ -29,3 +29,6 @@ new_tabs:
 db_migrate: new_tabs
 	while ! echo exit | nc localhost 3000; do sleep 5; done
 	cd backend/prisma; npm i; npx prisma migrate dev --name init; npx ts-node --compiler-options {\"module\":\"CommonJS\"} seed.ts
+
+prod:
+	docker compose up --build
