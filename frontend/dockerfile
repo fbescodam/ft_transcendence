@@ -1,10 +1,10 @@
 FROM node:18 as development
 
-WORKDIR /transcendence/frontend
+WORKDIR /transcendence
 
 COPY package*.json ./
 
-RUN npm clean-install
+RUN npm clean-install 
 
 COPY . .
 
