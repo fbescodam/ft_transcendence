@@ -48,10 +48,11 @@ function removeFriend() {
 <!-- HTML -->
 
 <Container>
-	<!-- svelte-ignore a11y-missing-attribute -->
+	<!-- svelte-ignore a11y-missing-attribute TODO: clicking on this doesnt take you to a profile-->
 	<a class="profile-link" href="/profile/{profile.intraName}" title={profile.name} >
 		<ProfilePic height={50} width={50} avatar={profile.avatar} alt={profile.intraName} />
 	</a>
+	<p>{profile.name}</p>
 </Container>
 
 <!-- Styling -->

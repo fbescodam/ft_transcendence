@@ -7,6 +7,7 @@ class GameSoundEngine {
 	private _context: AudioContext;
 	private _gainNode: GainNode;
 	private _audioLocation: string;
+	private _muteSound: Boolean;
 
 	private _lobbyTheme: HTMLAudioElement | null;
 	private _gameTheme: HTMLAudioElement | null;
@@ -21,6 +22,7 @@ class GameSoundEngine {
 		this._gainNode = this._context.createGain();
 		this._gainNode.gain.value = 0.25; // 25% volume
 		this._gainNode.connect(this._context.destination);
+		this._muteSound = false
 
 		this._gameTheme = new Audio(`${this._audioLocation}/game-theme.mp3`);
 		this._lobbyTheme = new Audio(`${this._audioLocation}/lobby-theme.mp3`);
@@ -214,6 +216,13 @@ class GameSoundEngine {
 		}
 		return false;
 	}
+
+	public muteSound = () => {
+		this._muteSound = !this._muteSound
+		this._muteSound ? this._gainNode.gain.value = 0.0: this._gainNode.gain.value = 0.25
+		//TODO: this works but the sound doesnt change
+	}
+
 }
 
 export default GameSoundEngine;

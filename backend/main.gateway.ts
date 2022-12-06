@@ -49,9 +49,13 @@ export class MainGateway implements OnGatewayDisconnect {
 	private readonly logger = new Logger("sockets");
 
 	//= Methods =//
-	@UseGuards(JwtGuard)
-	OnGatewayConnection() {
-		console.log("new socket connected")
+	handleConnection(@ConnectedSocket() socket: Socket) {
+
+	}
+
+	handleDisconnect(@ConnectedSocket() socket: Socket) {
+		if (socket.id in this._onlineUsers)
+			delete this._onlineUsers[socket.id];
 	}
 
 	private _userIsOnline(intraName: string) {
@@ -90,7 +94,8 @@ export class MainGateway implements OnGatewayDisconnect {
 						loserScore: true,
 						winnerId: true,
 						victorScore: true,
-						createdAt: true
+						createdAt: true,
+						status: true
 					}
 				},
 				friends: true,
@@ -854,11 +859,6 @@ export class MainGateway implements OnGatewayDisconnect {
 			return { status: "sad" }
 		}
 		return { status: "ok" }
-	}
-
-	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		if (socket.id in this._onlineUsers)
-			delete this._onlineUsers[socket.id];
 	}
 
 	/**

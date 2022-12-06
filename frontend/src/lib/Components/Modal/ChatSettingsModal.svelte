@@ -32,7 +32,6 @@ let killSelection: string = "none";
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
-	console.log(users)
 });
 
 onDestroy(() => {

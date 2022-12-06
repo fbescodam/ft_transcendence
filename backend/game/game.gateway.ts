@@ -4,7 +4,9 @@ import { PrismaClient } from "@prisma/client";
 import { Socket } from "socket.io";
 import { JwtGuard } from "auth/Guard";
 import { PrismaService } from "prisma/prisma.service";
-import { GameService } from "./game.service";
+import { GameService, QueuedUser } from "./game.service";
+import { NULL } from "sass";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 
 // normally we do not set origin to *, is unsafe
 // however here we don't really have a domain, so we do not care
@@ -108,6 +110,55 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return {error: e.toString()};
 		}
 	}
+
+	private _gameInviteSocket: {
+		[intraName: string]: string | undefined; // intraName -> socketId - yes the other way around
+	} = {};
+
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('setGameInviteSocket')
+	async setGameInviteSocket(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
+		this._gameInviteSocket[data["user"].intraName] = socket.id
+		this.logger.log(`user ${data["user"].intraName} has ${socket.id} as his invite id`)
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('inviteToGame')
+	async inviteToGame(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
+		
+		let userSocketID = null;
+		if (data["userIntraName"] in this._gameInviteSocket)
+			userSocketID = this._gameInviteSocket[data["userIntraName"]]
+		if (userSocketID === null)
+			return {error:"no socket found, user is likely not online"}
+
+
+		this.server.to(userSocketID).emit("invite", {invitee:data["user"].intraName})
+	}
+
+	@UseGuards(JwtGuard)
+	@SubscribeMessage('inviteResponse')
+	async inviteResponse(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
+		
+		console.log(data['response'])
+		if (data['response'] == false)
+			return this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {response:data['response']})
+			
+		console.log(`Found 2 users in the queue to matchmake. Creating game...`);
+		const game = await this.gameService.createGame(data['invitee'], data['user'].intraName);
+		await this.gameService.startGame(game, 
+			{intraName: data['invitee'], socketId:''}, 
+			{intraName: data['user'].intraName, socketId:''});
+			
+		this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {
+			response:data['response'],
+			gameId:game.id
+		})
+
+		return {status:'start', gameId:game.id}
+	}
+
 
 	handleConnection(@ConnectedSocket() socket: Socket) {
 

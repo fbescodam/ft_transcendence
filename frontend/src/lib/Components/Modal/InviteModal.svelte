@@ -9,11 +9,16 @@ import type { Socket } from "socket.io-client";
 import { onMount, onDestroy } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
+import { goto } from "$app/navigation";
 
 //= Properties =//
 
 /** Should the modal be visible */
 export let visible: boolean = false;
+
+export let invitee: string;
+let accepted: boolean;
+
 
 //= Variables =//
 
@@ -31,16 +36,29 @@ onMount(() => {
 onDestroy(() => { if (io) destroySocket(io); });
 
 
+function sendRes() {
+	if (accepted === false)
+		return io.emit('inviteResponse', {response:accepted, invitee:invitee})
+
+	io.emit('inviteResponse', {response:accepted, invitee:invitee}, (data:any) => {
+		goto(`/game/${data["gameId"]}`)
+	})
+}
+
 function onCancel() {
+	accepted = false
 	visible = false;
+	sendRes()
 }
 
 function onJoin(e: SubmitEvent) {
 	e.preventDefault();
 
-	// TODO: Shit user to the invited lobby
-
 	visible = false;
+	accepted = true
+	sendRes()
+
+
 }
 
 </script>

@@ -13,9 +13,11 @@ import InviteModal from "$lib/Components/Modal/InviteModal.svelte";
 import { onMount } from "svelte";
 import type { Socket } from "socket.io-client";
 import { initSocket } from "$lib/socketIO";
+import { goto } from "$app/navigation";
 
 let io: Socket;
 let hasInvite: boolean = false;
+let	invitedBy: string = "";
 let navitems = [
 	{
 		href: "/",
@@ -27,7 +29,7 @@ let navitems = [
 		href: "/game",
 		icon: Cube,
 		text: "Game",
-		color: "orange",
+		color: "orange", 
 	},
 	{
 		href: "/chat",
@@ -43,9 +45,20 @@ onMount(() => {
 		return;
 	io = initSocket($page.url.hostname, $JWT!)
 
-	io.on("invite", function (data: any) {
+	io.emit('setGameInviteSocket', {})
+
+	io.on("invite", (data) => {
 		hasInvite = true;
+		invitedBy = data["invitee"]
+		console.log(`invited by ${data["invitee"]}`)
 	});
+
+	io.on('isGameHappening', (data) => {
+		console.log(data)
+		
+		if (data['response'] == true)
+			goto(`/game/${data["gameId"]}`)
+	})
 });
 
 </script>
@@ -55,7 +68,7 @@ onMount(() => {
 <DeviceDetector showInDevice="desktop">
 	<AuthGuard />
 	<!-- TODO: Change this depending on invite request -->
-	<InviteModal bind:visible={hasInvite} />
+	<InviteModal bind:visible={hasInvite} bind:invitee={invitedBy}/>
 
 	<!-- Render layout -->
 	{#if !$page.url.pathname.startsWith("/auth")}

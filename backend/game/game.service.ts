@@ -9,7 +9,7 @@ import GameTicker from './lib/Ticker';
 
 /*==========================================================================*/
 
-interface QueuedUser {
+export interface QueuedUser {
 	intraName: string;
 	socketId: string;
 }

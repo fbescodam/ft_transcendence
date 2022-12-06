@@ -17,6 +17,8 @@ export let online: boolean = false;
 let ratio = wins / loss
 if (wins == 0 && loss == 0)
 	ratio = 0;
+if (ratio == Infinity)
+	ratio = 100.00
 
 </script>
 

@@ -90,7 +90,14 @@ function addUser() {
 }
 
 function inviteUser() {
-	console.log("invite user to game");
+	console.log(user?.intraName)
+	io.emit("inviteToGame", {userIntraName:user?.intraName}, function (answer:any) {
+		if ("error" in answer) {
+			alert(answer.error);
+			return;
+		}
+		console.log("invited")
+	})
 	// TODO: invite user to game
 }
 
@@ -141,7 +148,7 @@ function spectateUser() {
 				<ProfilePic avatar={user.avatar} width={128} height={128} alt={user.intraName} />
 				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} online={isOnline} />
 			</div>
-			{#if $page.params.slug != $displayName && isBlockReceive == false}
+			{#if $page.params.slug != $displayName && isBlockReceive == false && isCurrentUser == false}
 			<div style="margin-top: 8px;">
 				<Button on:click={() => addUser()}>
 					{#if isFriend}
@@ -179,7 +186,11 @@ function spectateUser() {
 					{#each user.games as game}
 						{#if game.players != undefined}
 							{#if game.players.length > 1 && game.status == "ENDED"}
-								<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
+								{#if game.winnerId == 2}
+									<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.loserScore, p2: game.victorScore}}/>
+								{:else}
+									<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
+								{/if}
 							{:else}
 								<p><b>The game here has no players... What?</b></p>
 							{/if}

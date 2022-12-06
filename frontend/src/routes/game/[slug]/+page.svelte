@@ -29,7 +29,7 @@ let timer: HTMLElement;
 let playerLeft: HTMLElement;
 let playerRight: HTMLElement;
 
-let gameSoundEngine: GameSoundEngine;
+let gameSoundEngine: GameSoundEngine = new GameSoundEngine($page.url.hostname);
 let gameTicker: GameTicker;
 let gameController: GameController;
 let gameRenderer: GameRenderer;
@@ -101,9 +101,9 @@ async function initGame() {
 		}
 	}
 
+
 	// Set up the game engine
 	gameTicker = new GameTicker();
-	gameSoundEngine = new GameSoundEngine($page.url.hostname);
 	const gameSize: Dimensions = { w: canvas.width, h: canvas.height };
 	gameState = new GameStateMachine(gameId, gameTicker, gameSize, gameMode, {p1: player1, p2: player2}, {
 		onScoreUpdated: (p1Score: number, p2Score: number) => {
@@ -213,13 +213,15 @@ const keyUpHandler = (event: KeyboardEvent) => {
 };
 
 const keyDownHandler = (event: KeyboardEvent) => {
-	// console.log(event);
+	console.log(event);
 	gameController.setKeyPressed(event.key);
 
 	if (event.key === "Escape")
 		gameController.togglePause();
 	if (event.key === "/")
 		gameRenderer.debugScreen = (gameRenderer.debugScreen ? false : true);
+	if (event.key === "m")
+		gameSoundEngine.muteSound()
 };
 
 </script>
