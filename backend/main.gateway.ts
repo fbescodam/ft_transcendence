@@ -131,7 +131,8 @@ export class MainGateway implements OnGatewayDisconnect {
 
 			await this.prismaService.message.create({
 				data: {
-					senderName: msg.user.name, // For some reason this needs the displayname and not the intra name
+					senderName: msg.user.intraName,
+					senderDisName: msg.user.name,
 					channelName: msg.inChannel,
 					text: msg.text
 				}
@@ -819,10 +820,10 @@ export class MainGateway implements OnGatewayDisconnect {
 
 			await this.prismaService.message.updateMany({
 				where: {
-					senderName: UserInfo["user"].name
+					senderName: UserInfo["user"].intraName
 				},
 				data: {
-					senderName: newUser.name
+					senderDisName: newUser.name
 				}
 			})
 

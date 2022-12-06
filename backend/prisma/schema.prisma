@@ -90,13 +90,14 @@ model UserInChannel {
 }
 
 model Message {
-	id          Int      @id @default(autoincrement())
-	sentAt      DateTime @default(now())
-	text        String
-	sender      User?    @relation(fields: [senderName], references: [name])
-	senderName  String?
-	channel     Channel? @relation(fields: [channelName], references: [name])
-	channelName String?
+	id          	Int      @id @default(autoincrement())
+	sentAt      	DateTime @default(now())
+	text        	String
+	sender      	User?    @relation(fields: [senderName], references: [intraName])
+	senderName  	String?	//intraName
+	senderDisName	String? //display name
+	channel     	Channel? @relation(fields: [channelName], references: [name])
+	channelName 	String?
 }
 
 model Game {

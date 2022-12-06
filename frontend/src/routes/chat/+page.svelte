@@ -18,7 +18,7 @@ import type { Socket } from "socket.io-client";
 <script lang="ts">
 let showAddModal: boolean = false;
 let io: Socket;
-let messages: { senderName: string, senderIntraName: string, text: string }[] = [];
+let messages: { senderDisName: string, senderIntraName: string, text: string }[] = [];
 let openChannel = "Global";
 let currentChannel: any;
 let currentUser = $displayName
@@ -41,10 +41,11 @@ onMount(() => {
 	updateMessages("Global");
 	// Listen to the message event
 	io.on("sendMsg", function (message: any) {
+		console.log(message)
 		if (message.channel == openChannel)
 		{
 			if (!(blockedUsers.map((item: any) => item['name']).includes(message.user)))
-				messages = [...messages, { senderName: message.user, senderIntraName: message.userIntraName, text: message.text}];
+				messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
 	// Get channels from the user
@@ -69,7 +70,13 @@ function updateMessages(channelName: string) {
 			alert(answer.error);
 			return;
 		}
-		messages = answer
+		for (const msg in answer) {	
+			messages = [...messages, 
+				{senderDisName: answer[msg].senderDisName, 
+				senderIntraName: answer[msg].senderName, 
+				text: answer[msg].text}
+			]	
+		}
 	});
 }
 
@@ -155,7 +162,7 @@ function switchChannel(channel: any) {
 				{:else}
 					<ul>
 						{#each messages as message}
-							<li><a href="/profile/{message.senderIntraName}"><b>{message.senderName}</b></a>:&nbsp;<span>{message.text}</span></li>
+							<li><a href="/profile/{message.senderIntraName}"><b>{message.senderDisName}</b></a>:&nbsp;<span>{message.text}</span></li>
 						{/each}
 					</ul>
 				{/if}

@@ -15,7 +15,7 @@ import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { onMount, onDestroy } from "svelte";
 import { page } from "$app/stores";
-import NProgress from "nprogress";
+// import NProgress from "nprogress";
 
 let io: Socket;
 let show2FAModal: boolean = false;
