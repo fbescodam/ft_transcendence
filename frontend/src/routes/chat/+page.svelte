@@ -38,25 +38,28 @@ afterUpdate(() => {
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
-	updateMessages("Global");
 	// Listen to the message event
 	io.on("sendMsg", function (message: any) {
 		console.log(message)
 		if (message.channel == openChannel)
 		{
-			if (!(blockedUsers.map((item: any) => item['name']).includes(message.user)))
+			if (!(blockedUsers.map((item: any) => item).includes(message.user)))
 				messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
 	// Get channels from the user
+	io.emit('getBlockedUsers', {}, function (e: any) {
+		blockedUsers = e;
+
+	})
 	io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 		$channels = answer;
 		io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 	});
+
 	currentChannel = $channels[0];
-	io.emit('getBlockedUsers', {}, function (e: any) {
-		blockedUsers = e;
-	})
+	updateMessages("Global");
+
 });
 
 onDestroy(() => {
@@ -70,12 +73,16 @@ function updateMessages(channelName: string) {
 			alert(answer.error);
 			return;
 		}
+		messages = []
 		for (const msg in answer) {	
-			messages = [...messages, 
-				{senderDisName: answer[msg].senderDisName, 
-				senderIntraName: answer[msg].senderName, 
-				text: answer[msg].text}
-			]	
+			if (!(blockedUsers.map((item: any) => item).includes(answer[msg].senderName)))
+			{
+				messages = [...messages, 
+					{senderDisName: answer[msg].senderDisName, 
+					senderIntraName: answer[msg].senderName, 
+					text: answer[msg].text}
+				]	
+			}
 		}
 	});
 }
@@ -114,7 +121,6 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 }
 
 function switchChannel(channel: any) {
-	console.log(channel)
 	openChannel = channel["channelName"]
 	currentChannel = channel;
 	updateMessages(channel["channelName"])

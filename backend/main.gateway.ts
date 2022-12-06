@@ -158,14 +158,10 @@ export class MainGateway implements OnGatewayDisconnect {
 			const user = await this.prismaService.user.findFirst({
 				where: { intraName: data.user.intraName },
 				select: {
-					blocked: {
-						select: {
-							name: true
-						}
-					}
+					blockedWho: true
 				}
 			});
-			return user.blocked;
+			return user.blockedWho;
 		}
 		catch (e) {
 			console.error(e);
@@ -186,7 +182,14 @@ export class MainGateway implements OnGatewayDisconnect {
 				where: { intraName: data.user.intraName },
 				include: { channels: true }
 			});
-			return user.channels;
+
+			for (let chan in user.channels)
+			{
+				if (user.channels[chan].role == Role.DMOWNER)
+					delete user.channels[chan]
+			}
+
+			return user.channels.filter(item => item);;
 		}
 		catch (e) {
 			console.error(e);
@@ -212,7 +215,7 @@ export class MainGateway implements OnGatewayDisconnect {
 
 			if (!userInChannel)
 				return {error:"not part of channel"};
-			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER, userInChannel.users[0].role != Role.DMOWNER)
 				return {error:"not an admin"};
 
 			const channelUsers = await this.prismaService.channel.findFirst({
@@ -347,11 +350,11 @@ export class MainGateway implements OnGatewayDisconnect {
 						create: [
 							{
 								userName: arr[0],
-								role: Role.OWNER
+								role: Role.DMOWNER
 							},
 							{
 								userName: arr[1],
-								role: Role.OWNER
+								role: Role.DMOWNER
 							}
 						]
 					}

@@ -87,6 +87,7 @@ export class FriendsGateway {
 				await this.friendsService.removeFriend(data["user"].intraName, data["blockUser"])
 
 			await this.friendsService.blockUser(data["user"].intraName, data["blockUser"])
+			console.log(data["blockUser"])
 			user.blockedWho.push(data["blockUser"])
 			await this.prismaService.user.update({
 				where: {intraName: data["user"].intraName},

@@ -21,7 +21,7 @@ export let otherUser: string;
 let io: Socket
 let chat: HTMLDivElement;
 let autoscroll: boolean;
-let messages: { senderName: string, senderIntraName: string, text: string }[] = [];
+let messages: { senderDisName: string, senderIntraName: string, text: string }[] = [];
 
 let channel: any;
 // ----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
 	io.on("sendMsg", function (message: any) {
-			messages = [...messages, { senderName: message.user, senderIntraName: message.userIntraName, text: message.text}];
+			messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 	});
 
 	io.emit('checkDmExistence', {user2:otherUser}, function (e:any) {
@@ -42,8 +42,16 @@ onMount(() => {
 		}
 		else
 			channel = e["channel"]
-		io.emit('getMessagesFromChannel', {name:channel}, (answer: any) =>
-			messages = answer);
+		io.emit('getMessagesFromChannel', {name:channel}, function (answer: any) {
+						messages = []
+			for (const msg in answer) {	
+				messages = [...messages, 
+					{senderDisName: answer[msg].senderDisName, 
+					senderIntraName: answer[msg].senderName, 
+					text: answer[msg].text}
+				]	
+			}
+		});
 		io.emit('joinRooms', {channels:[channel]});
 	})
 });
@@ -93,7 +101,7 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 		<div class="chat" bind:this={chat}>
 			{#each messages as message}
 			<article>
-				<b> {message.senderName}: </b>
+				<b> {message.senderDisName}: </b>
 				<span>{message.text}</span>
 			</article>
 			{/each}
