@@ -17,11 +17,12 @@ import { goto } from "$app/navigation";
 export let visible: boolean = false;
 
 export let invitee: string;
-let accepted: boolean;
+
 
 
 //= Variables =//
 
+let accepted: boolean;
 let io: Socket;
 
 //= Methods =//
@@ -66,7 +67,7 @@ function onJoin(e: SubmitEvent) {
 <Modal bind:visible={visible} style="display: flex; flex-direction: column;">
 	<div style="display: flex; margin: 1rem 0; overflow: auto; gap: 10px">
 		<form on:submit={(e) => { onJoin(e) }}>
-			<h1>User invited you to a game!</h1> <!--TODO: should probably say who invited you-->
+			<h1>{invitee} invited you to a game!</h1> 
 			<hr/>
 			<div class="choice">
 				<Button style="flex: 1;" type="submit">Sure</Button>
