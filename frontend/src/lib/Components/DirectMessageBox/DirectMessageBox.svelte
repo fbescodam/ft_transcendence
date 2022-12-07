@@ -70,15 +70,10 @@ afterUpdate(() => {
 		chat.scrollTo(0, chat.scrollHeight);
 });
 
-function updateMessages() {
-	// TODO: Handle message updates
-}
-
 function onSend(data: CustomEvent<KeyboardEvent>) {
 	const event = data.detail as KeyboardEvent;
 	const input = event.target as HTMLInputElement;
 
-	// TODO: Send
 	if (event.key === 'Enter') {
 		if (!input.value)
 			return;

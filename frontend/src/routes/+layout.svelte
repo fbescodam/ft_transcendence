@@ -39,7 +39,6 @@ let navitems = [
 	},
 ];
 
-// TODO: Make this work
 onMount(() => {
 	if (JWT == null)
 		return;
@@ -67,7 +66,6 @@ onMount(() => {
 
 <DeviceDetector showInDevice="desktop">
 	<AuthGuard />
-	<!-- TODO: Change this depending on invite request -->
 	<InviteModal bind:visible={hasInvite} bind:invitee={invitedBy}/>
 
 	<!-- Render layout -->

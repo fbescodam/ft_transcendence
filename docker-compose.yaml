@@ -1,5 +1,4 @@
 version: '3'
-# TODO: 2 dockerfiles, one for just db and one for everything, last is prod
 
 services:
   # frontend:

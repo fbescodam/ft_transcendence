@@ -98,7 +98,6 @@ function inviteUser() {
 		}
 		console.log("invited")
 	})
-	// TODO: invite user to game
 }
 
 function blockUser() {

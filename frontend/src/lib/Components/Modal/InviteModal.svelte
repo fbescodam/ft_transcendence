@@ -29,8 +29,6 @@ let io: Socket;
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
-	// TODO: Fetch invite details and dispay!
-
 });
 
 onDestroy(() => { if (io) destroySocket(io); });
@@ -68,7 +66,7 @@ function onJoin(e: SubmitEvent) {
 <Modal bind:visible={visible} style="display: flex; flex-direction: column;">
 	<div style="display: flex; margin: 1rem 0; overflow: auto; gap: 10px">
 		<form on:submit={(e) => { onJoin(e) }}>
-			<h1>User invited you to a game!</h1>
+			<h1>User invited you to a game!</h1> <!--TODO: should probably say who invited you-->
 			<hr/>
 			<div class="choice">
 				<Button style="flex: 1;" type="submit">Sure</Button>

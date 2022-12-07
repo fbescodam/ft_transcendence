@@ -52,7 +52,6 @@ function askForDispName(defaultName: string): void {
 	});
 }
 
-//TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
 		io = authSocket($page.url.hostname)
