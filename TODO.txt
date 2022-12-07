@@ -1,5 +1,8 @@
-- most of the TODOs in the code
-- dockerize everything
+- most of the TODOs in the code (freek its mostly your stuff in there now)
+
+
+
+- dockerize everything (i think done, need to add 4173 to app as redirect uri)
 
 
 

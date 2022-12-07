@@ -2,15 +2,14 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { initSocket, destroySocket } from "$lib/socketIO";
 import { page } from '$app/stores';
-import { channels } from "$lib/Stores/Channel";
+import { destroySocket, initSocket } from "$lib/socketIO";
 import { JWT } from "$lib/Stores/User";
+import type { User } from "$lib/Types";
 import type { Socket } from "socket.io-client";
-import { onMount, onDestroy } from "svelte";
+import { onDestroy, onMount } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
-import type { User } from "$lib/Types";
 
 //= Properties =//
 

@@ -1,17 +1,18 @@
 <!-- Scripting -->
 <script context="module" lang="ts">
-import {  Globe, Chat, Plus } from "svelte-hero-icons";
 import { page } from '$app/stores';
-import { afterUpdate, beforeUpdate, onMount, onDestroy } from "svelte";
-import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
+import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
-import { initSocket, destroySocket } from "$lib/socketIO";
-import { displayName, JWT } from "$lib/Stores/User";
-import { channels } from "$lib/Stores/Channel";
+import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
-import TextInput from "$lib/Components/TextInput/TextInput.svelte"
-import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";import Button from "$lib/Components/Button/Button.svelte";
+import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";
+import TextInput from "$lib/Components/TextInput/TextInput.svelte";
+import { destroySocket, initSocket } from "$lib/socketIO";
+import { channels } from "$lib/Stores/Channel";
+import { displayName, JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
+import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
+import { Chat, Globe, Plus } from "svelte-hero-icons";
 ;
 </script>
 

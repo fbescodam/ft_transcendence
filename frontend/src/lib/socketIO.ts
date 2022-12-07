@@ -29,7 +29,6 @@ export function initSocket(hostname: string, JWT: string): Socket {
 		goto("/auth", { replaceState: false });
 	});
 
-	//TODO: connection errors
 	io.emit("verifyJWT", function(answer:any) {
 		if (answer.status != "ok")
 			goto("/auth", { replaceState: false });
