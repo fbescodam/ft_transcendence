@@ -1,5 +1,5 @@
 - most of the TODOs in the code (freek its mostly your stuff in there now)
-
+- freeeeeeeeeeeeek user should lose game when they disconnect
 
 
 - dockerize everything (i think done, need to add 4173 to app as redirect uri)

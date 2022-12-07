@@ -40,7 +40,7 @@ function sendRes() {
 		return io.emit('inviteResponse', {response:accepted, invitee:invitee})
 
 	io.emit('inviteResponse', {response:accepted, invitee:invitee}, (data:any) => {
-		goto(`/game/${data["gameId"]}`)
+		goto(`/game/${data["gameId"]}`, { replaceState: true })
 	})
 }
 
