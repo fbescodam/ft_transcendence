@@ -1,7 +1,3 @@
-- most of the TODOs in the code (freek its mostly your stuff in there now)
-- freeeeeeeeeeeeek user should lose game when they disconnect
-
-
 - dockerize everything (i think done, need to add 4173 to app as redirect uri)
 
 
@@ -12,3 +8,5 @@ done:
 - block users: hide their chat messages in public/private chat, remove feature to dm. Can play with em though. We do not care
 - MESSAGES SHOULD BE LINKED TO INTRANAMES AND NOT TO DISPLAYNAMES.
      ALSO ON CHANGING YOUR DISPLAY NAME IT SHOULD NOT UPDATE ALL MESSAGES WITH THAT DISPLAY NAME. OR YOU CAN STEAL PEOPLE'S MESSAGES
+- most of the TODOs in the code (freek its mostly your stuff in there now)
+- freeeeeeeeeeeeek user should lose game when they disconnect
