@@ -183,7 +183,7 @@ function getChannelIcon(channel: any) {
 		{#if currentChannel != undefined && currentChannel.name != "Global" && (currentChannel.role === "ADMIN" || currentChannel.role === "OWNER")}
 		<Button on:click={() => {showSettingsModal = true}}>Settings</Button>
 		{/if}
-		{#if currentChannel != undefined && currentChannel.name != "Global" && (currentChannel.role !== "DOWNER")}
+		{#if currentChannel != undefined && currentChannel.name != "Global" && currentChannel.role !== "DMOWNER"}
 		<Button on:click={() => {leaveChannel()}}>Leave channel</Button>
 		{/if}
 		<div class="chat">
