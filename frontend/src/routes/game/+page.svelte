@@ -10,6 +10,11 @@ import TileItem from "$lib/Components/TileItem/TileItem.svelte";
 
 <!-- HTML -->
 
+<svelte:head>
+	<title>Game</title>
+	<meta name="description" content="Start a game of BreadPong" />
+</svelte:head>
+
 <Container>
     <h1>Select a game mode</h1>
 </Container>

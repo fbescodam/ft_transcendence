@@ -112,6 +112,11 @@ onDestroy(() => {
 
 <!-- HTML -->
 
+<svelte:head>
+	<title>{matchmakeStatus}</title>
+	<meta name="description" content="Join the queue to match with a random user to play BreadPong with" />
+</svelte:head>
+
 <div class="center">
 	<Container>
 		<div class="loading">
