@@ -846,7 +846,7 @@ export class MainGateway implements OnGatewayDisconnect {
 		try {
 			const channel = await this.prismaService.channel.findUnique({
 				where: { name:data["name"] },
-				select: {users: true}
+				select: {users: true, type: true}
 			});
 
 			if (!channel)
@@ -868,7 +868,11 @@ export class MainGateway implements OnGatewayDisconnect {
 			// If the current user is the owner of the channel, make a random person the owner
 			const user = channel.users.find((user) => user.userName === data["user"].intraName);
 			if (user.role === Role.OWNER) {
-				const newOwner = channel.users[Math.floor(Math.random() * channel.users.length)];
+				const channelTemp = await this.prismaService.channel.findUnique({
+					where: { name:data["name"] },
+					select: {users: true}
+				});
+				const newOwner = channelTemp.users[Math.floor(Math.random() * channelTemp.users.length)];
 				if (newOwner) {
 					await this.prismaService.channel.update({
 						where: {name: data["name"]},
