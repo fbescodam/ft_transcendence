@@ -13,6 +13,7 @@ export let avatar: string | null;
 export let width: number = 64;
 export let height: number = 64;
 export let alt: string | null;
+export let style: string = "";
 
 </script>
 
@@ -20,7 +21,7 @@ export let alt: string | null;
 
 <div style="width: {width}px; height: {height}px;">
     <!-- Picture -->
-    <img width="{width}" height="{height}" src="{$page.url.protocol}//{$page.url.hostname}:3000/{avatar}" alt={alt ? alt : ""} />
+    <img width="{width}" height="{height}" src="{$page.url.protocol}//{$page.url.hostname}:3000/{avatar}" alt={alt ? alt : ""} style="{style}" />
 </div>
 
 <!-- Styling -->
@@ -32,6 +33,7 @@ img {
     height: 100%;
     object-fit: cover;
     border-radius: var(--border-radius);
+    box-sizing: border-box;
 }
 
 </style>
