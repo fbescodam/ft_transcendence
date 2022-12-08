@@ -192,12 +192,24 @@ export class MainGateway implements OnGatewayDisconnect {
 			if (!user)
 				return { error: "user not found" };
 
-			for (let chan in user.channels) {
-				if (user.channels[chan].role == Role.DMOWNER)
-					delete user.channels[chan]
+			const returnable = [];
+
+			// remove DM channels
+			// for (let chan in user.channels) {
+			// 	if (user.channels[chan].role == Role.DMOWNER)
+			// 		delete user.channels[chan]
+			// }
+
+			// get all users in each channel and return those too
+			for (let userChannel of user.channels) {
+				const users = await this.prismaService.channel.findUnique({
+					where: { name: userChannel.channelName },
+					include: { users: true }
+				});
+				returnable.push({...userChannel, users: users.users});
 			}
 
-			return user.channels.filter(item => item);;
+			return returnable;
 		}
 		catch (e) {
 			console.error(e);

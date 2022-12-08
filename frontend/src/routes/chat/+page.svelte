@@ -9,10 +9,10 @@ import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";
 import TextInput from "$lib/Components/TextInput/TextInput.svelte";
 import { destroySocket, initSocket } from "$lib/socketIO";
 import { channels } from "$lib/Stores/Channel";
-import { displayName, JWT } from "$lib/Stores/User";
+import { displayName, JWT, intraName } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
 import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
-import { Chat, Globe, Plus } from "svelte-hero-icons";
+import { Chat, ChatAlt, Globe, Plus } from "svelte-hero-icons";
 ;
 </script>
 
@@ -56,6 +56,7 @@ onMount(() => {
 	// Get channels from the user
 	io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 		$channels = answer;
+		console.log("channels:", answer);
 		io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 	});
 
@@ -130,6 +131,23 @@ function switchChannel(channel: any) {
 	updateMessages(channel["channelName"])
 }
 
+function getDMWith(channel: any) {
+	for (const user of channel.users) {
+		if (user.userName != $intraName)
+			return user.userName;
+	}
+	return "???";
+}
+
+function getChannelIcon(channel: any) {
+	if (channel.role == "DMOWNER") {
+		return Chat;
+	}
+	if (channel.channelName == "Global")
+		return Globe;
+	return ChatAlt;
+}
+
 </script>
 
 <!-- HTML -->
@@ -148,8 +166,8 @@ function switchChannel(channel: any) {
 	<Container>
 		<div class="channels">
 			{#each $channels as channel}
-				<ChatItem text={channel["channelName"]} selected={channel["channelName"] == openChannel}
-				icon={channel["channelName"] == "Global" ? Globe : Chat}
+				<ChatItem text={(channel["role"] == "DMOWNER" ? getDMWith(channel) : channel["channelName"])} selected={channel["channelName"] == openChannel}
+				icon={getChannelIcon(channel)}
 				on:click={() => {switchChannel(channel)}} />
 			{/each}
 			<hr />
