@@ -30,12 +30,11 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 
 	io.on("sendMsg", function (message: any) {
-			messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
+		messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 	});
 
 	io.emit('checkDmExistence', {user2:otherUser}, function (e:any) {
-		if (e["channel"] == null)
-		{
+		if (e["channel"] == null) {
 			io.emit('createDirectChannel', {user2:otherUser}, function (e:any) {
 				channel = e
 			})
@@ -43,7 +42,7 @@ onMount(() => {
 		else
 			channel = e["channel"]
 		io.emit('getMessagesFromChannel', {name:channel}, function (answer: any) {
-						messages = []
+			messages = []
 			for (const msg in answer) {
 				messages = [...messages,
 					{senderDisName: answer[msg].senderDisName,
@@ -80,6 +79,7 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 
 		console.log("Sending message:", input.value);
 		io.emit("sendMsg", {inChannel: channel, text: input.value}, (ret: any) => {
+			console.log(ret);
 			if ("error" in ret) {
 				alert(ret.error);
 				return;

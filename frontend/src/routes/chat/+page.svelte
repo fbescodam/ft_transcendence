@@ -113,7 +113,13 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 			return;
 		}
 
-		io.emit("sendMsg", {inChannel: openChannel, text: input.value});
+		io.emit("sendMsg", {inChannel: openChannel, text: input.value}, (ret: any) => {
+			console.log(ret);
+			if ("error" in ret) {
+				alert(ret.error);
+				return;
+			}
+		});
 		input.value = "";
 	}
 }
