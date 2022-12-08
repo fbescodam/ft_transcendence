@@ -156,7 +156,7 @@ function onChannelJoin(e: SubmitEvent) {
                     <label for="join-password">
                         <b>Password:</b>
                     </label>
-                    <input bind:this={joinChannelPasswordInput} type="password" id="join-password" name="password">
+                    <input bind:this={joinChannelPasswordInput} type="password" id="join-password" name="password" placeholder="Leave empty if no password">
                 </div>
             </section>
             <Button type="submit">Join</Button>
