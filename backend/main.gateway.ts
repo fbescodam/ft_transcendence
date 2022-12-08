@@ -127,8 +127,10 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (userInChannel.users.length == 0)
+				return { error: "you are not in this channel" };
 			if (userInChannel.users[0].role == Role.MUTED)
-				return { error: "you are muted" }
+				return { error: "you are muted" };
 
 			this.server.to('chan-' + msg.inChannel).emit('sendMsg', { text: msg.text, user: msg.user.name, userIntraName: msg.user.intraName, channel:msg.inChannel });
 			this.logger.log(`sent ${msg.text} to ${msg.inChannel} by ${msg.user.intraName}`);
@@ -187,8 +189,10 @@ export class MainGateway implements OnGatewayDisconnect {
 				include: { channels: true }
 			});
 
-			for (let chan in user.channels)
-			{
+			if (!user)
+				return { error: "user not found" };
+
+			for (let chan in user.channels) {
 				if (user.channels[chan].role == Role.DMOWNER)
 					delete user.channels[chan]
 			}
@@ -217,7 +221,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			if (!userInChannel)
+			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER, userInChannel.users[0].role != Role.DMOWNER)
 				return {error:"not an admin"};
@@ -235,7 +239,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			return {usersInChannel:channelUsers}
+			return {usersInChannel: channelUsers}
 		}
 		catch (e) {
 			console.error(e);
@@ -245,17 +249,19 @@ export class MainGateway implements OnGatewayDisconnect {
 
 	/**
 	 * Retrieves the messages in a channel.
-	 * @param channelName The channel name
+	 * @param data data
 	 * @returns All the messages in the channel.
 	 */
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('getMessagesFromChannel')
-	async getMessagesFromChannel(@MessageBody() name: any) {
+	async getMessagesFromChannel(@MessageBody() data: any) {
 		try {
 			const channel = await this.prismaService.channel.findFirst({
-				where: {name: name.name },
+				where: {name: data.name },
 				include: { messages: true }
 			})
+			if (!channel)
+				return { error: "channel not found" };
 			return channel.messages;
 		}
 		catch (e) {
@@ -276,6 +282,8 @@ export class MainGateway implements OnGatewayDisconnect {
 				where: {intraName: data["user"].intraName},
 				include: {channels: true}
 			})
+			if (!user)
+				return { error: "user not found" };
 
 			let foundChannel = null
 			for (let i = 0; i < user.channels.length; i++) {
@@ -451,6 +459,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (userInChannel.users.length == 0)
+				return {error:"not in channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
@@ -460,7 +470,7 @@ export class MainGateway implements OnGatewayDisconnect {
 					data: {password: {delete: true}}
 				})
 			}
-			catch(any) { this.logger.log("no password")}
+			catch(e) { return { error: "channel had no password" } }
 
 			this.logger.log(`removed password of ${data["name"]}`)
 			return {valid: "password removed"}
@@ -578,7 +588,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			if (!userInChannel)
+			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
@@ -589,7 +599,9 @@ export class MainGateway implements OnGatewayDisconnect {
 			if (!userToAdmin)
 				return {error:"user does not exist"};
 			if (userToAdmin.intraName == data["adminUser"])
-				return {error:"cannot admin yourself"}
+				return {error:"cannot admin yourself"};
+			if (userToAdmin.role == Role.OWNER || userToAdmin.role == Role.ADMIN)
+				return {error:"user is already admin"};
 
 			await this.prismaService.channel.update({
 				where: { name:data["channelName"] },
@@ -606,6 +618,7 @@ export class MainGateway implements OnGatewayDisconnect {
 			})
 
 			this.logger.log(`${data["adminUSer"]} made admin in ${data["channelName"]}`);
+			return { status: "user made admin" };
 		}
 		catch (e) {
 			console.error(e);
@@ -637,7 +650,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			if (!userInChannel)
+			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
@@ -649,6 +662,8 @@ export class MainGateway implements OnGatewayDisconnect {
 				return {error:"user does not exist"};
 			if (userToMute.intraName == data["user"].intraName)
 				return {error:"can't mute yourself"};
+			if (userToMute.role == Role.MUTED)
+				return {error:"user already muted"};
 
 			await this.prismaService.channel.update({
 				where: { name:data["channelName"] },
@@ -664,10 +679,11 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			this.logger.log(`${data["muteUser"]} muted in ${data["channelName"]}`)
+			this.logger.log(`${data["muteUser"]} muted in ${data["channelName"]}`);
+			return { status: "user muted" };
 		}
 		catch (e) {
-			console.error(e);
+			console.trace(e);
 			return { error: e.toString() };
 		}
 	}
@@ -681,57 +697,60 @@ export class MainGateway implements OnGatewayDisconnect {
 	 @SubscribeMessage("unMuteUser")
 	 public async unMuteUser(@MessageBody() data: Object) {
 		 try {
-			 if (!("muteUser" in data))
-				 return {error:"no muteUser in data"};
- 
-			 //check user is admin
-			 const userInChannel = await this.prismaService.channel.findUnique({
-				 where: { name:data["channelName"] },
-				 select: {
-					 users: {
-						 where: {
-							 userName: data["user"].intraName
-						 }
-					 }
-				 }
-			 })
- 
-			 if (!userInChannel)
-				 return {error:"not part of channel"};
-			 if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
-				 return {error:"not an admin"};
- 
-			 const userToMute = await this.prismaService.user.findUnique({
-				 where: { intraName: data["muteUser"] as string },
-			 })
-			 if (!userToMute)
-				 return {error:"user does not exist"};
-			 if (userToMute.intraName == data["user"].intraName)
-				 return {error:"can't unmute yourself"};
-			 
-			 await this.prismaService.channel.update({
-				 where: { name:data["channelName"] },
-				 data: {
-					 users: {
-						 updateMany: {
-							 where: {
-								userName: data["muteUser"],
-								role: Role.MUTED
-							},
-							 data: {
-								 role: Role.USER
-							 }
-						 }
-					 }
-				 }
-			 })
- 
-			 this.logger.log(`${data["muteUser"]} unmuted in ${data["channelName"]}`)
-		 }
-		 catch (e) {
-			 console.error(e);
-			 return { error: e.toString() };
-		 }
+			if (!("muteUser" in data))
+				return {error:"no muteUser in data"};
+
+			//check user is admin
+			const userInChannel = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["user"].intraName
+						}
+					}
+			}
+			})
+
+			if (userInChannel.users.length == 0)
+				return {error:"not part of channel"};
+			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				return {error:"not an admin"};
+
+			const userToMute = await this.prismaService.user.findUnique({
+				where: { intraName: data["muteUser"] as string },
+			})
+			if (!userToMute)
+				return {error:"user does not exist"};
+			if (userToMute.intraName == data["user"].intraName)
+				return {error:"can't unmute yourself"};
+			if (userToMute.role != Role.MUTED)
+				return {error:"user is not muted"};
+
+			await this.prismaService.channel.update({
+				where: { name:data["channelName"] },
+				data: {
+					users: {
+						updateMany: {
+							where: {
+							userName: data["muteUser"],
+							role: Role.MUTED
+						},
+							data: {
+								role: Role.USER
+							}
+						}
+					}
+				}
+			})
+
+			this.logger.log(`${data["muteUser"]} unmuted in ${data["channelName"]}`);
+			return { status: "user unmuted" };
+		}
+		catch (e) {
+			console.error(e);
+			return { error: e.toString() };
+		}
 	 }
 
 	/**
@@ -758,7 +777,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			if (!userInChannel)
+			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
@@ -782,6 +801,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (channelUserToKick.users.length == 0)
+				return {error:"user not part of channel"};
 			if (channelUserToKick.users[0].role == Role.OWNER)
 				return {error:"can't kick owner"};
 
@@ -793,6 +814,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+
+			return { status: "user kicked" };
 		}
 		catch (e) {
 			console.error(e);
@@ -855,6 +878,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+
+			return { status: "left channel" };
 		}
 		catch (e) {
 			console.error(e);
@@ -962,6 +987,8 @@ export class MainGateway implements OnGatewayDisconnect {
 			const user = await this.prismaService.user.findUnique({
 				where: { intraName: data["userIntraName"] },
 			});
+			if (!user)
+				return { error: "user does not exist" };
 			const token = this._getJWTToken(user, socket);
 			return { valid: "2fa code is valid", token: token }
 		}
