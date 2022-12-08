@@ -122,15 +122,15 @@ async function initGame() {
 			// If the game is paused, but only for truly a pause, pause the currently playing theme
 			if (state.paused != null && (state.paused == PausedReason.PAUSED_P1 || state.paused == PausedReason.PAUSED_P2 || state.paused == PausedReason.PAUSED_BY_SERVER))
 				gameSoundEngine.pauseTheme();
-			else {
+
+			if (!state.paused) {
+				// Make sure the game theme is playing when the game is not paused
 				const theme = gameSoundEngine.getTheme();
 				if (!theme || theme.indexOf("game-theme.mp3") == -1)
 					gameSoundEngine.playTheme("game");
 				if (gameSoundEngine.themeIsPaused())
 					gameSoundEngine.resumeTheme();
-			}
 
-			if (!state.paused) {
 				// Sync the game theme with the game time (may have a difference of half a second)
 				// Only if the game is ongoing
 				const themeTime: number = gameSoundEngine.getThemeTime();
@@ -162,6 +162,8 @@ async function initGame() {
 					if (!mainUser || !otherUser)
 						return;
 					const finalScoreMain = mainUser.score - otherUser.score;
+					console.log(finalScoreMain, mainUser.score, otherUser.score);
+					console.log("User " + (finalScoreMain >= 0 ? "won" : "lost") + " the game! Score: " + finalScoreMain);
 					if (finalScoreMain >= 0)
 						gameSoundEngine.playWin();
 					else if (finalScoreMain < 0)
