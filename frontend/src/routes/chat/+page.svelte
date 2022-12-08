@@ -39,20 +39,21 @@ afterUpdate(() => {
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
+	io.emit('getBlockedUsers', {}, function (e: any) {
+		blockedUsers = e;
+	});
 	// Listen to the message event
-	io.on("sendMsg", function (message: any) {
-		console.log(message)
-		if (message.channel == openChannel)
-		{
+	io.on("sendMsg", async function (message: any) {
+		console.log(message);
+		// wait for blockedUsers to load
+		while (!blockedUsers)
+			await new Promise(resolve => setTimeout(resolve, 100));
+		if (message.channel == openChannel) {
 			if (!(blockedUsers.map((item: any) => item).includes(message.user)))
 				messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
 	// Get channels from the user
-	io.emit('getBlockedUsers', {}, function (e: any) {
-		blockedUsers = e;
-
-	})
 	io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 		$channels = answer;
 		io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
@@ -69,20 +70,22 @@ onDestroy(() => {
 });
 
 function updateMessages(channelName: string) {
-	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) => {
+	io.emit('getMessagesFromChannel', {name:channelName}, async (answer: any) => {
 		if ("error" in answer) {
 			alert(answer.error);
 			return;
 		}
 		messages = []
-		for (const msg in answer) {	
-			if (!(blockedUsers.map((item: any) => item).includes(answer[msg].senderName)))
-			{
-				messages = [...messages, 
-					{senderDisName: answer[msg].senderDisName, 
-					senderIntraName: answer[msg].senderName, 
-					text: answer[msg].text}
-				]	
+		for (const msg in answer) {
+			// wait for blockedUsers to load
+			while (!blockedUsers)
+				await new Promise(resolve => setTimeout(resolve, 100));
+			if (!(blockedUsers.map((item: any) => item).includes(answer[msg].senderName))) {
+				messages = [...messages, {
+					senderDisName: answer[msg].senderDisName,
+					senderIntraName: answer[msg].senderName,
+					text: answer[msg].text
+				}]
 			}
 		}
 	});
@@ -107,12 +110,6 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 	const input = event.target as HTMLInputElement;
 	if (event.key === 'Enter') {
 		if (!input.value) {
-			return;
-		}
-
-		currentChannel = $channels.find((el: any) => el.channelName == openChannel);
-		if (currentChannel.channelName == openChannel && currentChannel.role == 'MUTED') {
-			alert("You are muted in this channel!");
 			return;
 		}
 
@@ -145,7 +142,7 @@ function switchChannel(channel: any) {
 	<Container>
 		<div class="channels">
 			{#each $channels as channel}
-				<ChatItem text={channel["channelName"]}
+				<ChatItem text={channel["channelName"]} selected={channel["channelName"] == openChannel}
 				icon={channel["channelName"] == "Global" ? Globe : Chat}
 				on:click={() => {switchChannel(channel)}} />
 			{/each}
