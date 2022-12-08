@@ -122,6 +122,11 @@ onDestroy(() => {
 
 <!-- HTML -->
 
+<svelte:head>
+	<title>Login</title>
+	<meta name="description" content="Log in with 42 to BreadPong" />
+</svelte:head>
+
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">
 		<div class="center">
