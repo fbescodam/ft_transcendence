@@ -2,12 +2,12 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { initSocket, destroySocket } from "$lib/socketIO";
 import { page } from '$app/stores';
+import { destroySocket, initSocket } from "$lib/socketIO";
 import { channels } from "$lib/Stores/Channel";
 import { JWT } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
-import { onMount, onDestroy } from "svelte";
+import { onDestroy, onMount } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
 
@@ -77,10 +77,14 @@ function onChannelJoin(e: SubmitEvent) {
     e.preventDefault();
 
     io.emit('joinChannel', {name:joinChannelNameInput.value, password:joinChannelPasswordInput.value}, function (answer: any) {
-        if (answer.error)
-            console.log(answer.error)
-        else
-            $channels = [...$channels, {channelName: answer.name}]
+        if (answer.error) {
+            console.log(answer.error);
+            alert(answer.error);
+        }
+        else {
+            $channels = [...$channels, {channelName: answer.name}];
+            window.location.reload();
+        }
     });
 
     visible = false;
@@ -152,7 +156,7 @@ function onChannelJoin(e: SubmitEvent) {
                     <label for="join-password">
                         <b>Password:</b>
                     </label>
-                    <input bind:this={joinChannelPasswordInput} type="password" id="join-password" name="password">
+                    <input bind:this={joinChannelPasswordInput} type="password" id="join-password" name="password" placeholder="Leave empty if no password">
                 </div>
             </section>
             <Button type="submit">Join</Button>

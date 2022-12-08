@@ -11,10 +11,10 @@ export let score: { p1: number, p2: number };
 
 <Container>
 	<div class="score">
-		<ProfilePic avatar={p1Avatar} width={64} height={64}/>
+		<ProfilePic avatar={p1Avatar} width={64} height={64} alt="P1" />
 		<!-- <img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03BQBHFG-12acdf20ecc8-512" alt="P1"/> -->
 		<b>{score.p1} : {score.p2}</b>
-		<ProfilePic avatar={p2Avatar} width={64} height={64}/>
+		<ProfilePic avatar={p2Avatar} width={64} height={64} alt="P2" />
 		<!-- <img width={64} height={64} src="https://ca.slack-edge.com/T039P7U66-U03VCRL8328-f8fc04f7f629-512" alt="P2"/> -->
 	</div>
 </Container>

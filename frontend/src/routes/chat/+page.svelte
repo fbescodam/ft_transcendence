@@ -1,17 +1,18 @@
 <!-- Scripting -->
 <script context="module" lang="ts">
-import {  Globe, Chat, Plus } from "svelte-hero-icons";
 import { page } from '$app/stores';
-import { afterUpdate, beforeUpdate, onMount, onDestroy } from "svelte";
-import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
+import Button from "$lib/Components/Button/Button.svelte";
 import Container from "$lib/Components/Container/Container.svelte";
-import { initSocket, destroySocket } from "$lib/socketIO";
-import { displayName, JWT } from "$lib/Stores/User";
-import { channels } from "$lib/Stores/Channel";
+import ChatItem from "$lib/Components/IconButton/IconButton.svelte";
 import ChatAddModal from "$lib/Components/Modal/ChatAddModal.svelte";
-import TextInput from "$lib/Components/TextInput/TextInput.svelte"
-import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";import Button from "$lib/Components/Button/Button.svelte";
+import ChatSettingsModal from "$lib/Components/Modal/ChatSettingsModal.svelte";
+import TextInput from "$lib/Components/TextInput/TextInput.svelte";
+import { destroySocket, initSocket } from "$lib/socketIO";
+import { channels } from "$lib/Stores/Channel";
+import { displayName, JWT, intraName } from "$lib/Stores/User";
 import type { Socket } from "socket.io-client";
+import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
+import { Chat, ChatAlt, Globe, Plus } from "svelte-hero-icons";
 ;
 </script>
 
@@ -38,22 +39,24 @@ afterUpdate(() => {
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
+	io.emit('getBlockedUsers', {}, function (e: any) {
+		blockedUsers = e;
+	});
 	// Listen to the message event
-	io.on("sendMsg", function (message: any) {
-		console.log(message)
-		if (message.channel == openChannel)
-		{
+	io.on("sendMsg", async function (message: any) {
+		console.log(message);
+		// wait for blockedUsers to load
+		while (!blockedUsers)
+			await new Promise(resolve => setTimeout(resolve, 100));
+		if (message.channel == openChannel) {
 			if (!(blockedUsers.map((item: any) => item).includes(message.user)))
 				messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
 	// Get channels from the user
-	io.emit('getBlockedUsers', {}, function (e: any) {
-		blockedUsers = e;
-
-	})
 	io.emit('getChannelsForUser', {user: currentUser}, function (answer: any) {
 		$channels = answer;
+		console.log("channels:", answer);
 		io.emit('joinRooms', {channels:$channels.map((el: any) => el.channelName)});
 	});
 
@@ -68,20 +71,22 @@ onDestroy(() => {
 });
 
 function updateMessages(channelName: string) {
-	io.emit('getMessagesFromChannel', {name:channelName}, (answer: any) => {
+	io.emit('getMessagesFromChannel', {name:channelName}, async (answer: any) => {
 		if ("error" in answer) {
 			alert(answer.error);
 			return;
 		}
 		messages = []
-		for (const msg in answer) {	
-			if (!(blockedUsers.map((item: any) => item).includes(answer[msg].senderName)))
-			{
-				messages = [...messages, 
-					{senderDisName: answer[msg].senderDisName, 
-					senderIntraName: answer[msg].senderName, 
-					text: answer[msg].text}
-				]	
+		for (const msg in answer) {
+			// wait for blockedUsers to load
+			while (!blockedUsers)
+				await new Promise(resolve => setTimeout(resolve, 100));
+			if (!(blockedUsers.map((item: any) => item).includes(answer[msg].senderName))) {
+				messages = [...messages, {
+					senderDisName: answer[msg].senderDisName,
+					senderIntraName: answer[msg].senderName,
+					text: answer[msg].text
+				}]
 			}
 		}
 	});
@@ -109,13 +114,13 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 			return;
 		}
 
-		currentChannel = $channels.find((el: any) => el.channelName == openChannel);
-		if (currentChannel.channelName == openChannel && currentChannel.role == 'MUTED') {
-			alert("You are muted in this channel!");
-			return;
-		}
-
-		io.emit("sendMsg", {inChannel: openChannel, text: input.value});
+		io.emit("sendMsg", {inChannel: openChannel, text: input.value}, (ret: any) => {
+			console.log(ret);
+			if ("error" in ret) {
+				alert(ret.error);
+				return;
+			}
+		});
 		input.value = "";
 	}
 }
@@ -124,6 +129,23 @@ function switchChannel(channel: any) {
 	openChannel = channel["channelName"]
 	currentChannel = channel;
 	updateMessages(channel["channelName"])
+}
+
+function getDMWith(channel: any) {
+	for (const user of channel.users) {
+		if (user.userName != $intraName)
+			return user.userName;
+	}
+	return "???";
+}
+
+function getChannelIcon(channel: any) {
+	if (channel.role == "DMOWNER") {
+		return Chat;
+	}
+	if (channel.channelName == "Global")
+		return Globe;
+	return ChatAlt;
 }
 
 </script>
@@ -144,8 +166,8 @@ function switchChannel(channel: any) {
 	<Container>
 		<div class="channels">
 			{#each $channels as channel}
-				<ChatItem text={channel["channelName"]}
-				icon={channel["channelName"] == "Global" ? Globe : Chat}
+				<ChatItem text={(channel["role"] == "DMOWNER" ? getDMWith(channel) : channel["channelName"])} selected={channel["channelName"] == openChannel}
+				icon={getChannelIcon(channel)}
 				on:click={() => {switchChannel(channel)}} />
 			{/each}
 			<hr />

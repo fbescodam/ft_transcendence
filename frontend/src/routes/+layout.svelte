@@ -10,9 +10,9 @@ import { JWT} from "$lib/Stores/User";
 import DeviceDetector from "svelte-device-detector";
 import AuthGuard from "$lib/Guards/AuthGuard.svelte";
 import InviteModal from "$lib/Components/Modal/InviteModal.svelte";
-import { onMount } from "svelte";
+import { onDestroy, onMount } from "svelte";
 import type { Socket } from "socket.io-client";
-import { initSocket } from "$lib/socketIO";
+import { initSocket, destroySocket } from "$lib/socketIO";
 import { goto } from "$app/navigation";
 
 let io: Socket;
@@ -29,7 +29,7 @@ let navitems = [
 		href: "/game",
 		icon: Cube,
 		text: "Game",
-		color: "orange", 
+		color: "orange",
 	},
 	{
 		href: "/chat",
@@ -39,7 +39,6 @@ let navitems = [
 	},
 ];
 
-// TODO: Make this work
 onMount(() => {
 	if (JWT == null)
 		return;
@@ -55,10 +54,15 @@ onMount(() => {
 
 	io.on('isGameHappening', (data) => {
 		console.log(data)
-		
+
 		if (data['response'] == true)
 			goto(`/game/${data["gameId"]}`)
 	})
+});
+
+onDestroy(() => {
+	if (io)
+		destroySocket(io);
 });
 
 </script>
@@ -67,7 +71,6 @@ onMount(() => {
 
 <DeviceDetector showInDevice="desktop">
 	<AuthGuard />
-	<!-- TODO: Change this depending on invite request -->
 	<InviteModal bind:visible={hasInvite} bind:invitee={invitedBy}/>
 
 	<!-- Render layout -->

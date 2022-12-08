@@ -15,14 +15,12 @@ export interface QueuedUser {
 }
 
 interface NetworkGame {
-	[gameId: string]: {
-		roomId: string;
-		players: [string, string]; // intraNames
-		sockets: {
-			[intraName: string]: string; // intraName: key, socketId: value
-		}
-		stateMachine: GameStateMachine;
+	roomId: string;
+	players: [string, string]; // intraNames
+	sockets: {
+		[intraName: string]: string; // intraName: key, socketId: value
 	}
+	stateMachine: GameStateMachine;
 }
 
 /*==========================================================================*/
@@ -30,7 +28,9 @@ interface NetworkGame {
 @Injectable()
 export class GameService {
 	private _matchmakingQueue: QueuedUser[] = [];
-	private _games: NetworkGame = {};
+	private _games: {
+		[gameId: number]: NetworkGame;
+	} = {};
 	private _ticker: GameTicker;
 
 	@Inject(PrismaService)
@@ -186,9 +186,19 @@ export class GameService {
 	/**
 	 * Check if a user is currently in an ongoing game.
 	 * @param intraName The intra name of the user to check
+	 * @param gameId If a gameId is given, only this game is checked. Otherwise, all games are checked.
 	 * @returns The gameID of an ongoing game if the user is in one, NaN otherwise
 	 */
-	userInGame(intraName: string): number {
+	userInGame(intraName: string, gameId: number = NaN): number {
+		if (!isNaN(gameId)) {
+			if (!this._games[gameId])
+				return NaN;
+			for (const player of this._games[gameId].players) {
+				if (player == intraName)
+					return gameId;
+			}
+			return NaN;
+		}
 		for (const gameId in this._games) {
 			console.log(`Checking if ${intraName} is in game ${(this._games[gameId].stateMachine.isPaused() ? "paused" : "ongoing")} game ${gameId}...`);
 			if (this._games[gameId].stateMachine.isPaused())
@@ -211,12 +221,12 @@ export class GameService {
 	connectUserToGame(socketId, intraName, gameId): boolean {
 		if (gameId in this._games) {
 			this.gameGateway.server.to(socketId).socketsJoin(this._games[gameId].roomId);
-			if (intraName in this._games[gameId].players && !this._games[gameId].sockets[intraName]) {
+			if (this.userInGame(intraName, gameId) && !this._games[gameId].sockets[intraName]) {
 				this._games[gameId].sockets[intraName] = socketId;
 				console.log(`Socket ${socketId} added to game ${gameId} as player ${intraName}`);
 				return true;
 			}
-			console.log(`Socket ${socketId} is now spectating game ${gameId}`);
+			console.log(`Socket ${socketId} (${intraName}) is now spectating game ${gameId}`);
 			return true;
 		}
 		console.log(`Game ${gameId} does not exist in the list of running online games`);
@@ -363,7 +373,7 @@ export class GameService {
 		let victorScore: number | null = null;
 		let loserScore: number | null = null;
 		if (forceWin) {
-			if (!(forceWin in this._games[gameId].players)) {
+			if (!this.userInGame(forceWin, gameId)) {
 				console.warn(`Tried to force win for user ${forceWin} but they are not in game ${gameId}`);
 				return;
 			}

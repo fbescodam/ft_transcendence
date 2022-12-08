@@ -16,20 +16,21 @@
 	export let icon: IconSource;
 	/** The Button text to display. */
 	export let text: string;
+	/** If this button is currently selecte (for tabs) */
+	export let selected: boolean = false;
 </script>
 
-<button on:click={() => { dispatch("click"); }}>
+<button class="icon-btn{ selected ? " selected": "" }" on:click={() => { dispatch("click"); }}>
 	<Icon src="{icon}" size="2rem"/>
 	<p>{text}</p>
 </button>
 
 <style lang="scss">
-
 p {
 	font-size: 0.8rem;
 }
 
-button {
+.icon-btn {
 	cursor: pointer;
 	display: flex;
 	gap: 4px;
@@ -48,7 +49,7 @@ button {
 
 	color: white;
 	background: transparent;
-	
+
 	border: solid rgba(0, 0, 0, 0) 2px;
 	transition: border-color 0.1s ease-out;
 	transition-delay: 0.05s;
@@ -62,13 +63,17 @@ button {
 	&:focus {
 		border-color: white;
 	}
-	
+
 	&:active {
 		border-color: #7f8594;
 	}
-	
+
 	&:hover {
 		border-color: white;
 	}
+}
+
+.icon-btn.selected {
+	border-color: #9fa0f9;
 }
 </style>
