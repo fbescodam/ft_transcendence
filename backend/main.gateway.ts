@@ -85,7 +85,9 @@ export class MainGateway implements OnGatewayDisconnect {
 						players: {
 							select: {
 								avatar: true,
-								name: true
+								name: true,
+								intraName: true,
+								id: true
 							}
 						},
 						loserScore: true,
