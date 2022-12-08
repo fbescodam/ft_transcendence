@@ -123,37 +123,47 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('inviteToGame')
 	async inviteToGame(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		
-		let userSocketID = null;
-		if (data["userIntraName"] in this._gameInviteSocket)
-			userSocketID = this._gameInviteSocket[data["userIntraName"]]
-		if (userSocketID === null)
-			return {error:"no socket found, user is likely not online"}
+		try {
+			let userSocketID = null;
+			if (data["userIntraName"] in this._gameInviteSocket)
+				userSocketID = this._gameInviteSocket[data["userIntraName"]]
+			if (userSocketID === null)
+				return {error:"no socket found, user is likely not online"}
 
 
-		this.server.to(userSocketID).emit("invite", {invitee:data["user"].intraName})
+			this.server.to(userSocketID).emit("invite", {invitee:data["user"].intraName})
+		}
+		catch (e) {
+			console.error(e);
+			return {error: e.toString()};
+		}
 	}
 
 	@UseGuards(JwtGuard)
 	@SubscribeMessage('inviteResponse')
 	async inviteResponse(@MessageBody() data: Object, @ConnectedSocket() socket: Socket) {
-		
-		console.log(data['response'])
-		if (data['response'] == false)
-			return this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {response:data['response']})
-			
-		console.log(`Found 2 users in the queue to matchmake. Creating game...`);
-		const game = await this.gameService.createGame(data['invitee'], data['user'].intraName);
-		await this.gameService.startGame(game, 
-			{intraName: data['invitee'], socketId:''}, 
-			{intraName: data['user'].intraName, socketId:''});
-			
-		this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {
-			response:data['response'],
-			gameId:game.id
-		})
+		try {
+			console.log(data['response'])
+			if (data['response'] == false)
+				return this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {response:data['response']})
 
-		return {status:'start', gameId:game.id}
+			console.log(`Found 2 users in the queue to matchmake. Creating game...`);
+			const game = await this.gameService.createGame(data['invitee'], data['user'].intraName);
+			await this.gameService.startGame(game,
+				{intraName: data['invitee'], socketId:''},
+				{intraName: data['user'].intraName, socketId:''});
+
+			this.server.to(this._gameInviteSocket[data['invitee']]).emit('isGameHappening', {
+				response:data['response'],
+				gameId:game.id
+			})
+
+			return {status:'start', gameId:game.id}
+		}
+		catch (e) {
+			console.error(e);
+			return {error: e.toString()};
+		}
 	}
 
 
@@ -162,7 +172,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		this.gameService.leaveQueue(socket.id);
-		this.gameService.disconnectUserFromGames(socket.id);
+		try {
+			this.gameService.leaveQueue(socket.id);
+			this.gameService.disconnectUserFromGames(socket.id);
+		}
+		catch (e) {
+			console.error(e);
+		}
 	}
 }

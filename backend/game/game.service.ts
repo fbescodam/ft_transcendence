@@ -241,6 +241,8 @@ export class GameService {
 		for (const gameId in this._games) {
 			// Ugly, but for some reason `socketId in Object.values(this._games[gameId].sockets)` doesn't work
 			for (const intraName in this._games[gameId].sockets) {
+				if (!this._games[gameId])
+					continue; // this can happen if two people disconnect at the same time
 				if (this._games[gameId].sockets[intraName] === socketId) {
 					console.log(`A disconnected socket ${socketId} is in game ${gameId} as ${intraName}`);
 					delete this._games[gameId].sockets[intraName];
