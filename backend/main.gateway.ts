@@ -641,7 +641,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				return {error:"not an admin"};
 
 			const userToMute = await this.prismaService.user.findUnique({
-				where: { intraName: data["muteUser"] },
+				where: { intraName: data["muteUser"] as string },
 			})
 			if (!userToMute)
 				return {error:"user does not exist"};
@@ -669,6 +669,68 @@ export class MainGateway implements OnGatewayDisconnect {
 			return { error: e.toString() };
 		}
 	}
+
+	/**
+	 * method for muting a user in chanel
+	 * @param data {channelName: channel_to_mute_in, muteUser: user_to_mute}
+	 * @returns
+	 */
+	 @UseGuards(JwtGuard)
+	 @SubscribeMessage("unMuteUser")
+	 public async unMuteUser(@MessageBody() data: Object) {
+		 try {
+			 if (!("muteUser" in data))
+				 return {error:"no muteUser in data"};
+ 
+			 //check user is admin
+			 const userInChannel = await this.prismaService.channel.findUnique({
+				 where: { name:data["channelName"] },
+				 select: {
+					 users: {
+						 where: {
+							 userName: data["user"].intraName
+						 }
+					 }
+				 }
+			 })
+ 
+			 if (!userInChannel)
+				 return {error:"not part of channel"};
+			 if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
+				 return {error:"not an admin"};
+ 
+			 const userToMute = await this.prismaService.user.findUnique({
+				 where: { intraName: data["muteUser"] as string },
+			 })
+			 if (!userToMute)
+				 return {error:"user does not exist"};
+			 if (userToMute.intraName == data["user"].intraName)
+				 return {error:"can't unmute yourself"};
+			 
+			 await this.prismaService.channel.update({
+				 where: { name:data["channelName"] },
+				 data: {
+					 users: {
+						 updateMany: {
+							 where: {
+								userName: data["muteUser"],
+								role: Role.MUTED
+							},
+							 data: {
+								 role: Role.USER
+							 }
+						 }
+					 }
+				 }
+			 })
+ 
+			 this.logger.log(`${data["muteUser"]} unmuted in ${data["channelName"]}`)
+		 }
+		 catch (e) {
+			 console.error(e);
+			 return { error: e.toString() };
+		 }
+	 }
 
 	/**
 	 * method to kick user from channel
@@ -700,7 +762,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				return {error:"not an admin"};
 
 			const userToKick = await this.prismaService.user.findUnique({
-				where: { intraName: data["kickUser"] },
+				where: { intraName: data["kickUser"] as string },
 			})
 			if (!userToKick)
 				return {error:"user does not exist"};

@@ -82,6 +82,17 @@ function killUser(e: SubmitEvent) {
 			break;
 		}
 
+		case "3": {
+			io.emit("unMuteUser", { muteUser: userInput.value, channelName: channel.channelName }, function (e:any) {
+				if ("error" in e) {
+					alert(e.error);
+					return;
+				}
+				alert(`User ${userInput.value} has been unmuted`);
+			})
+			break;
+		}
+
 		default:
 			alert(`Lol no? ${userInput.value}`);
 			break;
@@ -130,6 +141,7 @@ function removePW() {
 				}}>
 					<option selected value="1">Mute</option>
 					<option value="2">Kick / Ban</option>
+					<option value="3">Unmute</option>
 				</select>
 				<hr/>
 				<Button type="submit">Submit</Button>
