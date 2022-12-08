@@ -213,15 +213,20 @@ const keyUpHandler = (event: KeyboardEvent) => {
 };
 
 const keyDownHandler = (event: KeyboardEvent) => {
-	console.log(event);
+	// console.log(event);
 	gameController.setKeyPressed(event.key);
 
-	if (event.key === "Escape")
-		gameController.togglePause();
-	if (event.key === "/")
-		gameRenderer.debugScreen = (gameRenderer.debugScreen ? false : true);
-	if (event.key === "m")
-		gameSoundEngine.muteSound()
+	switch (event.key) {
+		case "Escape":
+			gameController.togglePause();
+			break;
+		case "/":
+			gameRenderer.debugScreen = (gameRenderer.debugScreen ? false : true);
+			break;
+		case "m":
+			console.log("Game muted:", gameSoundEngine.muteSound());
+			break;
+	};
 };
 
 </script>
