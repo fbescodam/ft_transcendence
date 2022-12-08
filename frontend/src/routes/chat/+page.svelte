@@ -25,7 +25,7 @@ let currentChannel: any;
 let currentUser = $displayName
 let chat: HTMLDivElement;
 let autoscroll: boolean;
-let blockedUsers: any
+let blockedUsers: any = undefined;
 let showSettingsModal: boolean = false;
 
 beforeUpdate(() => {
@@ -41,6 +41,7 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!)
 	io.emit('getBlockedUsers', {}, function (e: any) {
 		blockedUsers = e;
+		console.log("blockedUsers:", blockedUsers);
 	});
 	// Listen to the message event
 	io.on("sendMsg", async function (message: any) {
@@ -49,7 +50,7 @@ onMount(() => {
 		while (!blockedUsers)
 			await new Promise(resolve => setTimeout(resolve, 100));
 		if (message.channel == openChannel) {
-			if (!(blockedUsers.map((item: any) => item).includes(message.user)))
+			if (!(blockedUsers.map((item: any) => item).includes(message.userIntraName)))
 				messages = [...messages, { senderDisName: message.user, senderIntraName: message.userIntraName, text: message.text}];
 		}
 	});
