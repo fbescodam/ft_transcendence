@@ -851,8 +851,19 @@ export class MainGateway implements OnGatewayDisconnect {
 
 			if (!channel)
 				return {error:"channel does not exist"};
+			if (channel.type == ChannelType.DIRECT)
+				return {error:"you cannot leave a direct channel"};
 
 			this.logger.log(`${data["user"].intraName} left ${data["name"]}`)
+
+			await this.prismaService.channel.update({
+				where: {name: data["name"]},
+				data: {
+					users: {
+						deleteMany: [{ userName: data["user"].intraName }],
+					}
+				}
+			})
 
 			// If the current user is the owner of the channel, make a random person the owner
 			const user = channel.users.find((user) => user.userName === data["user"].intraName);
@@ -881,15 +892,6 @@ export class MainGateway implements OnGatewayDisconnect {
 					return;
 				}
 			}
-
-			await this.prismaService.channel.update({
-				where: {name: data["name"]},
-				data: {
-					users: {
-						deleteMany: [{ userName: data["user"].intraName }],
-					}
-				}
-			})
 
 			return { status: "left channel" };
 		}
