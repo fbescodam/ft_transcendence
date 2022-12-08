@@ -77,10 +77,14 @@ function onChannelJoin(e: SubmitEvent) {
     e.preventDefault();
 
     io.emit('joinChannel', {name:joinChannelNameInput.value, password:joinChannelPasswordInput.value}, function (answer: any) {
-        if (answer.error)
-            console.log(answer.error)
-        else
-            $channels = [...$channels, {channelName: answer.name}]
+        if (answer.error) {
+            console.log(answer.error);
+            alert(answer.error);
+        }
+        else {
+            $channels = [...$channels, {channelName: answer.name}];
+            window.location.reload();
+        }
     });
 
     visible = false;
