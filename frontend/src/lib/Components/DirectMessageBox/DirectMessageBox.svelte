@@ -44,12 +44,12 @@ onMount(() => {
 			channel = e["channel"]
 		io.emit('getMessagesFromChannel', {name:channel}, function (answer: any) {
 						messages = []
-			for (const msg in answer) {	
-				messages = [...messages, 
-					{senderDisName: answer[msg].senderDisName, 
-					senderIntraName: answer[msg].senderName, 
+			for (const msg in answer) {
+				messages = [...messages,
+					{senderDisName: answer[msg].senderDisName,
+					senderIntraName: answer[msg].senderName,
 					text: answer[msg].text}
-				]	
+				]
 			}
 		});
 		io.emit('joinRooms', {channels:[channel]});
@@ -79,7 +79,12 @@ function onSend(data: CustomEvent<KeyboardEvent>) {
 			return;
 
 		console.log("Sending message:", input.value);
-		io.emit("sendMsg", {inChannel: channel, text: input.value});
+		io.emit("sendMsg", {inChannel: channel, text: input.value}, (ret: any) => {
+			if ("error" in ret) {
+				alert(ret.error);
+				return;
+			}
+		});
 		input.value = "";
 	}
 }
