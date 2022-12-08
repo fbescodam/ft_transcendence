@@ -40,7 +40,7 @@ function sendRes() {
 		return io.emit('inviteResponse', {response:accepted, invitee:invitee})
 
 	io.emit('inviteResponse', {response:accepted, invitee:invitee}, (data:any) => {
-		goto(`/game/${data["gameId"]}`, { replaceState: true })
+		goto(`/game/${data["gameId"]}`, { replaceState: false })
 	})
 }
 
@@ -67,7 +67,7 @@ function onJoin(e: SubmitEvent) {
 <Modal bind:visible={visible} style="display: flex; flex-direction: column;">
 	<div style="display: flex; margin: 1rem 0; overflow: auto; gap: 10px">
 		<form on:submit={(e) => { onJoin(e) }}>
-			<h1>{invitee} invited you to a game!</h1> 
+			<h1>{invitee} invited you to a game!</h1>
 			<hr/>
 			<div class="choice">
 				<Button style="flex: 1;" type="submit">Sure</Button>
@@ -88,4 +88,3 @@ function onJoin(e: SubmitEvent) {
     gap: 10px;
 }
 </style>
-	
