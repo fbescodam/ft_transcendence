@@ -204,8 +204,8 @@ onDestroy(() => {
 	console.log("onDestroy called");
 	if (io)
 		destroySocket(io);
+	// reload to destroy the gameState, gameController, gameRenderer, etc.
 	window.location.reload();
-	// TODO: Leon pls fix (gameState, gameController and gameRenderer should be reset)
 });
 
 const keyUpHandler = (event: KeyboardEvent) => {
