@@ -21,6 +21,8 @@ services:
       - "3000:3000"
     networks:
       - ft_transcendence_network
+    volumes:
+      - statics:/transcendence/static/avatars
     depends_on:
       - database
 
@@ -52,3 +54,4 @@ networks:
 
 volumes:
   postgres:
+  statics:
