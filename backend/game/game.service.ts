@@ -373,7 +373,7 @@ export class GameService {
 		let victorScore: number | null = null;
 		let loserScore: number | null = null;
 		if (forceWin) {
-			if (!(forceWin in this._games[gameId].players)) {
+			if (!this.userInGame(forceWin, gameId)) {
 				console.warn(`Tried to force win for user ${forceWin} but they are not in game ${gameId}`);
 				return;
 			}
