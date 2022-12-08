@@ -560,7 +560,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				data: {
 					users: {
 						create: {
-							role: Role.USER,
+							role: (channel.users.length > 0 ? Role.USER : Role.OWNER),
 							userName: channelData["user"].intraName,
 						}
 					}
@@ -887,13 +887,6 @@ export class MainGateway implements OnGatewayDisconnect {
 							}
 						}
 					})
-				}
-				else {
-					// Delete the channel, there is nobody left.
-					await this.prismaService.channel.delete({
-						where: {name: data["name"]}
-					})
-					return;
 				}
 			}
 
