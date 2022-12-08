@@ -178,9 +178,7 @@ function spectateUser() {
 		</Container>
 		<hr />
 		{#if isCurrentUser == false && isBlocked == false}
-			<div style="position: absolute; bottom: 10px; right: 10px;">
-				<DirectMessageBox otherUser={user.intraName}/>
-			</div>
+			<DirectMessageBox otherUser={user.intraName}/>
 		{/if}
 		<div class="content">
 			<details>

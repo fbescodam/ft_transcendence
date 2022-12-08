@@ -30,6 +30,8 @@ input {
 	font-family: inherit;
 	background-color: var(--component-secondary-bg);
 	cursor: pointer;
+	box-sizing: border-box;
+	width: 100%;
 
 	transition: all 0.25s;
 
