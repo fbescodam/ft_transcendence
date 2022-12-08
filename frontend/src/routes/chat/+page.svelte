@@ -99,8 +99,9 @@ function leaveChannel() {
 			alert(answer.error);
 			return;
 		}
+		else
+			window.location.reload();
 	})
-	window.location.reload();
 }
 
 /**

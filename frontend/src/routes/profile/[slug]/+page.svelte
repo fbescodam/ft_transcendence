@@ -78,16 +78,16 @@ onDestroy(() => {
 function addUser() {
 	if (!isFriend) {
 		io.emit("addFriend",{newFriend:user!.intraName}, function (e:any) {
-			console.log(e)
+			console.log(e);
+			window.location.reload();
 		})
 	}
 	else {
 		io.emit("removeFriend", {removeFriend: user!.intraName}, function (e:any) {
-			console.log(e)
+			console.log(e);
+			window.location.reload();
 		})
 	}
-	window.location.reload()
-	console.log("Add or unadd user as a friend");
 }
 
 function inviteUser() {
@@ -109,16 +109,16 @@ function inviteUser() {
 function blockUser() {
 	if (!isBlocked) {
 		io.emit("blockUser",{blockUser:user!.intraName}, function (e:any) {
-			console.log(e)
+			console.log(e);
+			window.location.reload();
 		})
 	}
 	else {
 		io.emit("unBlockUser", {unBlockUser: user!.intraName}, function (e:any) {
-			console.log(e)
+			console.log(e);
+			window.location.reload();
 		})
 	}
-	window.location.reload()
-	console.log("block or unblock user to game");
 }
 
 const getRandomEmoji = () => {
