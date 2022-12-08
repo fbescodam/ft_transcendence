@@ -714,7 +714,8 @@ class GameStateMachine {
 		}
 
 		if (paddleState) {
-			// TODO: handle timestamp?
+			// We could take the timestamp into account here and quickly render the missing frames.
+			// But this might be a bit out of scope for this project.
 
 			// Update the correct paddle
 			const paddle = paddleState.position == "left" ? this.player1.paddle : this.player2.paddle;
@@ -748,7 +749,8 @@ class GameStateMachine {
 			throw Error("Refusing to handle a state change; game is not in online multiplayer mode!");
 		}
 
-		// TODO: handle timestamp
+		// We could take the timestamp into account here and quickly render the missing frames.
+		// But this might be a bit out of scope for this project.
 
 		// Play a sound if the host told us to
 		switch (state.sound) {

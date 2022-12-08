@@ -22,7 +22,6 @@ let show2FAModal: boolean = false;
 let showDis2FAModal: boolean = false;
 
 
-// TODO: Check if the user has tfa enabled.
 let tfaEnabled: boolean = false;
 let newUsername: HTMLInputElement;
 let authCode: HTMLInputElement;
@@ -133,7 +132,6 @@ function checkCode(e: SubmitEvent) {
 	<Container style="flex: 1;">
 
 		<!-- User Data -->
-		<!-- TODO: Any extra settings ? -->
 		<form on:submit={(e) => { changeUsername(e); }}>
 			<fieldset>
 				<legend>Name</legend>

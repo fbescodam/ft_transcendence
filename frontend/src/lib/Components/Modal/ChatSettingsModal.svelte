@@ -2,15 +2,14 @@
 <!-- Scripting -->
 
 <script lang="ts">
-import { initSocket, destroySocket } from "$lib/socketIO";
 import { page } from '$app/stores';
-import { channels } from "$lib/Stores/Channel";
+import { destroySocket, initSocket } from "$lib/socketIO";
 import { JWT } from "$lib/Stores/User";
+import type { User } from "$lib/Types";
 import type { Socket } from "socket.io-client";
-import { onMount, onDestroy } from "svelte";
+import { onDestroy, onMount } from "svelte";
 import Button from "../Button/Button.svelte";
 import Modal from "./Modal.svelte";
-import type { User } from "$lib/Types";
 
 //= Properties =//
 
@@ -83,6 +82,17 @@ function killUser(e: SubmitEvent) {
 			break;
 		}
 
+		case "3": {
+			io.emit("unMuteUser", { muteUser: userInput.value, channelName: channel.channelName }, function (e:any) {
+				if ("error" in e) {
+					alert(e.error);
+					return;
+				}
+				alert(`User ${userInput.value} has been unmuted`);
+			})
+			break;
+		}
+
 		default:
 			alert(`Lol no? ${userInput.value}`);
 			break;
@@ -131,6 +141,7 @@ function removePW() {
 				}}>
 					<option selected value="1">Mute</option>
 					<option value="2">Kick / Ban</option>
+					<option value="3">Unmute</option>
 				</select>
 				<hr/>
 				<Button type="submit">Submit</Button>

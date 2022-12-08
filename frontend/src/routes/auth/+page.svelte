@@ -52,7 +52,6 @@ function askForDispName(defaultName: string): void {
 	});
 }
 
-//TODO: authguard on every page
 onMount(() => {
 	if (authCode != null && !stateMismatch) {
 		io = authSocket($page.url.hostname)
@@ -122,6 +121,11 @@ onDestroy(() => {
 </script>
 
 <!-- HTML -->
+
+<svelte:head>
+	<title>Login</title>
+	<meta name="description" content="Log in with 42 to BreadPong" />
+</svelte:head>
 
 <div class="page">
 	<Container style="flex: 1; margin: 1rem;">

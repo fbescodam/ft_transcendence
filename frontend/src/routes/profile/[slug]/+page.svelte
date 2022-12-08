@@ -33,7 +33,7 @@ let isFriend: boolean = false;
 let isBlocked: boolean = false;
 let isBlockReceive: boolean = false;
 let isInGame: number = -1;
-let isOnline: boolean = false;
+let status: string;
 
 onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
@@ -48,7 +48,7 @@ onMount(() => {
 		}
 
 		user = data.user;
-		isOnline = data.online;
+		status = data.online ? "ONLINE" : "OFFLINE";
 		if (user!.name == $displayName)
 			isCurrentUser = true;
 		if (isCurrentUser == false && user!.friends.map((item) => item['name']).includes($displayName!))
@@ -64,6 +64,7 @@ onMount(() => {
 				console.error(ret["error"]);
 			else if (ret.status === "gaming" && "game" in ret && "id" in ret.game) {
 				isInGame = ret.game.id;
+				status = "HAVING A GAMER MOMENT"
 			}
 		});
 	});
@@ -91,6 +92,11 @@ function addUser() {
 
 function inviteUser() {
 	console.log(user?.intraName)
+	if (isInGame > -1)
+	{
+		alert("user is in a game already");
+		return;
+	}
 	io.emit("inviteToGame", {userIntraName:user?.intraName}, function (answer:any) {
 		if ("error" in answer) {
 			alert(answer.error);
@@ -98,7 +104,6 @@ function inviteUser() {
 		}
 		console.log("invited")
 	})
-	// TODO: invite user to game
 }
 
 function blockUser() {
@@ -146,7 +151,7 @@ function spectateUser() {
 		<Container style="background-image: url(https://picsum.photos/1920/1080); background-repeat: no-repeat; background-size: cover; background-position: center;">
 			<div class="profile-stats">
 				<ProfilePic avatar={user.avatar} width={128} height={128} alt={user.intraName} />
-				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} online={isOnline} />
+				<ProfileStats name={user.name} wins={user.wins} loss={user.losses} games={user.games.length} {status} />
 			</div>
 			{#if $page.params.slug != $displayName && isBlockReceive == false && isCurrentUser == false}
 			<div style="margin-top: 8px;">
@@ -173,9 +178,7 @@ function spectateUser() {
 		</Container>
 		<hr />
 		{#if isCurrentUser == false && isBlocked == false}
-			<div style="position: absolute; bottom: 10px; right: 10px;">
-				<DirectMessageBox otherUser={user.intraName}/>
-			</div>
+			<DirectMessageBox otherUser={user.intraName}/>
 		{/if}
 		<div class="content">
 			<details>
@@ -191,8 +194,6 @@ function spectateUser() {
 								{:else}
 									<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.victorScore, p2: game.loserScore}}/>
 								{/if}
-							{:else}
-								<p><b>The game here has no players... What?</b></p>
 							{/if}
 						{:else}
 							<p><b>Yo Leon fix this, game is undefined</b></p>

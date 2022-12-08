@@ -1,49 +1,76 @@
 interface GameOverSound {
 	djingle: AudioBuffer | null;
 	theme: HTMLAudioElement | null;
+	themeNode: AudioNode | null;
 }
 
 class GameSoundEngine {
+	private _audioLocation: string;
+
 	private _context: AudioContext;
 	private _gainNode: GainNode;
-	private _audioLocation: string;
-	private _muteSound: Boolean;
+	private _masterGainNode: GainNode;
+	private _soundMuted: Boolean;
 
 	private _lobbyTheme: HTMLAudioElement | null;
+	private _lobbyThemeNode: AudioNode | null;
+
 	private _gameTheme: HTMLAudioElement | null;
+	private _gameThemeNode: AudioNode | null;
 	private _win: GameOverSound;
 	private _lose: GameOverSound;
 	private _currentTheme: HTMLAudioElement | null = null;
 
 	constructor(hostname: string) {
 		this._audioLocation = `http://${hostname}:3000/audio`;
-
 		this._context = new AudioContext();
+
+		this._masterGainNode = this._context.createGain();
+		this._masterGainNode.gain.value = 1;
+		this._masterGainNode.connect(this._context.destination);
+		this._soundMuted = false;
+
 		this._gainNode = this._context.createGain();
-		this._gainNode.gain.value = 0.25; // 25% volume
-		this._gainNode.connect(this._context.destination);
-		this._muteSound = false
+		this._gainNode.gain.value = 0.2; // 20% volume
+		this._gainNode.connect(this._masterGainNode);
+
+		this._lobbyTheme = new Audio(`${this._audioLocation}/lobby-theme.mp3`);
+		this._lobbyTheme.crossOrigin = "anonymous";
+		this._lobbyTheme.loop = true;
+		this._lobbyThemeNode = this._context.createMediaElementSource(this._lobbyTheme);
+		this._lobbyThemeNode.connect(this._masterGainNode);
 
 		this._gameTheme = new Audio(`${this._audioLocation}/game-theme.mp3`);
-		this._lobbyTheme = new Audio(`${this._audioLocation}/lobby-theme.mp3`);
-		this._lobbyTheme.loop = true;
-		this._win = { djingle: null, theme: null };
-		this._lose = { djingle: null, theme: null };
+		this._gameTheme.crossOrigin = "anonymous";
+		this._gameThemeNode = this._context.createMediaElementSource(this._gameTheme);
+		this._gameThemeNode.connect(this._masterGainNode);
+
+		this._win = { djingle: null, theme: null, themeNode: null };
+		this._lose = { djingle: null, theme: null, themeNode: null };
 		this._loadGameSounds();
 	}
 
 	private _loadGameSounds = async () => {
 		// set up win djingle
+		const winAudio = new Audio(`${this._audioLocation}/win-theme.mp3`);
+		winAudio.crossOrigin = "anonymous";
+		winAudio.loop = true;
 		this._win = {
 			djingle: await this._loadSound(`${this._audioLocation}/win-djingle.mp3`),
-			theme: new Audio(`${this._audioLocation}/win-theme.mp3`)
+			theme: winAudio,
+			themeNode: this._context.createMediaElementSource(winAudio)
 		};
-		this._win.theme!.loop = true;
+		this._win.themeNode?.connect(this._masterGainNode);
+
+		const loseAudio = new Audio(`${this._audioLocation}/lose-theme.mp3`);
+		loseAudio.crossOrigin = "anonymous";
+		loseAudio.loop = true;
 		this._lose = {
 			djingle: await this._loadSound(`${this._audioLocation}/lose-djingle.mp3`),
-			theme: new Audio(`${this._audioLocation}/lose-theme.mp3`)
+			theme: loseAudio,
+			themeNode: this._context.createMediaElementSource(loseAudio)
 		};
-		this._lose.theme!.loop = true;
+		this._lose.themeNode?.connect(this._masterGainNode);
 	}
 
 	private _loadSound = async (url: string) => {
@@ -218,9 +245,9 @@ class GameSoundEngine {
 	}
 
 	public muteSound = () => {
-		this._muteSound = !this._muteSound
-		this._muteSound ? this._gainNode.gain.value = 0.0: this._gainNode.gain.value = 0.25
-		//TODO: this works but the sound doesnt change
+		this._soundMuted = !this._soundMuted;
+		this._masterGainNode.gain.value = this._soundMuted ? 0.0 : 1.0;
+		return this._soundMuted;
 	}
 
 }
