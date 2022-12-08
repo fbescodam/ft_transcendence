@@ -31,7 +31,7 @@ class GameSoundEngine {
 		this._soundMuted = false;
 
 		this._gainNode = this._context.createGain();
-		this._gainNode.gain.value = 0.25; // 25% volume
+		this._gainNode.gain.value = 0.2; // 20% volume
 		this._gainNode.connect(this._masterGainNode);
 
 		this._lobbyTheme = new Audio(`${this._audioLocation}/lobby-theme.mp3`);
