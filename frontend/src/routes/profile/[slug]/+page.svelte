@@ -189,7 +189,7 @@ function spectateUser() {
 					{#each user.games as game}
 						{#if game.players != undefined}
 							{#if game.players.length > 1 && game.status == "ENDED"}
-								<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={{p1: game.loserScore, p2: game.victorScore}} winner={game.winnerId == game.players[0].id ? "p1" : "p2"} />
+								<MatchScore p1Avatar={game.players[0].avatar} p2Avatar={game.players[1].avatar} score={(game.winnerId == game.players[0].id ? {p1: game.loserScore, p2: game.victorScore} : {p1: game.victorScore, p2: game.loserScore})} winner={game.winnerId == game.players[0].id ? "p1" : "p2"} />
 							{/if}
 						{:else}
 							<p><b>Yo Leon fix this, game is undefined</b></p>
