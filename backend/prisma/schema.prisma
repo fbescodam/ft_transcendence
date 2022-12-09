@@ -19,7 +19,6 @@ model User {
 	name      String   @unique
 	intraName String   @unique
 	email     String   @unique
-	role      Role     @default(USER)
 	joinedAt  DateTime @default(now())
 	avatar    String
 

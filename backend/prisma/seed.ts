@@ -8,7 +8,6 @@ async function main() {
       intraId: 80962,
       intraName: "clafoutis",
       avatar: "avatars/adminavatar",
-      role: Role.ADMIN,
       email: "totally an email",
       channels: { create: [
         {

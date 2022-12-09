@@ -127,6 +127,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (!userInChannel)
+				return { error: "channel does not exist" };
 			if (userInChannel.users.length == 0)
 				return { error: "you are not in this channel" };
 			if (userInChannel.users[0].role == Role.MUTED)
@@ -233,6 +235,8 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER, userInChannel.users[0].role != Role.DMOWNER)
@@ -471,6 +475,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not in channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
@@ -508,6 +514,8 @@ export class MainGateway implements OnGatewayDisconnect {
 					}
 				}
 			})
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
@@ -600,19 +608,28 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
-			const userToAdmin = await this.prismaService.user.findUnique({
-				where: { intraName: data["adminUser"] },
+			const userToAdmin = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["adminUser"]
+						}
+					}
+				}
 			});
-			if (!userToAdmin)
-				return {error:"user does not exist"};
-			if (userToAdmin.intraName == data["user"]["intraName"])
+			if (userToAdmin.users.length == 0)
+				return {error:"user is not part of channel"};
+			if (userToAdmin.users[0].userName == data["user"]["intraName"])
 				return {error:"cannot admin yourself"};
-			if (userToAdmin.role == Role.OWNER || userToAdmin.role == Role.ADMIN)
+			if (userToAdmin.users[0].role == Role.OWNER || userToAdmin.users[0].role == Role.ADMIN)
 				return {error:"user is already admin"};
 
 			await this.prismaService.channel.update({
@@ -629,7 +646,7 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
-			this.logger.log(`${data["adminUSer"]} made admin in ${data["channelName"]}`);
+			this.logger.log(`${data["user"]["intraName"]} made admin in ${data["channelName"]}`);
 			return { status: "user made admin" };
 		}
 		catch (e) {
@@ -662,19 +679,30 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
-			const userToMute = await this.prismaService.user.findUnique({
-				where: { intraName: data["muteUser"] as string },
+			const userToMute = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["muteUser"]
+						}
+					}
+				}
 			})
-			if (!userToMute)
-				return {error:"user does not exist"};
-			if (userToMute.intraName == data["user"].intraName)
+			if (userToMute.users.length == 0)
+				return {error:"user is not part of channel"};
+			if (userToMute.users[0].userName == data["user"].intraName)
 				return {error:"can't mute yourself"};
-			if (userToMute.role == Role.MUTED)
+			if (userToMute.users[0].role == Role.OWNER || userToMute.users[0].role == Role.ADMIN)
+				return {error:"can't mute admin"};
+			if (userToMute.users[0].role == Role.MUTED)
 				return {error:"user already muted"};
 
 			await this.prismaService.channel.update({
@@ -724,19 +752,28 @@ export class MainGateway implements OnGatewayDisconnect {
 			}
 			})
 
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
-			const userToMute = await this.prismaService.user.findUnique({
-				where: { intraName: data["muteUser"] as string },
+			const userToMute = await this.prismaService.channel.findUnique({
+				where: { name:data["channelName"] },
+				select: {
+					users: {
+						where: {
+							userName: data["muteUser"]
+						}
+					}
+				}
 			})
-			if (!userToMute)
-				return {error:"user does not exist"};
-			if (userToMute.intraName == data["user"].intraName)
+			if (userToMute.users.length == 0)
+				return {error:"user is not part of channel"};
+			if (userToMute.users[0].userName == data["user"].intraName)
 				return {error:"can't unmute yourself"};
-			if (userToMute.role != Role.MUTED)
+			if (userToMute.users[0].role != Role.MUTED)
 				return {error:"user is not muted"};
 
 			await this.prismaService.channel.update({
@@ -789,21 +826,14 @@ export class MainGateway implements OnGatewayDisconnect {
 				}
 			})
 
+			if (!userInChannel)
+				return {error:"channel does not exist"};
 			if (userInChannel.users.length == 0)
 				return {error:"not part of channel"};
 			if (userInChannel.users[0].role != Role.ADMIN && userInChannel.users[0].role != Role.OWNER)
 				return {error:"not an admin"};
 
-			const userToKick = await this.prismaService.user.findUnique({
-				where: { intraName: data["kickUser"] as string },
-			})
-			if (!userToKick)
-				return {error:"user does not exist"};
-			if (userToKick.intraName == data["user"].intraName)
-				return {error:"can't kick yourself"};
-
-			// check if user to kick is owner
-			const channelUserToKick = await this.prismaService.channel.findUnique({
+			const userToKick = await this.prismaService.channel.findUnique({
 				where: { name:data["channelName"] },
 				select: {
 					users: {
@@ -812,10 +842,12 @@ export class MainGateway implements OnGatewayDisconnect {
 						}
 					}
 				}
-			})
-			if (channelUserToKick.users.length == 0)
+			});
+			if (userToKick.users.length == 0)
 				return {error:"user not part of channel"};
-			if (channelUserToKick.users[0].role == Role.OWNER)
+			if (userToKick.users[0].userName == data["user"].intraName)
+				return {error:"can't kick yourself"};
+			if (userToKick.users[0].role == Role.OWNER)
 				return {error:"can't kick owner"};
 
 			await this.prismaService.channel.update({
