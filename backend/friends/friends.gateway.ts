@@ -75,6 +75,9 @@ export class FriendsGateway {
 				include: {friends: true}
 			})
 
+			if (checkFriend.intraName == data["user"].intraName)
+				return {error: "please find the suicide hotline of your location"}
+
 			const user = await this.prismaService.user.findFirst({
 				where: {intraName: data["user"].intraName},
 				select: {
