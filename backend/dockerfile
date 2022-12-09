@@ -8,13 +8,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 COPY package*.json ./
 
-RUN npm clean-install 
+RUN npm clean-install
 
 COPY . .
 
 RUN npx prisma generate
 RUN npm run build
-RUN echo "penis"
 
 EXPOSE 3000
 

@@ -66,13 +66,13 @@ export class MainGateway implements OnGatewayDisconnect {
 	@UseGuards(JwtGuard)
 	@SubscribeMessage("getUserData")
 	public async getUserData(@MessageBody() data: object) {
-		if (!("penis" in data))
-			return { error: "missing required parameter penis" };
+		if (!("u" in data))
+			return { error: "missing required parameter u" };
 
-		this.logger.log(`getting user data for ${data["penis"]}`);
+		this.logger.log(`getting user data for ${data["u"]}`);
 		const user = await this.prismaService.user.findFirst({
 			where: {
-				intraName: data["penis"]
+				intraName: data["u"]
 			},
 			select: {
 				name: true,

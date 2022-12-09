@@ -39,7 +39,7 @@ onMount(() => {
 	io = initSocket($page.url.hostname, $JWT!);
 	console.log($page.params.slug)
 	console.log($displayName)
-	io.emit("getUserData", {penis: $page.params.slug }, function (data: any) {
+	io.emit("getUserData", {u: $page.params.slug }, function (data: any) {
 		console.log("getUserData:", data);
 		if ("error" in data) {
 			// Disgusting hack because I can't read.
