@@ -93,6 +93,17 @@ function killUser(e: SubmitEvent) {
 			break;
 		}
 
+		case "4": {
+			io.emit("makeUserAdmin", { adminUser: userInput.value, channelName: channel.channelName }, function (e:any) {
+				if ("error" in e) {
+					alert(e.error);
+					return;
+				}
+				alert(`User ${userInput.value} has been made admin`);
+			})
+			break;
+		}
+
 		default:
 			alert(`Lol no? ${userInput.value}`);
 			break;
@@ -142,6 +153,7 @@ function removePW() {
 					<option selected value="1">Mute</option>
 					<option value="2">Kick / Ban</option>
 					<option value="3">Unmute</option>
+					<option value="4">Make Admin</option>
 				</select>
 				<hr/>
 				<Button type="submit">Submit</Button>
