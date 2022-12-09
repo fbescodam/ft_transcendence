@@ -610,7 +610,7 @@ export class MainGateway implements OnGatewayDisconnect {
 			});
 			if (!userToAdmin)
 				return {error:"user does not exist"};
-			if (userToAdmin.intraName == data["adminUser"])
+			if (userToAdmin.intraName == data["user"]["intraName"])
 				return {error:"cannot admin yourself"};
 			if (userToAdmin.role == Role.OWNER || userToAdmin.role == Role.ADMIN)
 				return {error:"user is already admin"};
