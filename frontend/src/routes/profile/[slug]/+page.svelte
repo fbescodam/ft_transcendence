@@ -1,14 +1,4 @@
-<!-----------------------------------------------------------------------------
- Codam Coding College, Amsterdam @ 2022.
- See README in the root project for more information.
------------------------------------------------------------------------------->
-
 <!-- Scripting -->
-
-<!-- // io.on("sendMsg", function (message: any) { // Listen to the message event
-// 		if (message.channel == openChannel)
-// 			messages = [...messages, { senderName: message.user, text: message.text}]
-// }) -->
 
 <script lang="ts">
 import Container from "$lib/Components/Container/Container.svelte";
