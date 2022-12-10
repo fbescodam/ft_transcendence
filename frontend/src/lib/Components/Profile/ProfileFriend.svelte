@@ -19,30 +19,6 @@ import { goto } from "$app/navigation";
 export let io: Socket;
 export let profile: User;
 
-function enterDM() {
-	console.log("DM a friend!");
-
-	io.emit('', { }, (answer: any) => {
-
-	});
-}
-
-function inviteFriend() {
-	console.log("Invited a friend!");
-
-	io.emit('', { }, (answer: any) => {
-
-	});
-}
-
-function removeFriend() {
-	console.log("Removed friend!");
-
-	io.emit('', { }, (answer: any) => {
-
-	});
-}
-
 </script>
 
 <!-- HTML -->
